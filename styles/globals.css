@@ -40,7 +40,7 @@
   --card-border-rgb: 131, 134, 135;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
@@ -105,3 +105,50 @@ a {
     color-scheme: dark;
   }
 }
+
+.Mui-selected {
+  background-color: lightgrey !important;
+}
+
+.small-space {
+  height: 20px;
+  width: 100;
+}
+
+.medium-space {
+  height: 50px;
+  width: 100;
+}
+
+.large-space {
+  height: 100px;
+  width: 100;
+}
+
+.main {
+  width: calc(100% - 250px);
+  margin-left: 250px;
+  min-height: 100vh;
+  padding: 6rem;
+  margin-top: 2rem;
+}
+
+.text-label {
+  width: 500px;
+}
+
+.horizontal-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.file-input {
+  width: 500px;
+}
+
+.full-width {
+  width: 100%;
+  justify-content: space-between;
+}
+
