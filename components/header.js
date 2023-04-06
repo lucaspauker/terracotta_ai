@@ -18,7 +18,7 @@ export default function Header() {
         <DeblurIcon fontSize={'large'}/>
         <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30, fontWeight: 'bold',
             letterSpacing: 2}}>
-          &nbsp;Sharpen
+          &nbsp;Canopy
         </Typography>
         <Button variant='outlined' color="inherit">Login</Button>
       </Toolbar>

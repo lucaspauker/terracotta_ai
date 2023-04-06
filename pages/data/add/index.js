@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -8,76 +8,95 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
+import AWS from 'aws-sdk'
 
 import styles from '@/styles/Data.module.css'
+
+const S3_BUCKET ='canopy-ai-labs';
+const REGION ='us-west-1';
+
+AWS.config.update({
+  accessKeyId: 'AKIAUSK3QUU7AKEWWSG4',
+  secretAccessKey: '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'
+})
+
+const myBucket = new AWS.S3({
+    params: { Bucket: S3_BUCKET},
+    region: REGION,
+})
 
 export default function Add() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [type, setType] = useState('class');
+  const nameRef = useRef();
+  const [error, setError] = useState();
+  const [type, setType] = useState('classification');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [progress , setProgress] = useState(0);
 
-  const handleUploadFile = () => {
+  const handleFileInput = (e) => {
+    setSelectedFile(e.target.files[0]);
+    console.log(e.target.files[0]);
+    uploadFile(e.target.files[0]);
+  }
+
+  const uploadFile = (file) => {
+    const params = {
+      ACL: 'public-read',
+      Body: file,
+      Bucket: S3_BUCKET,
+      Key: 'raw_finetune_data/' + file.name,
+    };
+
+    myBucket.putObject(params)
+      .on('httpUploadProgress', (evt) => {
+        setProgress(Math.round((evt.loaded / evt.total) * 100))
+      })
+      .send((err) => {
+        if (err) console.log(err)
+      })
   }
 
   const handleCreateDataset = () => {
+    axios.post("http://localhost:3005/data/add", {
+        name: nameRef.current.value,
+        type: type,
+        filename: "foobar.csv",
+        datetime: Date.now(),
+      }).then((res) => {
+        console.log(res.data);
+        setError();
+      }).catch((error) => {
+        console.log(error);
+        setError(error.response.data);
+      });
   }
-
-  useEffect(() => {
-    axios.get("http://localhost:3005/data/list").then((res) => {
-      console.log(res.data);
-      setDatasets(res.data);
-      setLoading(false);
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
 
   return (
     <div className='main'>
+      <Button variant='contained' color="secondary" component={Link} href="/data">
+        Back
+      </Button>
       <Typography variant='h4' className={styles.header}>
-        Data Management
+        Create Dataset
       </Typography>
-      <div className='medium-space' />
-
-      <Typography variant='h5'>
-        Your datasets
-      </Typography>
-      {loading ?
-        <CircularProgress />
-        :
-        <div>
-          {datasets.length > 0 ?
-            <div>
-              <p>{datasets[0]["name"]}</p>
-              <p>{datasets.length}</p>
-              {datasets.map((d, index) => {
-                <h1>Foo</h1>
-              })}
-            </div>
-            :
-            <Typography variant='body1'>
-              No datasets found :(
-              Create a dataset below!
-            </Typography>
-          }
-        </div>
-      }
-      <div className='large-space' />
-      <Divider />
-      <div className='large-space' />
-
-      <Typography variant='h5'>
-        Create new dataset
-      </Typography>
-      <Typography variant='body2'>
+      <Typography variant='body1'>
         Upload your data and save it to fine tune later! Supported file formats:
         JSON, CSV, JSONL.
       </Typography>
       <div className='medium-space' />
 
-      <TextField id="outlined-basic" label="Dataset name" variant="outlined" className='text-label'/>
+      <TextField
+        id="outlined-basic"
+        label="Dataset name"
+        variant="outlined"
+        className='text-label'
+        inputRef={nameRef}
+      />
+      {error ? <Typography variant='body2' color='red'>
+          Error: {error}
+        </Typography> : null}
       <div className='medium-space' />
 
       <div className="horizontal-box">
@@ -90,7 +109,7 @@ export default function Add() {
           onChange={(e, val) => setType(val)}
           aria-label="text alignment"
         >
-          <ToggleButton value="class">
+          <ToggleButton value="classification">
             <Typography variant='body1'>
               Classification
             </Typography>
@@ -105,14 +124,18 @@ export default function Add() {
       <div className='medium-space' />
 
       <div className="file-input">
-      <Button variant="outlined" component="label">
-        Upload file
-        <input type="file" accept=".csv, .json" ref={(domFileRef) => {setSelectedFile(domFileRef)}}  hidden/>
-      </Button>
+        <div className='horizontal-box'>
+          <Button variant="outlined" color="primary" component="label">
+            Upload file
+            <input type="file" accept=".csv, .json" onChange={handleFileInput}  hidden/>
+          </Button>
+          <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFile ? selectedFile.name : null}</Typography>
+        </div>
       </div>
+      <Typography>File upload progress: {progress}%</Typography>
       <div className='medium-space' />
 
-      <Button variant='contained' color="success" onClick={handleCreateDataset}>Create dataset</Button>
+      <Button variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
     </div>
   )
 }

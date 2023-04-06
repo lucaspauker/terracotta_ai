@@ -110,19 +110,24 @@ a {
   background-color: lightgrey !important;
 }
 
+.tiny-space {
+  height: 10px;
+  width: 100%;
+}
+
 .small-space {
   height: 20px;
-  width: 100;
+  width: 100%;
 }
 
 .medium-space {
   height: 50px;
-  width: 100;
+  width: 100%;
 }
 
 .large-space {
   height: 100px;
-  width: 100;
+  width: 100%;
 }
 
 .main {
@@ -150,5 +155,21 @@ a {
 .full-width {
   width: 100%;
   justify-content: space-between;
+}
+
+.button-margin {
+  margin: 0px 5px;
+}
+
+.simple-select {
+  width: 200px;
+}
+
+.prompt {
+  width: 800px;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color:#d6daef;
 }
 

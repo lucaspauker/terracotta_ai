@@ -25,7 +25,9 @@ export default function Navbar() {
   const isSelected = (p) => {
     if (router.pathname === '/' && p === 'Dashboard') {
       return true;
-    } else if (router.pathname === '/data' && p === 'Data') {
+    } else if (router.pathname.startsWith('/data') && p === 'Data') {
+      return true;
+    } else if (router.pathname.startsWith('/models') && p === 'Models') {
       return true;
     } else {
       return false;
@@ -37,6 +39,8 @@ export default function Navbar() {
       return '/';
     } else if (p === 'Data') {
       return '/data';
+    } else if (p === 'Models') {
+      return '/models';
     } else {
       return '/';
     }
@@ -53,14 +57,14 @@ export default function Navbar() {
         <Toolbar />
         <Divider />
         <List>
-          {['Dashboard', 'Data', 'Models', 'Metrics'].map((text, index) => (
+          {['Dashboard', 'Data', 'Train', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
             <ListItem key={text} disablePadding button component={Link} href={getLink(text)}>
               <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
                   {text === 'Data' ? <TextSnippetIcon /> :
                    text === 'Models' ? <LightbulbIcon /> :
                    text === 'Dashboard' ? <DashboardIcon /> :
-                   text === 'Metrics' ? <FunctionsIcon /> : null}
+                   text === 'Evaluate' ? <FunctionsIcon /> : null}
                 </ListItemIcon>
                 <ListItemText primary={text} />
               </ListItemButton>
