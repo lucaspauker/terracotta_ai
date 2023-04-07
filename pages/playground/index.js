@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -13,36 +13,18 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import axios from 'axios';
-import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css'
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context)
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
-
-  return {
-    props: { session }
-  }
-}
 
 export default function Train() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
-  const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
   const [type, setType] = useState('class');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const promptRef = useRef();
 
   useEffect(() => {
     axios.get("/api/data/list").then((res) => {
@@ -59,28 +41,15 @@ export default function Train() {
   return (
     <div className='main'>
       <Typography variant='h4' className={styles.header}>
-        Train Model
+        Playground
       </Typography>
       <div className='medium-space' />
 
       <Typography variant='body1'>
-        Base model
+        Model
       </Typography>
       <div className='tiny-space' />
       <FormControl>
-        <InputLabel id="provider-label">Provider</InputLabel>
-        <Select
-          labelId="provider-label"
-          className="simple-select"
-          value={provider}
-          label="Provider"
-          onChange={(e) => setProvider(e.target.value)}
-        >
-          <MenuItem value={'openai'}>OpenAI</MenuItem>
-          <MenuItem value={'anthropic'}>Anthropic</MenuItem>
-        </Select>
-      </FormControl>
-      <FormControl className='button-margin' disabled={provider !== 'openai'}>
         <InputLabel id="model-label">Model</InputLabel>
         <Select
           labelId="model-label"
@@ -97,27 +66,18 @@ export default function Train() {
       </FormControl>
       <div className='medium-space' />
 
+
       <Typography variant='body1'>
-        Dataset
+        Prompt
       </Typography>
       <div className='tiny-space' />
-      {loading ?
-        <CircularProgress /> :
-        <FormControl>
-          <InputLabel id="dataset-label">Dataset</InputLabel>
-          <Select
-            labelId="dataset-label"
-            className="simple-select"
-            value={dataset}
-            label="Dataset"
-            onChange={(e) => setDataset(e.target.value)}
-          >
-            {datasets.map((d, i) => (
-              <MenuItem value={d.name} key={i}>{d.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      }
+      <TextField
+        label="Summarize the article..."
+        multiline
+        rows={10}
+        className='prompt'
+        inputRef={promptRef}
+      />
       <div className='medium-space' />
 
       <Button variant='contained' color="primary">Finetune</Button>

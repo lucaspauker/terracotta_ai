@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -42,27 +43,35 @@ export async function getServerSideProps(context) {
   }
 }
 
-export default function Add() {
+export default function DataPage() {
   const [loading, setLoading] = useState(true);
-  const [datasets, setDatasets] = useState([]);
-  const nameRef = useRef();
-  const [error, setError] = useState();
+  const [dataset, setDataset] = useState({name: '', type: 'classification'});
+  const [error, setError] = useState('');
   const [type, setType] = useState('classification');
-  const [selectedFile, setSelectedFile] = useState();
+  const [selectedFile, setSelectedFile] = useState('');
 	const [isFilePicked, setIsFilePicked] = useState(false);
-  const [progress , setProgress] = useState(0);
+  const nameRef = useRef();
+  const router = useRouter()
+  const { dataset_id } = router.query
 
-  const handleFileInput = (e) => {
-    setSelectedFile(e.target.files[0]);
-    uploadFile(e.target.files[0]);
-  }
+  useEffect(() => {
+    axios.get("/api/data/" + dataset_id).then((res) => {
+      console.log(res.data);
+      if (res.data !== "No data found") {
+        setDataset(res.data);
+      }
+      setLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, []);
 
-  const uploadFile = (file) => {
+  const getFile = (file) => {
     const params = {
       ACL: 'public-read',
       Body: file,
       Bucket: S3_BUCKET,
-      Key: 'raw_data/' + file.name,
+      Key: 'raw_finetune_data/' + file.name,
     };
 
     myBucket.putObject(params)
@@ -71,22 +80,7 @@ export default function Add() {
       })
       .send((err) => {
         if (err) console.log(err)
-      });
-  }
-
-  const handleCreateDataset = () => {
-    axios.post("/api/data/add", {
-        name: nameRef.current.value,
-        type: type,
-        filename: "foobar.csv",
-        datetime: Date.now(),
-      }).then((res) => {
-        console.log(res.data);
-        setError();
-      }).catch((error) => {
-        console.log(error);
-        setError(error.response.data);
-      });
+      })
   }
 
   return (
@@ -95,11 +89,7 @@ export default function Add() {
         Back
       </Button>
       <Typography variant='h4' className={styles.header}>
-        Create Dataset
-      </Typography>
-      <Typography variant='body1'>
-        Upload your data and save it to fine tune later! Supported file formats:
-        JSON, CSV, JSONL.
+        Dataset View
       </Typography>
       <div className='medium-space' />
 
@@ -108,7 +98,8 @@ export default function Add() {
         label="Dataset name"
         variant="outlined"
         className='text-label'
-        inputRef={nameRef}
+        value={dataset.name}
+        onChange={(e) => setDataset(e.target.value)}
       />
       {error ? <Typography variant='body2' color='red'>
           Error: {error}
@@ -139,21 +130,8 @@ export default function Add() {
       </div>
       <div className='medium-space' />
 
-      <div className="file-input">
-        <div className='horizontal-box flex-start'>
-          <Button variant="outlined" color="primary" component="label">
-            Upload file
-            <input type="file" accept=".csv, .json" onChange={handleFileInput}  hidden/>
-          </Button>
-          {selectedFile ?
-            <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFile.name}</Typography>
-            : null}
-        </div>
-      </div>
-      <Typography>File upload progress: {progress}%</Typography>
-      <div className='medium-space' />
-
-      <Button variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
+      <Button variant='contained' color="primary">Save</Button>
+      <Button variant='contained' color="error">Delete</Button>
     </div>
   )
 }

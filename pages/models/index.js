@@ -42,7 +42,7 @@ export default function Models() {
   ];
 
   useEffect(() => {
-    axios.get("http://localhost:3005/model/list").then((res) => {
+    axios.get("/api/model/list").then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
         let data = res.data;

@@ -15,8 +15,26 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import axios from 'axios';
+import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css'
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 export default function Data() {
   const [loading, setLoading] = useState(true);
@@ -26,7 +44,7 @@ export default function Data() {
 	const [isFilePicked, setIsFilePicked] = useState(false);
 
   useEffect(() => {
-    axios.get("http://localhost:3005/data/list").then((res) => {
+    axios.get("/api/data/list").then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
         setDatasets(res.data);
@@ -72,7 +90,7 @@ export default function Data() {
                       key={dataset._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
-                      <TableCell>{dataset.name}</TableCell>
+                      <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
                       <TableCell>{dataset._id}</TableCell>
                       <TableCell>{dataset.name}</TableCell>
                     </TableRow>

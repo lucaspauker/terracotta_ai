@@ -15,7 +15,7 @@ const theme = createTheme({
   },
 });
 
-export default function Layout({ children }) {
+export function Layout({ children }) {
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -26,6 +26,20 @@ export default function Layout({ children }) {
       </Head>
       <Header />
       <Navbar />
+      <main>{children}</main>
+    </ThemeProvider>
+  )
+}
+
+export function SimpleLayout({ children }) {
+  return (
+    <ThemeProvider theme={theme}>
+      <Head>
+        <title>Canopy LLM Management</title>
+        <meta name="description" content="Sharpen LLM Management" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main>{children}</main>
     </ThemeProvider>
   )

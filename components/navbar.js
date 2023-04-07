@@ -14,6 +14,8 @@ import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import DiamondIcon from '@mui/icons-material/Diamond';
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 
@@ -23,11 +25,15 @@ export default function Navbar() {
   const router = useRouter();
 
   const isSelected = (p) => {
-    if (router.pathname === '/' && p === 'Dashboard') {
+    if (router.pathname === '/dashboard' && p === 'Dashboard') {
       return true;
     } else if (router.pathname.startsWith('/data') && p === 'Data') {
       return true;
     } else if (router.pathname.startsWith('/models') && p === 'Models') {
+      return true;
+    } else if (router.pathname.startsWith('/train') && p === 'Train') {
+      return true;
+    } else if (router.pathname.startsWith('/playground') && p === 'Playground') {
       return true;
     } else {
       return false;
@@ -36,11 +42,15 @@ export default function Navbar() {
 
   const getLink = (p) => {
     if (p === 'Dashboard') {
-      return '/';
+      return '/dashboard';
     } else if (p === 'Data') {
       return '/data';
     } else if (p === 'Models') {
       return '/models';
+    } else if (p === 'Train') {
+      return '/train';
+    } else if (p === 'Playground') {
+      return '/playground';
     } else {
       return '/';
     }
@@ -63,6 +73,8 @@ export default function Navbar() {
                 <ListItemIcon>
                   {text === 'Data' ? <TextSnippetIcon /> :
                    text === 'Models' ? <LightbulbIcon /> :
+                   text === 'Train' ? <DiamondIcon /> :
+                   text === 'Playground' ? <PlayCircleFilledWhiteIcon /> :
                    text === 'Dashboard' ? <DashboardIcon /> :
                    text === 'Evaluate' ? <FunctionsIcon /> : null}
                 </ListItemIcon>
