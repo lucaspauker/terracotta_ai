@@ -31,8 +31,7 @@ export default function Header() {
     >
       <Toolbar>
         <ForestIcon fontSize={'large'}/>
-        <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30, fontWeight: 'bold',
-            letterSpacing: 2}}>
+        <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30, fontWeight: 'bold', letterSpacing: 2}}>
           &nbsp;Canopy
         </Typography>
         <div className='horizontal-box'>

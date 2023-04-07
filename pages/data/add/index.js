@@ -45,12 +45,12 @@ export async function getServerSideProps(context) {
 export default function Add() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const nameRef = useRef();
   const [error, setError] = useState();
   const [type, setType] = useState('classification');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const [progress , setProgress] = useState(0);
+  const nameRef = useRef();
 
   const handleFileInput = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -78,7 +78,7 @@ export default function Add() {
     axios.post("/api/data/add", {
         name: nameRef.current.value,
         type: type,
-        filename: "foobar.csv",
+        filename: selectedFile.name,
         datetime: Date.now(),
       }).then((res) => {
         console.log(res.data);

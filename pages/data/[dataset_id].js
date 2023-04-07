@@ -8,6 +8,11 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import axios from 'axios';
 import AWS from 'aws-sdk'
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -53,6 +58,15 @@ export default function DataPage() {
   const nameRef = useRef();
   const router = useRouter()
   const { dataset_id } = router.query
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   useEffect(() => {
     axios.get("/api/data/" + dataset_id).then((res) => {
@@ -60,11 +74,23 @@ export default function DataPage() {
       if (res.data !== "No data found") {
         setDataset(res.data);
       }
+
+      // Load the file
+
       setLoading(false);
     }).catch((error) => {
       console.log(error);
     });
   }, []);
+
+  const doDelete = () => {
+    axios.post("/api/data/delete/" + dataset_id).then((res) => {
+      console.log(res.data);
+      window.location.href = '/data';
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
 
   const getFile = (file) => {
     const params = {
@@ -130,8 +156,28 @@ export default function DataPage() {
       </div>
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary">Save</Button>
-      <Button variant='contained' color="error">Delete</Button>
+      <Button variant='contained' color="primary">Update</Button>
+      <Button className='button-margin' variant='contained' color="error" onClick={handleClickOpen}>Delete</Button>
+
+      <Dialog
+        open={open}
+        onClose={handleClose}
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Delete dataset?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This action is permanent and cannot be reversed.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={doDelete} autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
