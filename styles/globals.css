@@ -216,3 +216,7 @@ a {
   color: blue;
 }
 
+.MuiDataGrid-root .MuiDataGrid-cell {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}

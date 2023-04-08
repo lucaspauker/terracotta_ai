@@ -115,7 +115,7 @@ export default function Add() {
         </Typography> : null}
       <div className='medium-space' />
 
-      <div className="horizontal-box">
+      <div className="horizontal-box flex-start">
         <Typography variant='body1'>
           Type of data:&nbsp;&nbsp;
         </Typography>
@@ -123,7 +123,6 @@ export default function Add() {
           value={type}
           exclusive
           onChange={(e, val) => setType(val)}
-          aria-label="text alignment"
         >
           <ToggleButton value="classification">
             <Typography variant='body1'>
