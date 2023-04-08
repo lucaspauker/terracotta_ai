@@ -42,6 +42,7 @@ export default function Data() {
   const [type, setType] = useState('class');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
     axios.get("/api/data/list").then((res) => {

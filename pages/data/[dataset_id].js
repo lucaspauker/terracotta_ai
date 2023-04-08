@@ -83,6 +83,7 @@ export default function DataPage() {
   const [error, setError] = useState('');
   const [type, setType] = useState('classification');
   const [filename, setFilename] = useState('');
+  const [displayFilename, setDisplayFilename] = useState('');
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const nameRef = useRef();
   const [open, setOpen] = useState(false);
@@ -107,6 +108,7 @@ export default function DataPage() {
       if (res.data !== "No data found") {
         setDataset(res.data);
         setFilename(res.data.filename);
+        setDisplayFilename(res.data.initial_filename);
 
         axios.post("/api/data/file", {
             filename: res.data.filename,
@@ -205,7 +207,7 @@ export default function DataPage() {
       <div className='medium-space' />
 
       <div>
-        <Typography>File name: {filename}</Typography>
+        <Typography>File name: {displayFilename}</Typography>
         <Typography>Number of rows: {rawData.length}</Typography>
       </div>
       {loading ? <CircularProgress /> :
