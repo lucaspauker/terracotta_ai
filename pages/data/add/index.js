@@ -9,6 +9,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
 import AWS from 'aws-sdk'
+import { v4 } from "uuid";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css'
@@ -47,22 +48,28 @@ export default function Add() {
   const [datasets, setDatasets] = useState([]);
   const [error, setError] = useState();
   const [type, setType] = useState('classification');
-  const [selectedFile, setSelectedFile] = useState();
+  const [selectedFile, setSelectedFile] = useState(null);
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [realFileName, setRealFileName] = useState('');
   const [progress , setProgress] = useState(0);
   const nameRef = useRef();
+  const descriptionRef = useRef();
+  const [user, setUser] = useState(null);
+  const { data: session } = useSession();
 
   const handleFileInput = (e) => {
     setSelectedFile(e.target.files[0]);
     uploadFile(e.target.files[0]);
   }
 
+  console.log(realFileName);
+
   const uploadFile = (file) => {
     const params = {
       ACL: 'public-read',
       Body: file,
       Bucket: S3_BUCKET,
-      Key: 'raw_data/' + file.name,
+      Key: 'raw_data/' + realFileName,
     };
 
     myBucket.putObject(params)
@@ -75,19 +82,43 @@ export default function Add() {
   }
 
   const handleCreateDataset = () => {
+    if (nameRef.current.value === '') {
+      setError("Please provide a name.");
+      return;
+    }
+    if (!selectedFile) {
+      setError("Please submit a file.");
+      return;
+    }
     axios.post("/api/data/add", {
         name: nameRef.current.value,
+        description: descriptionRef.current.value,
         type: type,
-        filename: selectedFile.name,
+        user_id: user._id,
+        filename: realFileName,
+        initial_filename: selectedFile.name,
         datetime: Date.now(),
       }).then((res) => {
         console.log(res.data);
         setError();
-      }).catch((error) => {
-        console.log(error);
-        setError(error.response.data);
+        window.location.href = '/data';
+      }).catch((err) => {
+        console.log(err);
+        setError(err.response.data.error);
       });
   }
+
+  useEffect(() => {
+    setRealFileName(v4() + ".csv");
+    axios.post("/api/user", {
+        email: session.user.email,
+      }).then((res) => {
+        setUser(res.data);
+        console.log(res.data);
+      }).catch((error) => {
+        console.log(error);
+      });
+  }, []);
 
   return (
     <div className='main'>
@@ -110,9 +141,14 @@ export default function Add() {
         className='text-label'
         inputRef={nameRef}
       />
-      {error ? <Typography variant='body2' color='red'>
-          Error: {error}
-        </Typography> : null}
+      <div className='small-space' />
+      <TextField
+        id="outlined-basic"
+        label="Description"
+        variant="outlined"
+        className='text-label'
+        inputRef={descriptionRef}
+      />
       <div className='medium-space' />
 
       <div className="horizontal-box flex-start">
@@ -152,6 +188,7 @@ export default function Add() {
       <Typography>File upload progress: {progress}%</Typography>
       <div className='medium-space' />
 
+      {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
       <Button variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
     </div>
   )

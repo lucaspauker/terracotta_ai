@@ -32,7 +32,7 @@ export default async function handler(request, response) {
       .collection("users")
       .findOne({email: email});
     if (filtered_user) {
-      response.status(400).json({error:"User name already exists, pick a unique name."});
+      response.status(200).json("User already exists, didn't do anything.");
       return;
     }
 
@@ -43,6 +43,7 @@ export default async function handler(request, response) {
           first_name: first_name,
           last_name: last_name,
           picture: picture,
+          datetime: datetime,
         });
     console.log(u);
     response.status(200).json(u);

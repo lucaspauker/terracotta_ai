@@ -19,11 +19,23 @@ export default async function handler(request, response) {
     const db = client.db("sharpen");
 
     const name = request.body.name;
+    const description = request.body.description;
     const type = request.body.type;
+    const user_id = request.body.user_id;
     const filename = request.body.filename;
+    const initial_filename = request.body.initial_filename;
     const datetime = request.body.datetime;
+
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
+      return;
+    }
+    if (filename === '') {
+      response.status(400).json({ error: 'Must provide a file' })
+      return;
+    }
+    if (user_id === '') {
+      response.status(400).json({ error: 'Must specify user' })
       return;
     }
 
@@ -39,8 +51,11 @@ export default async function handler(request, response) {
       .collection("datasets")
       .insertOne({
           name: name,
+          description: description,
           type: type,
+          user_id: user_id,
           filename: filename,
+          initial_filename: initial_filename,
           datetime: datetime,
         });
     console.log(d);
