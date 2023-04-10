@@ -8,23 +8,9 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
-import AWS from 'aws-sdk'
-import { v4 } from "uuid";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css'
-
-const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
-const REGION = process.env.NEXT_PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.NEXT_PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -48,97 +34,47 @@ export default function Add() {
   const [datasets, setDatasets] = useState([]);
   const [error, setError] = useState();
   const [type, setType] = useState('classification');
-  const [selectedFile, setSelectedFile] = useState(null);
-	const [isFilePicked, setIsFilePicked] = useState(false);
-  const [realFileName, setRealFileName] = useState('');
   const [progress , setProgress] = useState(0);
   const nameRef = useRef();
   const descriptionRef = useRef();
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
 
-  const handleFileInput = (e) => {
-    setSelectedFile(e.target.files[0]);
-    uploadFile(e.target.files[0]);
-  }
-
-  console.log(realFileName);
-
-  const uploadFile = (file) => {
-    const params = {
-      ACL: 'public-read',
-      Body: file,
-      Bucket: S3_BUCKET,
-      Key: 'raw_data/' + realFileName,
-    };
-
-    myBucket.putObject(params)
-      .on('httpUploadProgress', (evt) => {
-        setProgress(Math.round((evt.loaded / evt.total) * 100))
-      })
-      .send((err) => {
-        if (err) console.log(err)
-      });
-  }
-
-  const handleCreateDataset = () => {
+  const handleCreateProject = () => {
     if (nameRef.current.value === '') {
       setError("Please provide a name.");
       return;
     }
-    if (!selectedFile) {
-      setError("Please submit a file.");
-      return;
-    }
-    axios.post("/api/data/add", {
+    axios.post("/api/project/add", {
         name: nameRef.current.value,
-        description: descriptionRef.current.value,
         type: type,
-        filename: realFileName,
-        initial_filename: selectedFile.name,
         datetime: Date.now(),
       }).then((res) => {
         console.log(res.data);
         setError();
-        window.location.href = '/data';
+        window.location.href = '/dashboard';
       }).catch((err) => {
         console.log(err);
         setError(err.response.data.error);
       });
   }
 
-  useEffect(() => {
-    setRealFileName(v4() + ".csv");
-  }, []);
-
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" component={Link} href="/data">
+      <Button variant='contained' color="secondary" component={Link} href="/dashboard">
         Back
       </Button>
       <Typography variant='h4' className={styles.header}>
-        Create Dataset
-      </Typography>
-      <Typography variant='body1'>
-        Upload your data and save it to fine tune later! Supported file formats:
-        JSON, CSV, JSONL.
+        Create Project
       </Typography>
       <div className='medium-space' />
 
       <TextField
         id="outlined-basic"
-        label="Dataset name"
+        label="Project name"
         variant="outlined"
         className='text-label'
         inputRef={nameRef}
-      />
-      <div className='small-space' />
-      <TextField
-        id="outlined-basic"
-        label="Description"
-        variant="outlined"
-        className='text-label'
-        inputRef={descriptionRef}
       />
       <div className='medium-space' />
 
@@ -165,22 +101,8 @@ export default function Add() {
       </div>
       <div className='medium-space' />
 
-      <div className="file-input">
-        <div className='horizontal-box flex-start'>
-          <Button variant="outlined" color="primary" component="label">
-            Upload file
-            <input type="file" accept=".csv, .json" onChange={handleFileInput}  hidden/>
-          </Button>
-          {selectedFile ?
-            <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFile.name}</Typography>
-            : null}
-        </div>
-      </div>
-      <Typography>File upload progress: {progress}%</Typography>
-      <div className='medium-space' />
-
       {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-      <Button variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
+      <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
     </div>
   )
 }

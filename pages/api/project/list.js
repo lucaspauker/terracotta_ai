@@ -22,16 +22,13 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
-
     if (!user) {
       response.status(400).json({ error: 'User not found' });
       return;
     }
 
-    console.log(user._id);
-
     const datasets = await db
-      .collection("datasets")
+      .collection("projects")
       .find({userId: user._id})
       .toArray();
     response.status(200).json(datasets);

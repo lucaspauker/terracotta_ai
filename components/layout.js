@@ -19,8 +19,8 @@ export function Layout({ children }) {
   return (
     <ThemeProvider theme={theme}>
       <Head>
-        <title>Canopy LLM Management</title>
-        <meta name="description" content="Sharpen LLM Management" />
+        <title>Canopy</title>
+        <meta name="description" content="Canopy LLM Management" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

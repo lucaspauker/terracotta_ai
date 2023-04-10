@@ -103,8 +103,8 @@ export default function DataPage() {
   };
 
   useEffect(() => {
-    console.log(router.query);
-    axios.get("/api/data/" + dataset_id).then((res) => {
+    const last = window.location.href.split('/').pop();  // This is a hack
+    axios.get("/api/data/" + last).then((res) => {
       if (res.data !== "No data found") {
         setDataset(res.data);
         setFilename(res.data.filename);
@@ -206,10 +206,14 @@ export default function DataPage() {
       </div>
       <div className='medium-space' />
 
-      <div>
-        <Typography>File name: {displayFilename}</Typography>
-        <Typography>Number of rows: {rawData.length}</Typography>
-      </div>
+      {rawData.length > 0 ?
+        <div>
+          <div>
+            <Typography>File name: {displayFilename}</Typography>
+            <Typography>Number of rows: {rawData.length}</Typography>
+          </div>
+          <div className='small-space'/>
+        </div> : null }
       {loading ? <CircularProgress /> :
         <Paper>
           <TableContainer>

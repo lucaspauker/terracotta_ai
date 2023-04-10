@@ -72,8 +72,8 @@ export default function Train() {
         <Select
           labelId="provider-label"
           className="simple-select"
-          value={provider}
           label="Provider"
+          value={provider}
           onChange={(e) => setProvider(e.target.value)}
         >
           <MenuItem value={'openai'}>OpenAI</MenuItem>
