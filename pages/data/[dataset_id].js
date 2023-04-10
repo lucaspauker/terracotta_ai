@@ -28,55 +28,6 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css';
 
-//async function getMetadata(dataset_id) {
-//  const res = await fetch("http://localhost:3000/api/data/" + dataset_id);
-//  const res_json = await res.json();
-//  return res_json;
-//}
-//
-//async function getRawData(filename) {
-//  const body = { filename: filename };
-//  const res = await fetch("/api/data/file", {
-//      method: "POST",
-//      body: JSON.stringify(body),
-//    });
-//  const res_json = await res.json();
-//  return res_json;
-//}
-//
-//export async function getStaticProps(context) {
-//  const session = await getSession(context)
-//  console.log(context.params);
-//  const { dataset_id } = context.params.dataset_id;
-//
-//  if (!session) {
-//    return {
-//      redirect: {
-//        destination: '/',
-//        permanent: false,
-//      },
-//    }
-//  }
-
-  //const metadata = await getMetadata(dataset_id);
-
-  //try {
-  //  console.log(metadata);
-
-  //  body = { filename: metadata.data.filename};
-  //  let raw_data = await fetch("/api/data/file", {
-  //      method: "POST",
-  //      body: JSON.stringify(body),
-  //    });
-  //  metadata = metadata.data;
-  //  raw_data = raw_data.data;
-  //  return { props: { session, metadata, raw_data } }
-  //} catch (e) {
-  //  console.log(e);
-    //return { props: { session, metadata }};
-  //}
-//}
-
 export default function DataPage() {
   const [loading, setLoading] = useState(true);
   const [dataset, setDataset] = useState({name: '', type: 'classification'});
@@ -101,30 +52,6 @@ export default function DataPage() {
   const handleClose = () => {
     setOpen(false);
   };
-
-  useEffect(() => {
-    const last = window.location.href.split('/').pop();  // This is a hack
-    axios.get("/api/data/" + last).then((res) => {
-      if (res.data !== "No data found") {
-        setDataset(res.data);
-        setFilename(res.data.filename);
-        setDisplayFilename(res.data.initial_filename);
-
-        axios.post("/api/data/file", {
-            filename: res.data.filename,
-          }).then((json_data) => {
-            setRawData(json_data.data);
-            const rowsOnMount = json_data.data.slice(0, rowsPerPage);
-            setVisibleRows(rowsOnMount);
-            setLoading(false);
-          }).catch((error) => {
-            console.log(error);
-          });
-      }
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
 
   const doDelete = () => {
     axios.post("/api/data/delete/" + dataset_id).then((res) => {
@@ -159,6 +86,30 @@ export default function DataPage() {
       setVisibleRows(updatedRows);
     },
   );
+
+  useEffect(() => {
+    const last = window.location.href.split('/').pop();  // This is a hack
+    axios.get("/api/data/" + last).then((res) => {
+      if (res.data !== "No data found") {
+        setDataset(res.data);
+        setFilename(res.data.trainFileName);
+        setDisplayFilename(res.data.initialTrainFileName);
+
+        axios.post("/api/data/file", {
+            filename: res.data.trainFileName,
+          }).then((json_data) => {
+            setRawData(json_data.data);
+            const rowsOnMount = json_data.data.slice(0, rowsPerPage);
+            setVisibleRows(rowsOnMount);
+            setLoading(false);
+          }).catch((error) => {
+            console.log(error);
+          });
+      }
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, []);
 
   return (
     <div className='main'>
@@ -209,7 +160,7 @@ export default function DataPage() {
       {rawData.length > 0 ?
         <div>
           <div>
-            <Typography>File name: {displayFilename}</Typography>
+            <Typography>Train file name: {displayFilename}</Typography>
             <Typography>Number of rows: {rawData.length}</Typography>
           </div>
           <div className='small-space'/>

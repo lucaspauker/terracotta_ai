@@ -22,8 +22,12 @@ export default async function handler(request, response) {
     const description = request.body.description;
     const project_id = request.body.project_id;
     const filename = request.body.filename;
-    const initial_filename = request.body.initial_filename;
+    const trainFileName = request.body.trainFileName;
+    const initialTrainFileName = request.body.initialTrainFileName;
+    const valFileName = request.body.valFileName;
+    const initialValFileName = request.body.initialValFileName;
     const datetime = request.body.datetime;
+    const projectName = request.body.projectName;
 
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
@@ -44,9 +48,18 @@ export default async function handler(request, response) {
       return;
     }
 
+    // Get project ID
+    const project = await db
+      .collection("projects")
+      .findOne({userId: user_id, name: projectName});
+    if (!project) {
+      response.status(400).json({ error: 'Project not found' });
+      return;
+    }
+
     const filtered_dataset = await db
       .collection("datasets")
-      .findOne({name: name});
+      .findOne({name: name, projectId: project._id});
     if (filtered_dataset) {
       response.status(400).json({error:"Dataset name already exists, pick a unique name."});
       return;
@@ -58,9 +71,12 @@ export default async function handler(request, response) {
           name: name,
           description: description,
           userId: user_id,
-          projectId: project_id,
+          projectId: project._id,
           fileName: filename,
-          initialFileName: initial_filename,
+          trainFileName: trainFileName,
+          initialTrainFileName: initialTrainFileName,
+          valFileName: valFileName,
+          initialValFileName: initialValFileName,
           timeCreated: datetime,
         });
     console.log(d);
