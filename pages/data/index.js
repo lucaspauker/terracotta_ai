@@ -80,9 +80,10 @@ export default function Data() {
               <Table sx={{ minWidth: 650 }}>
                 <TableHead sx={{backgroundColor:'#d6daef'}}>
                   <TableRow>
-                    <TableCell>Dataset name</TableCell>
-                    <TableCell>Dataset ID</TableCell>
-                    <TableCell>Number of rows</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Data filename</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -93,7 +94,8 @@ export default function Data() {
                     >
                       <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
                       <TableCell>{dataset._id}</TableCell>
-                      <TableCell>{dataset.name}</TableCell>
+                      <TableCell>{dataset.description}</TableCell>
+                      <TableCell>{dataset.initialFileName}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

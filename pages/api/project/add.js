@@ -19,18 +19,11 @@ export default async function handler(request, response) {
     const db = client.db("sharpen");
 
     const name = request.body.name;
-    const description = request.body.description;
-    const project_id = request.body.project_id;
-    const filename = request.body.filename;
-    const initial_filename = request.body.initial_filename;
+    const type = request.body.type;
     const datetime = request.body.datetime;
 
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
-      return;
-    }
-    if (filename === '') {
-      response.status(400).json({ error: 'Must provide a file' })
       return;
     }
 
@@ -44,23 +37,23 @@ export default async function handler(request, response) {
       return;
     }
 
-    const filtered_dataset = await db
-      .collection("datasets")
-      .findOne({name: name});
-    if (filtered_dataset) {
-      response.status(400).json({error:"Dataset name already exists, pick a unique name."});
+    const projects = await db
+      .collection("projects")
+      .find({
+        user_id: user_id,
+        name: name,
+      });
+    if (projects.length > 0) {
+      response.status(400).json({error:"Project name already exists, pick a unique name."});
       return;
     }
 
     const d = await db
-      .collection("datasets")
+      .collection("projects")
       .insertOne({
           name: name,
-          description: description,
+          type: type,
           userId: user_id,
-          projectId: project_id,
-          fileName: filename,
-          initialFileName: initial_filename,
           timeCreated: datetime,
         });
     console.log(d);

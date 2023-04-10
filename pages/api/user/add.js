@@ -40,10 +40,10 @@ export default async function handler(request, response) {
       .collection("users")
       .insertOne({
           email: email,
-          first_name: first_name,
-          last_name: last_name,
+          firstName: first_name,
+          lastName: last_name,
           picture: picture,
-          datetime: datetime,
+          timeCreated: datetime,
         });
     console.log(u);
     response.status(200).json(u);
