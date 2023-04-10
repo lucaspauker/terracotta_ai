@@ -43,6 +43,21 @@ export default function Train() {
   const [type, setType] = useState('class');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [error, setError] = useState();
+
+  const handleFinetune = () => {
+    axios.post("/api/finetune/finetune", {
+        provider: setProvider.name,
+        model: setModel.name,
+        dataset: dataset.name,
+      }).then((res) => {
+        console.log(res.data);
+        setError();
+      }).catch((error) => {
+        console.log(error);
+        setError(error.response.data);
+      });
+  }
 
   useEffect(() => {
     axios.get("/api/data/list").then((res) => {
@@ -120,7 +135,7 @@ export default function Train() {
       }
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary">Finetune</Button>
+      <Button variant='contained' color="primary" onClick={handleFinetune}>Finetune </Button>
     </div>
   )
 }
