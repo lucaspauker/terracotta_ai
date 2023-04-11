@@ -45,6 +45,10 @@ export default function Add() {
       setError("Please provide a name.");
       return;
     }
+    let p = '';
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+    };
     axios.post("/api/project/add", {
         name: nameRef.current.value,
         type: type,
@@ -64,7 +68,7 @@ export default function Add() {
       <Button variant='contained' color="secondary" component={Link} href="/dashboard">
         Back
       </Button>
-      <Typography variant='h4' className={styles.header}>
+      <Typography variant='h4' className='page-main-header'>
         Create Project
       </Typography>
       <div className='medium-space' />

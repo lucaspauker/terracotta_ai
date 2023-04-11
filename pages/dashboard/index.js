@@ -59,7 +59,7 @@ export default function Dashboard() {
 
   return (
     <div className='main'>
-      <Typography variant='h4' className={styles.header}>
+      <Typography variant='h4' className='page-main-header'>
         Dashboard
       </Typography>
       <div className='medium-space' />

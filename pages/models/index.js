@@ -59,8 +59,8 @@ export default function Models() {
 
   return (
     <div className='main'>
-      <Typography variant='h4' className={styles.header}>
-        Your Models
+      <Typography variant='h4' className='page-main-header'>
+        Models
       </Typography>
       <div className='medium-space' />
 
@@ -68,11 +68,8 @@ export default function Models() {
         <Typography variant='h5'>
         </Typography>
         <div>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/data/add">
-            Compare models
-          </Button>
           <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/add">
-            + Create model
+            + Finetune model
           </Button>
         </div>
       </div>
@@ -97,7 +94,6 @@ export default function Models() {
             :
             <Typography variant='body1'>
               No models found :(
-              Create a dataset below!
             </Typography>
           }
         </div>
