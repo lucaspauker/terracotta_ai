@@ -9,9 +9,6 @@ from openai_validators import (
     write_out_file,
 )
 
-if __name__ == "__main__":
-    fire.Fire()
-
 def prepare_data(train_fname, val_fname):
     for fname in [train_fname, val_fname]:
         df, remediation = read_any_format(fname)
@@ -22,6 +19,9 @@ def prepare_data(train_fname, val_fname):
             fname,
             remediation,
             validators,
-            auto_accept,
+            True, # auto_accept
             write_out_file_func=write_out_file,
         )
+
+if __name__ == "__main__":
+    fire.Fire()

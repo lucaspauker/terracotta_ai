@@ -3,12 +3,12 @@ import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
 
-const mongo_client = new MongoClient(process.env.MONGODB_URI);
+const path = require('path');
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI);
 
 const { execSync } = require("child_process");
 
-const csv = require('csvtojson');
-// const client = new MongoClient(process.env.MONGODB_URI);
 const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
 const REGION = process.env.NEXT_PUBLIC_S3_REGION;
 
@@ -33,6 +33,7 @@ const fs = require('fs');
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })
+    return;
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -42,39 +43,45 @@ export default async function handler(request, response) {
   }
 
   try {
-    await mongo_client.connect();
-    const db = mongo_client.db("sharpen");
-
     const provider = request.body.provider;
     const model = request.body.model;
-    const dataset = request.body.dataset;
+    const datasetName = request.body.dataset;
 
-    // Need code for fetching dataset_id based on user_id and and dataset name
-    // Temporarily hardcoding dataset_id for testing
+    console.log(request.body)
 
-    // Retrieve file from S3 and write to disk
-    const dataset_id = "sport2_small.csv";
+    await mongoClient.connect();
+    const db = mongoClient.db("sharpen");
 
-    const params = {
-      Bucket: S3_BUCKET,
-      Key: 'raw_data/' + dataset_id,
-    };
-
-    console.log("Retreiving file: " + 'raw_data/' + dataset_id);
-    console.log(params);
+    const user = await db
+      .collection("users")
+      .findOne({email: session.user.email});
     
-    const stream = myBucket.getObject(params).createReadStream();
+    const userId = user._id;
 
-    const json_output = await csv().fromStream(stream);
+    const dataset = await db
+      .collection("datasets")
+      .findOne({userId: userId, name: datasetName});
 
-    const train_file_name = "sport2_small.json";
-    const val_file_name = "sport2_small_val.json";
+    //TODO: add logic for cases where we're training without a validation file
+    
+    const trainFileName = dataset.trainFileName
+    const valFileName = dataset.valFileName 
 
-    fs.writeFileSync(train_file_name, JSON.stringify(json_output))
+    const fileNames = [trainFileName, valFileName]
+
+    for(var i=0; i < 2; i++){
+      const fileName = fileNames[i]
+      const params = {
+        Bucket: S3_BUCKET,
+        Key: 'raw_data/' + fileName,
+      };
+
+      await downloadFile(params, fileName)
+    }
 
     // Use openai CLI tool to create train and validation jsonl files 
 
-    execSync(`prepare_data_openai.py prepare_data --train_fname ${train_file_name} --val_fname ${val_file_name} -q`, (error, stdout, stderr) => {
+    execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${trainFileName} --val_fname ${valFileName}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -88,28 +95,32 @@ export default async function handler(request, response) {
 
     // Upload files to openAI, need to modify this later and save into a new collection
 
-    const train_response = await openai.createFile(
-      fs.createReadStream("sport2_small_prepared_train.jsonl"),
-      "fine-tune"
-    );
-    console.log(train_response.data)
+    const preparedTrainFile = path.parse(trainFileName).name + "_prepared.jsonl";
+    const preparedValFile = path.parse(valFileName).name + "_prepared.jsonl";
 
-    const valid_response = await openai.createFile(
-      fs.createReadStream("sport2_small_prepared_valid.jsonl"),
+    console.log(preparedTrainFile)
+    const trainResponse = await openai.createFile(
+      fs.createReadStream(preparedTrainFile),
       "fine-tune"
     );
-    console.log(valid_response.data)
+    console.log(trainResponse.data);
+
+    const valResponse = await openai.createFile(
+      fs.createReadStream(preparedValFile),
+      "fine-tune"
+    );
+    console.log(valResponse.data);
 
     // Create finetune, need to remove hardcodes
-    const finetune_response = await openai.createFineTune({
-      training_file: train_response.data.id,
-      validation_file: valid_response.data.id,
+    const finetuneResponse = await openai.createFineTune({
+      training_file: trainResponse.data.id,
+      validation_file: valResponse.data.id,
       compute_classification_metrics: true,
       classification_positive_class: " baseball",
       model: "ada",
     });
 
-    console.log(finetune_response.data)
+    console.log(finetuneResponse.data)
 
     response.status(200).send();
 
@@ -117,4 +128,16 @@ export default async function handler(request, response) {
     console.error(e);
     response.status(400).json({ error: e })
   }
+}
+
+async function downloadFile(params, fileName) {
+  return new Promise((resolve, reject) => {
+    const readStream = myBucket.getObject(params).createReadStream();
+
+    console.log("Retreiving file: " + 'raw_data/' + fileName);
+    console.log(params);
+
+    const writeStream = fs.createWriteStream(fileName)
+    readStream.pipe(writeStream).on("finish", () => resolve())
+  });
 }

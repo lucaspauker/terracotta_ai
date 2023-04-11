@@ -47,9 +47,9 @@ export default function Train() {
 
   const handleFinetune = () => {
     axios.post("/api/finetune/finetune", {
-        provider: setProvider.name,
-        model: setModel.name,
-        dataset: dataset.name,
+        provider: provider,
+        model: model,
+        dataset: dataset,
       }).then((res) => {
         console.log(res.data);
         setError();
