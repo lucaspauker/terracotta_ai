@@ -42,24 +42,31 @@ export default function Data() {
   const [type, setType] = useState('class');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [project, setProject] = useState('');
   const { data: session } = useSession();
 
   useEffect(() => {
-    axios.get("/api/data/list").then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setDatasets(res.data);
-      }
-      setLoading(false);
-    }).catch((error) => {
-      console.log(error);
-    });
+    let p = project;
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+      setProject(localStorage.getItem("project"));
+    };
+    axios.post("/api/data/list", {
+        projectName: p,
+      }).then((res) => {
+        if (res.data !== "No data found") {
+          setDatasets(res.data);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
   }, []);
 
   return (
     <div className='main'>
-      <Typography variant='h4' className={styles.header}>
-        Your Datasets
+      <Typography variant='h4' className='page-main-header'>
+        Datasets
       </Typography>
       <div className='medium-space' />
 
@@ -78,12 +85,12 @@ export default function Data() {
           {datasets.length > 0 ?
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 650 }}>
-                <TableHead sx={{backgroundColor:'#d6daef'}}>
+                <TableHead sx={{backgroundColor:'#0077be'}}>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Data filename</TableCell>
+                    <TableCell sx={{color:'white'}}>Name</TableCell>
+                    <TableCell sx={{color:'white'}}>ID</TableCell>
+                    <TableCell sx={{color:'white'}}>Description</TableCell>
+                    <TableCell sx={{color:'white'}}>Data filename</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -95,7 +102,7 @@ export default function Data() {
                       <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
                       <TableCell>{dataset._id}</TableCell>
                       <TableCell>{dataset.description}</TableCell>
-                      <TableCell>{dataset.initialFileName}</TableCell>
+                      <TableCell>{dataset.initialTrainFileName}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -104,7 +111,6 @@ export default function Data() {
             :
             <Typography variant='body1'>
               No datasets found :(
-              Create a dataset below!
             </Typography>
           }
         </div>

@@ -16,31 +16,45 @@ import axios from 'axios';
 
 import styles from '@/styles/Data.module.css'
 
-export default function Train() {
+export default function Playground() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [datasets, setDatasets] = useState([]);
-  const [type, setType] = useState('class');
+  const [output, setOutput] = useState('');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const promptRef = useRef();
 
-  useEffect(() => {
-    axios.get("/api/data/list").then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setDatasets(res.data);
-      }
-      setLoading(false);
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
+  const submit = () => {
+    console.log(promptRef.current.value);
+    setOutput("");
+    setLoading(true);
+    axios.post("/api/infer", {
+        provider: provider,
+        model: model,
+        prompt: promptRef.current.value,
+      }).then((res) => {
+        console.log(res.data);
+        if (res.data !== "No data found") {
+          setOutput(res.data.choices[0].text);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
+    //setOutput("This is the output of the model");
+  }
+
+  const clear = () => {
+    setOutput("");
+    setModel('');
+    promptRef.current.value = '';
+  }
 
   return (
     <div className='main'>
-      <Typography variant='h4' className={styles.header}>
+      <Typography variant='h4' className='page-main-header'>
         Playground
       </Typography>
       <div className='medium-space' />
@@ -49,19 +63,22 @@ export default function Train() {
         Model
       </Typography>
       <div className='tiny-space' />
-      <FormControl>
+      <FormControl className="model-select">
         <InputLabel id="model-label">Model</InputLabel>
         <Select
           labelId="model-label"
-          className="simple-select"
+          className="model-select"
           value={model}
           label="Model"
+          dense
           onChange={(e) => setModel(e.target.value)}
         >
-          <MenuItem value={'ada'}>Ada</MenuItem>
-          <MenuItem value={'babbage'}>Babbage</MenuItem>
-          <MenuItem value={'curie'}>Curie</MenuItem>
-          <MenuItem value={'davinci'}>Davinci</MenuItem>
+          <MenuItem value={'text-ada-001'}>OpenAI GPT-3 Ada</MenuItem>
+          <MenuItem value={'text-babbage-001'}>OpenAI GPT-3 Babbage</MenuItem>
+          <MenuItem value={'text-curie-001'}>OpenAI GPT-3 Curie</MenuItem>
+          <MenuItem value={'text-davinci-003'}>OpenAI GPT-3 Davinci</MenuItem>
+          <Divider />
+          <MenuItem>Finetuned model</MenuItem>
         </Select>
       </FormControl>
       <div className='medium-space' />
@@ -80,7 +97,17 @@ export default function Train() {
       />
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary">Finetune</Button>
+      {output ?
+        <Typography className='model-output'>
+          {output}
+        </Typography>
+        : null }
+
+      {loading ?  <CircularProgress /> : null}
+      <div className='medium-space' />
+
+      <Button variant='contained' color="primary" onClick={submit}>Submit</Button>
+      <Button className='button-margin' variant='contained' color="success" onClick={clear}>Clear</Button>
     </div>
   )
 }

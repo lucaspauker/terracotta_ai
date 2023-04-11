@@ -49,9 +49,11 @@ export default function Add() {
   const [error, setError] = useState();
   const [type, setType] = useState('classification');
   const [selectedFile, setSelectedFile] = useState(null);
-	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [selectedFileVal, setSelectedFileVal] = useState(null);
   const [realFileName, setRealFileName] = useState('');
-  const [progress , setProgress] = useState(0);
+  const [realFileNameVal, setRealFileNameVal] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [progressVal, setProgressVal] = useState(0);
   const nameRef = useRef();
   const descriptionRef = useRef();
   const [user, setUser] = useState(null);
@@ -62,7 +64,10 @@ export default function Add() {
     uploadFile(e.target.files[0]);
   }
 
-  console.log(realFileName);
+  const handleFileInputVal = (e) => {
+    setSelectedFileVal(e.target.files[0]);
+    uploadFileVal(e.target.files[0]);
+  }
 
   const uploadFile = (file) => {
     const params = {
@@ -81,6 +86,23 @@ export default function Add() {
       });
   }
 
+  const uploadFileVal = (file) => {
+    const params = {
+      ACL: 'public-read',
+      Body: file,
+      Bucket: S3_BUCKET,
+      Key: 'raw_data/' + realFileNameVal,
+    };
+
+    myBucket.putObject(params)
+      .on('httpUploadProgress', (evt) => {
+        setProgressVal(Math.round((evt.loaded / evt.total) * 100))
+      })
+      .send((err) => {
+        if (err) console.log(err)
+      });
+  }
+
   const handleCreateDataset = () => {
     if (nameRef.current.value === '') {
       setError("Please provide a name.");
@@ -90,12 +112,19 @@ export default function Add() {
       setError("Please submit a file.");
       return;
     }
+    let p = '';
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+    };
     axios.post("/api/data/add", {
         name: nameRef.current.value,
         description: descriptionRef.current.value,
         type: type,
-        filename: realFileName,
-        initial_filename: selectedFile.name,
+        trainFileName: realFileName,
+        initialTrainFileName: selectedFile.name,
+        valFileName: realFileNameVal,
+        initialValFileName: selectedFileVal.name,
+        projectName: p,
         datetime: Date.now(),
       }).then((res) => {
         console.log(res.data);
@@ -108,7 +137,8 @@ export default function Add() {
   }
 
   useEffect(() => {
-    setRealFileName(v4() + ".csv");
+    setRealFileName(v4() + "-train.csv");
+    setRealFileNameVal(v4() + "-val.csv");
   }, []);
 
   return (
@@ -116,7 +146,7 @@ export default function Add() {
       <Button variant='contained' color="secondary" component={Link} href="/data">
         Back
       </Button>
-      <Typography variant='h4' className={styles.header}>
+      <Typography variant='h4' className='page-main-header'>
         Create Dataset
       </Typography>
       <Typography variant='body1'>
@@ -165,6 +195,10 @@ export default function Add() {
       </div>
       <div className='medium-space' />
 
+      <Typography variant='body1'>
+        Training data
+      </Typography>
+      <div className="tiny-space" />
       <div className="file-input">
         <div className='horizontal-box flex-start'>
           <Button variant="outlined" color="primary" component="label">
@@ -177,6 +211,24 @@ export default function Add() {
         </div>
       </div>
       <Typography>File upload progress: {progress}%</Typography>
+      <div className='medium-space' />
+
+      <Typography variant='body1'>
+        Validation data
+      </Typography>
+      <div className="tiny-space" />
+      <div className="file-input">
+        <div className='horizontal-box flex-start'>
+          <Button variant="outlined" color="primary" component="label">
+            Upload file
+            <input type="file" accept=".csv, .json" onChange={handleFileInputVal}  hidden/>
+          </Button>
+          {selectedFileVal ?
+            <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFileVal.name}</Typography>
+            : null}
+        </div>
+      </div>
+      <Typography>File upload progress: {progressVal}%</Typography>
       <div className='medium-space' />
 
       {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

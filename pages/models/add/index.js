@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -7,62 +7,82 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
+import Paper from '@mui/material/Paper';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import axios from 'axios';
+import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import styles from '@/styles/Data.module.css'
 
-export default function Add() {
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
+const handleFinetune = () => {
+  axios.post("/api/finetune/finetune", {
+      provider: provider,
+      model: model,
+      dataset: dataset,
+    }).then((res) => {
+      console.log(res.data);
+      setError();
+    }).catch((error) => {
+      console.log(error);
+      setError(error.response.data);
+    });
+}
+
+export default function Train() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [error, setError] = useState();
-  const [type, setType] = useState('classification');
+  const [type, setType] = useState('class');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
-  const nameRef = useRef();
-  const promptRef = useRef();
 
-  const handleCreateModel = () => {
-    axios.post("http://localhost:3005/model/add", {
-        name: nameRef.current.value,
-        prompt: promptRef.current.value,
-        provider: provider,
-        model_type: model,
-        datetime: Date.now(),
+  useEffect(() => {
+    let p = '';
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+    };
+    axios.post("/api/data/list", {
+        projectName: p,
       }).then((res) => {
-        console.log(res.data);
-        setError();
+        if (res.data !== "No data found") {
+          setDatasets(res.data);
+        }
+        setLoading(false);
       }).catch((error) => {
         console.log(error);
-        setError(error.response.data);
       });
-  }
+  }, []);
 
   return (
     <div className='main'>
       <Button variant='contained' color="secondary" component={Link} href="/models">
         Back
       </Button>
-      <Typography variant='h4' className={styles.header}>
-        Create Model
+      <Typography variant='h4' className='page-main-header'>
+        Train Model
       </Typography>
-      <div className='medium-space' />
-
-      <TextField
-        id="outlined-basic"
-        label="Model name"
-        variant="outlined"
-        className='text-label'
-        inputRef={nameRef}
-      />
-      {error ? <Typography variant='body2' color='red'>
-          Error: {error}
-        </Typography> : null}
       <div className='medium-space' />
 
       <Typography variant='body1'>
@@ -74,8 +94,8 @@ export default function Add() {
         <Select
           labelId="provider-label"
           className="simple-select"
-          value={provider}
           label="Provider"
+          value={provider}
           onChange={(e) => setProvider(e.target.value)}
         >
           <MenuItem value={'openai'}>OpenAI</MenuItem>
@@ -100,19 +120,29 @@ export default function Add() {
       <div className='medium-space' />
 
       <Typography variant='body1'>
-        Prompt
+        Dataset
       </Typography>
       <div className='tiny-space' />
-      <TextField
-        label="Summarize the article..."
-        multiline
-        rows={10}
-        className='prompt'
-        inputRef={promptRef}
-      />
+      {loading ?
+        <CircularProgress /> :
+        <FormControl>
+          <InputLabel id="dataset-label">Dataset</InputLabel>
+          <Select
+            labelId="dataset-label"
+            className="simple-select"
+            value={dataset}
+            label="Dataset"
+            onChange={(e) => setDataset(e.target.value)}
+          >
+            {datasets.map((d, i) => (
+              <MenuItem value={d.name} key={i}>{d.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      }
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary" onClick={handleCreateModel}>Create model</Button>
+      <Button variant='contained' color="primary" onClick={handleFinetune}>Finetune</Button>
     </div>
   )
 }

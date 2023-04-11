@@ -1,5 +1,5 @@
 html {
-  background-color: #F0F0F0;
+  background-color: #f8f8ff;
   color: black;
 }
 
@@ -74,9 +74,10 @@ a {
   padding: 6rem;
   display: flex;
   flex-direction: column;
-  background-color: #9fa8da;
+  background-color: #0077be;
   justify-content: center;
   align-items: center;
+  color: white;
 }
 
 .text-label {
@@ -120,7 +121,11 @@ a {
 }
 
 .prompt {
-  width: 800px;
+  width: 100%;
+}
+
+.model-select {
+  width: 100%;
 }
 
 .MuiDataGrid-columnHeaders {
@@ -189,5 +194,19 @@ a {
 
 .page-select {
   width: 100%;
+}
+
+.model-output {
+  background-color: #A3D3B3;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.page-main-header {
+  text-decoration: underline;
+  border-radius: 50px;
+  text-align: center;
+  font-size: 40px;
+  font-weight: 600;
 }
 
