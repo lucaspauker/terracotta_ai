@@ -95,6 +95,7 @@ export default function Playground() {
         className='prompt'
         inputRef={promptRef}
       />
+      <Typography>Or choose prompt from dataset... (TODO)</Typography>
       <div className='medium-space' />
 
       {output ?

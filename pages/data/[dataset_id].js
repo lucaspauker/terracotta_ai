@@ -95,8 +95,9 @@ export default function DataPage() {
         setFilename(res.data.trainFileName);
         setDisplayFilename(res.data.initialTrainFileName);
 
+        console.log(res.data.trainFileName);
         axios.post("/api/data/file", {
-            filename: res.data.trainFileName,
+            fileName: res.data.trainFileName,
           }).then((json_data) => {
             setRawData(json_data.data);
             const rowsOnMount = json_data.data.slice(0, rowsPerPage);
