@@ -34,29 +34,34 @@ export async function getServerSideProps(context) {
   }
 }
 
-const handleFinetune = () => {
-  axios.post("/api/finetune/finetune", {
-      provider: provider,
-      model: model,
-      dataset: dataset,
-    }).then((res) => {
-      console.log(res.data);
-      setError();
-    }).catch((error) => {
-      console.log(error);
-      setError(error.response.data);
-    });
-}
-
+// TODO add user input for model name
 export default function Train() {
   const [provider, setProvider] = useState('');
-  const [model, setModel] = useState('');
+  const [modelArchitecture, setModelArchitecture] = useState('');
   const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [type, setType] = useState('class');
-  const [selectedFile, setSelectedFile] = useState();
-	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [modelName, setModelName] = useState('');
+
+  const handleFinetune = () => {
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project")
+    }
+    axios.post("/api/finetune/finetune", {
+        provider: provider,
+        modelArchitecture: modelArchitecture,
+        modelName: modelName,
+        dataset: dataset,
+        projectName: projectName,
+      }).then((res) => {
+        console.log(res.data);
+        setError();
+      }).catch((error) => {
+        console.log(error);
+        setError(error.response.data);
+      });
+  }
 
   useEffect(() => {
     let p = '';
@@ -103,13 +108,13 @@ export default function Train() {
         </Select>
       </FormControl>
       <FormControl className='button-margin' disabled={provider !== 'openai'}>
-        <InputLabel id="model-label">Model</InputLabel>
+        <InputLabel id="model-label">Model Architecture</InputLabel>
         <Select
           labelId="model-label"
           className="simple-select"
-          value={model}
+          value={modelArchitecture}
           label="Model"
-          onChange={(e) => setModel(e.target.value)}
+          onChange={(e) => setModelArchitecture(e.target.value)}
         >
           <MenuItem value={'ada'}>Ada</MenuItem>
           <MenuItem value={'babbage'}>Babbage</MenuItem>

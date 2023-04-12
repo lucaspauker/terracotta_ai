@@ -44,10 +44,12 @@ export default async function handler(request, response) {
 
   try {
     const provider = request.body.provider;
-    const model = request.body.model;
+    const modelArchitecture = request.body.architecture;
     const datasetName = request.body.dataset;
+    const modelName = request.body.modelName;
+    const projectName = request.body.projectName;
 
-    console.log(request.body)
+    console.log(request.body);
 
     await mongoClient.connect();
     const db = mongoClient.db("sharpen");
@@ -57,6 +59,14 @@ export default async function handler(request, response) {
       .findOne({email: session.user.email});
     
     const userId = user._id;
+
+    const project = await db
+      .collection("projects")
+      .findOne({userId: userId, name: projectName});
+    if (!project) {
+      response.status(400).json({ error: 'Project not found' });
+      return;
+    }
 
     const dataset = await db
       .collection("datasets")
@@ -117,10 +127,24 @@ export default async function handler(request, response) {
       validation_file: valResponse.data.id,
       compute_classification_metrics: true,
       classification_positive_class: " baseball",
-      model: "ada",
+      model: model,
     });
 
     console.log(finetuneResponse.data)
+
+    const d = await db
+      .collection("models")
+      .insertOne({
+          name: modelName,
+          provider: provider,
+          modelArchitecture: modelArchitecture,
+          providerModelId: finetuneResponse.data.id,
+          status: "training",
+          datasetId: dataset._id,
+          projectId: project._id,
+          userId: userId,
+        });
+    console.log(d);
 
     response.status(200).send();
 
