@@ -210,3 +210,16 @@ a {
   font-weight: 600;
 }
 
+.card {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0px auto;
+}
+
+.data-header {
+  background-color: lightgrey;
+  margin: 0px 5px;
+  padding: 0px 5px;
+  border-radius: 5px;
+}
+

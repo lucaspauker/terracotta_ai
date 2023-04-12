@@ -18,6 +18,8 @@ const myBucket = new AWS.S3({
 });
 
 export default async function handler(request, response) {
+  // This function gets a file from S3 by using the filename inputted in the request
+
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })
   }
@@ -31,7 +33,7 @@ export default async function handler(request, response) {
   try {
     const params = {
       Bucket: S3_BUCKET,
-      Key: 'raw_data/' + request.body.filename,
+      Key: 'raw_data/' + request.body.fileName,
     };
 
     console.log("Retreiving file: " + 'raw_finetune_data/' + request.body.filename);
