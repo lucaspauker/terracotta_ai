@@ -1,11 +1,18 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
+
 const client = new MongoClient(process.env.MONGODB_URI);
 
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
 export default async function handler(request, response) {
-  if (request.method !== 'GET') {
-    response.status(400).json({ error: 'Use GET request' })
+  if (request.method !== 'POST') {
+    response.status(400).json({ error: 'Use POST request' })
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -15,15 +22,56 @@ export default async function handler(request, response) {
   }
 
   try {
+    const projectName = request.body.projectName;
+
     await client.connect();
     const db = client.db("sharpen");
 
-    const datasets = await db
+    const user = await db
+      .collection("users")
+      .findOne({email: session.user.email});
+    
+    const userId = user._id;
+
+    const project = await db
+      .collection("projects")
+      .findOne({userId: userId, name: projectName});
+    if (!project) {
+      response.status(400).json({ error: 'Project not found' });
+      return;
+    }
+
+    const projectId = project._id;
+
+    const models = await db
       .collection("models")
-      .find({})
+      .find({userId: userId, projectId: projectId})
       .toArray();
 
-    response.status(200).json(datasets);
+    let modelList = [];
+
+    for (let i=0; i<models.length; i++) {
+      const model = models[i];
+      let modelInfo = {};
+      modelInfo["status"] = "succeeded";
+      modelInfo["name"] = model.modelName;
+      modelInfo["id"] = model._id;
+      if (model.status == "training") {
+        const finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
+        console.log(finetuneResponse.data);
+        if (finetuneResponse.data.status == "succeeded") {
+          await db
+            .collection("models")
+            .updateOne({"providerModelId" : model.providerModelId},
+            {$set: { "status" : "succeeded"}});
+        } else {
+          modelInfo["status"] = "training";
+        }
+      }
+      modelList.push(modelInfo);
+    }
+
+    response.status(200).json(modelList);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

@@ -127,7 +127,7 @@ export default async function handler(request, response) {
       validation_file: valResponse.data.id,
       compute_classification_metrics: true,
       classification_positive_class: " baseball",
-      model: model,
+      model: modelArchitecture,
     });
 
     console.log(finetuneResponse.data)

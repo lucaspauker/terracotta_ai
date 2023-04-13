@@ -42,11 +42,13 @@ export default function Train() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
   const [modelName, setModelName] = useState('');
+  const [error, setError] = useState();
 
+  console.log(localStorage.getItem("project"));
   const handleFinetune = () => {
     let projectName = '';
     if (localStorage.getItem("project")) {
-      projectName = localStorage.getItem("project")
+      projectName = localStorage.getItem("project");
     }
     axios.post("/api/finetune/finetune", {
         provider: provider,
