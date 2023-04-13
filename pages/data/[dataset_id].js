@@ -38,10 +38,12 @@ export default function DataPage() {
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const nameRef = useRef();
   const [open, setOpen] = useState(false);
+  const [trainOrVal, setTrainOrVal] = useState('train');
   const [rawData, setRawData] = useState({});
+  const [rawDataVal, setRawDataVal] = useState(null);
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const router = useRouter();
   const { dataset_id } = router.query;
 
@@ -52,6 +54,25 @@ export default function DataPage() {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const reloadDataset = (e, val) => {
+    setTrainOrVal(val);
+    setPage(0);
+    const newPage = 0;
+    if (val === 'train') {
+      const updatedRows = rawData.slice(
+        newPage * rowsPerPage,
+        newPage * rowsPerPage + rowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    } else {
+      const updatedRows = rawDataVal.slice(
+        newPage * rowsPerPage,
+        newPage * rowsPerPage + rowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    }
+  }
 
   const doDelete = () => {
     axios.post("/api/data/delete/" + dataset_id).then((res) => {
@@ -65,11 +86,19 @@ export default function DataPage() {
   const handleChangePage = useCallback(
     (event, newPage) => {
       setPage(newPage);
-      const updatedRows = rawData.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
+      if (trainOrVal === 'train') {
+        const updatedRows = rawData.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
+      } else {
+        const updatedRows = rawDataVal.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
+      }
     },
   );
 
@@ -106,100 +135,112 @@ export default function DataPage() {
           }).catch((error) => {
             console.log(error);
           });
+        if (res.data.valFileName) {
+          axios.post("/api/data/file", {
+              fileName: res.data.valFileName,
+            }).then((json_data) => {
+              setRawDataVal(json_data.data);
+            }).catch((error) => {
+              console.log(error);
+            });
+        }
       }
     }).catch((error) => {
       console.log(error);
     });
   }, []);
 
+  if (loading) {
+    return <div className='main vertical-box'><CircularProgress /></div>
+  }
+
   return (
     <div className='main'>
       <Button variant='contained' color="secondary" component={Link} href="/data">
         Back
       </Button>
-      <Typography variant='h4' className={styles.header}>
-        Dataset View
+
+      <Typography variant='h4' className='page-main-header'>
+        {dataset.name}
+      </Typography>
+      <Typography variant='h4' className='page-main-header'>
+        {dataset.description}
       </Typography>
       <div className='medium-space' />
 
-      <TextField
-        id="outlined-basic"
-        label="Dataset name"
-        variant="outlined"
-        className='text-label'
-        value={dataset.name}
-        onChange={(e) => setDataset(e.target.value)}
-      />
-      {error ? <Typography variant='body2' color='red'>
-          Error: {error}
-        </Typography> : null}
-      <div className='medium-space' />
-
-      <div className="horizontal-box flex-start">
+      <Typography variant='h6'>
+        Dataset info
+      </Typography>
+      <Paper className='small-card'>
         <Typography variant='body1'>
-          Type of data:&nbsp;&nbsp;
+          Task:&nbsp;{type}
         </Typography>
-        <ToggleButtonGroup
-          value={type}
-          exclusive
-          onChange={(e, val) => setType(val)}
-        >
-          <ToggleButton value="classification">
-            <Typography variant='body1'>
-              Classification
-            </Typography>
-          </ToggleButton>
-          <ToggleButton value="generative">
-            <Typography variant='body1'>
-              Generative
-            </Typography>
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </div>
-      <div className='medium-space' />
 
-      {rawData.length > 0 ?
-        <div>
+        {rawData.length > 0 ?
           <div>
-            <Typography>Train file name: {displayFilename}</Typography>
-            <Typography>Number of rows: {rawData.length}</Typography>
-          </div>
-          <div className='small-space'/>
-        </div> : null }
-      {loading ? <CircularProgress /> :
-        <Paper>
-          <TableContainer>
-            <Table sx={{ minWidth: 650 }}>
-              <TableHead sx={{backgroundColor:'#d6daef'}}>
-                <TableRow>
-                  <TableCell>Prompt</TableCell>
-                  <TableCell>Completion</TableCell>
+            <div>
+              <Typography>Train file name: {displayFilename}</Typography>
+              <Typography># of train rows: {rawData.length}</Typography>
+              {rawDataVal ? <Typography># of validation rows: {rawDataVal.length}</Typography>
+                : <Typography>No validation data</Typography>}
+            </div>
+          </div> : null }
+      </Paper>
+      <div className='medium-space' />
+      <div className='horizontal-box full-width'>
+        <Typography variant='h6'>
+          View data
+        </Typography>
+        {rawDataVal ? <ToggleButtonGroup
+          value={trainOrVal}
+          exclusive
+          onChange={reloadDataset}
+        >
+          <ToggleButton value="train">
+            <Typography variant='body1'>
+              Train
+            </Typography>
+          </ToggleButton>
+          <ToggleButton value="val">
+            <Typography variant='body1'>
+              Validation
+            </Typography>
+          </ToggleButton>
+        </ToggleButtonGroup> : null }
+      </div>
+      <div className='tiny-space' />
+      <Paper>
+        <TableContainer>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead sx={{backgroundColor:'#d6daef'}}>
+              <TableRow>
+                <TableCell>Prompt</TableCell>
+                <TableCell>Completion</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleRows.map((row, i) => (
+                <TableRow
+                  key={i}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell>{row.prompt}</TableCell>
+                  <TableCell>{row.completion}</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {visibleRows.map((row, i) => (
-                  <TableRow
-                    key={i}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell>{row.prompt}</TableCell>
-                    <TableCell>{row.completion}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={rawData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
-      }
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={trainOrVal === 'train' ? rawData.length : rawDataVal.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
       <div className='medium-space' />
 
       <Button variant='contained' color="primary">Update</Button>

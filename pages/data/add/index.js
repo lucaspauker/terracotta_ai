@@ -67,7 +67,6 @@ export default function AddDataset() {
   const [progress, setProgress] = useState(0);
   const [progressVal, setProgressVal] = useState(0);
   const [autoGenerateVal, setAutoGenerateVal] = useState(false);
-  const [checked, setChecked] = useState(false);
   const [headers, setHeaders] = useState([]);
   const [trainInputFileData, setTrainInputFileData] = useState({});
   const [valInputFileData, setValInputFileData] = useState({});
@@ -138,7 +137,7 @@ export default function AddDataset() {
     formData.append('projectName', p);
     formData.append('trainFileData', trainInputFileData);
     formData.append('valFileData', valInputFileData);
-    formData.append('autoGenerateVal', checked);
+    formData.append('autoGenerateVal', autoGenerateVal);
     formData.append('numValExamples', numValExamples);
     formData.append('datetime', Date.now());
 
@@ -200,13 +199,24 @@ export default function AddDataset() {
     });
   };
 
+  const isNextDisabled = (i) => {
+    if (i === 0) {
+      return name === '';
+    } else if (i === 1) {
+      return !selectedFile;
+    } else if (i === 2) {
+      return false;
+    }
+    return true;
+  }
+
   const handleReset = () => {
     setActiveStep(0);
   };
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" component={Link} href="/data">
+      <Button variant='contained' color="secondary" onClick={() => router.back()}>
         Back
       </Button>
       <div className='vertical-box'>
@@ -411,7 +421,7 @@ export default function AddDataset() {
           )}
 
           {activeStep === steps.length - 1 ? null :
-            <Button color="secondary" variant="contained" onClick={handleNext}>Next</Button>
+            <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
           }
         </Box>
       </Paper>
