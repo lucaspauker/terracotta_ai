@@ -45,18 +45,6 @@ export default function Dashboard() {
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
 
-  useEffect(() => {
-    axios.get("/api/data/list").then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setDatasets(res.data);
-      }
-      setLoading(false);
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
-
   return (
     <div className='main'>
       <Typography variant='h4' className='page-main-header'>

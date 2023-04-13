@@ -71,7 +71,7 @@ export default function Navbar() {
     setProject(project);
     if (project === '') return;
     localStorage.setItem("project", project);
-    Router.reload();
+    router.replace(router.asPath);
   }
 
   useEffect(() => {
