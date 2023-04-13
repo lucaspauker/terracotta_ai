@@ -46,10 +46,11 @@ export default function Train() {
   const [error, setError] = useState('');
   const router = useRouter()
 
+  console.log(localStorage.getItem("project"));
   const handleFinetune = () => {
     let projectName = '';
     if (localStorage.getItem("project")) {
-      projectName = localStorage.getItem("project")
+      projectName = localStorage.getItem("project");
     }
     axios.post("/api/finetune/finetune", {
         provider: provider,

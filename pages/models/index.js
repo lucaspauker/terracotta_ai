@@ -27,12 +27,12 @@ export default function Models() {
 
   const columns = [
     { field: 'name', headerName: 'Model name', minWidth: 150},
-    { field: 'id', headerName: 'Dataset ID', minWidth: 150},
-    { field: 'provider', headerName: 'Provider', minWidth: 150},
-    { field: 'model_type', headerName: 'Model type', minWidth: 150},
-    { field: 'prompt', headerName: 'Prompt', minWidth: 150},
-    { field: 'train_cost', headerName: 'Train cost', minWidth: 150},
-    { field: 'inference_cost', headerName: 'Inference cost', minWidth: 150},
+    { field: 'status', headerName: 'Status', minWidth: 150},
+    //{ field: 'provider', headerName: 'Provider', minWidth: 150},
+    //{ field: 'model_type', heafderName: 'Model type', minWidth: 150},
+    //{ field: 'prompt', headerName: 'Prompt', minWidth: 150},
+    //{ field: 'train_cost', headerName: 'Train cost', minWidth: 150},
+    //{ field: 'inference_cost', headerName: 'Inference cost', minWidth: 150},
   ];
 
   const rows = [
@@ -42,13 +42,14 @@ export default function Models() {
   ];
 
   useEffect(() => {
-    axios.get("/api/model/list").then((res) => {
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+    }
+    axios.post("/api/model/list", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
         let data = res.data;
-        for (let i=0; i<data.length; i++) {
-          data[i].id = data[i]._id;
-        }
         setModels(data);
       }
       setLoading(false);
@@ -80,17 +81,27 @@ export default function Models() {
         :
         <div>
           {models.length > 0 ?
-            <Paper>
-              <div style={{ height: '50vh', width: '100%' }}>
-                <DataGrid
-                  rows={models}
-                  columns={columns}
-                  pageSize={5}
-                  rowsPerPageOptions={[5]}
-                  checkboxSelection
-                />
-              </div>
-            </Paper>
+            <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead sx={{backgroundColor:'#0077be'}}>
+                <TableRow>
+                  <TableCell sx={{color:'white'}}>Name</TableCell>
+                  <TableCell sx={{color:'white'}}>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {models.map((model) => (
+                  <TableRow
+                    key={model.id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell>{model.name}</TableCell>
+                    <TableCell>{model.status}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
             :
             <Typography variant='body1'>
               No models found :(
