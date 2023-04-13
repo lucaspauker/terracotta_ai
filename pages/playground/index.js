@@ -19,8 +19,8 @@ import styles from '@/styles/Data.module.css'
 export default function Playground() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [finetunedModels, setFinetunedModels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [datasets, setDatasets] = useState([]);
   const [output, setOutput] = useState('');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
@@ -43,7 +43,6 @@ export default function Playground() {
       }).catch((error) => {
         console.log(error);
       });
-    //setOutput("This is the output of the model");
   }
 
   const clear = () => {
@@ -51,6 +50,39 @@ export default function Playground() {
     setModel('');
     promptRef.current.value = '';
   }
+
+  useEffect(() => {
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+    }
+    axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+      console.log(res.data);
+      if (res.data !== "No data found") {
+        let data = res.data;
+        setFinetunedModels(data);
+      }
+      setLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+    window.addEventListener("storage", () => {
+      let projectName = '';
+      if (localStorage.getItem("project")) {
+        projectName = localStorage.getItem("project");
+      }
+      axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+        console.log(res.data);
+        if (res.data !== "No data found") {
+          let data = res.data;
+          setFinetunedModels(data);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
+    });
+  }, []);
 
   return (
     <div className='main'>
@@ -70,15 +102,16 @@ export default function Playground() {
           className="model-select"
           value={model}
           label="Model"
-          dense
           onChange={(e) => setModel(e.target.value)}
         >
           <MenuItem value={'text-ada-001'}>OpenAI GPT-3 Ada</MenuItem>
           <MenuItem value={'text-babbage-001'}>OpenAI GPT-3 Babbage</MenuItem>
           <MenuItem value={'text-curie-001'}>OpenAI GPT-3 Curie</MenuItem>
           <MenuItem value={'text-davinci-003'}>OpenAI GPT-3 Davinci</MenuItem>
-          <Divider />
-          <MenuItem>Finetuned model</MenuItem>
+          {finetunedModels.length > 0 ? <Divider /> : null}
+          {finetunedModels.map((model) => (
+            <MenuItem value={model.providerModelId} key={model._id}>{model.name}</MenuItem>
+          ))}
         </Select>
       </FormControl>
       <div className='medium-space' />

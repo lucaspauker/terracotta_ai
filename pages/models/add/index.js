@@ -35,7 +35,6 @@ export async function getServerSideProps(context) {
   }
 }
 
-// TODO add user input for model name
 export default function Train() {
   const [provider, setProvider] = useState('');
   const [modelArchitecture, setModelArchitecture] = useState('');
@@ -92,6 +91,16 @@ export default function Train() {
       <Typography variant='h4' className='page-main-header'>
         Train Model
       </Typography>
+      <div className='medium-space' />
+
+      <TextField
+        label="Model name"
+        variant="outlined"
+        className='text-label center'
+        value={modelName}
+        onChange={(e) => setModelName(e.target.value)}
+        required
+      />
       <div className='medium-space' />
 
       <Typography variant='body1'>

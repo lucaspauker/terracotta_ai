@@ -30,7 +30,7 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
-    
+
     const userId = user._id;
 
     const project = await db
@@ -51,11 +51,8 @@ export default async function handler(request, response) {
     let modelList = [];
 
     for (let i=0; i<models.length; i++) {
-      const model = models[i];
-      let modelInfo = {};
-      modelInfo["status"] = "succeeded";
-      modelInfo["name"] = model.modelName;
-      modelInfo["id"] = model._id;
+      let model = models[i];
+      models[i]["status"] = "succeeded";
       if (model.status == "training") {
         const finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
         console.log(finetuneResponse.data);
@@ -65,13 +62,12 @@ export default async function handler(request, response) {
             .updateOne({"providerModelId" : model.providerModelId},
             {$set: { "status" : "succeeded"}});
         } else {
-          modelInfo["status"] = "training";
+          models[i]["status"] = "training";
         }
       }
-      modelList.push(modelInfo);
     }
 
-    response.status(200).json(modelList);
+    response.status(200).json(models);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

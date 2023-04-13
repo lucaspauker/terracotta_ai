@@ -171,6 +171,7 @@ export default function DataPage() {
       <Typography variant='h6'>
         Dataset info
       </Typography>
+      <div className='tiny-space'/>
       <Paper className='small-card'>
         <Typography variant='body1'>
           Task:&nbsp;{type}
@@ -187,6 +188,7 @@ export default function DataPage() {
           </div> : null }
       </Paper>
       <div className='medium-space' />
+
       <div className='horizontal-box full-width'>
         <Typography variant='h6'>
           View data

@@ -25,22 +25,6 @@ export default function Models() {
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
 
-  const columns = [
-    { field: 'name', headerName: 'Model name', minWidth: 150},
-    { field: 'status', headerName: 'Status', minWidth: 150},
-    //{ field: 'provider', headerName: 'Provider', minWidth: 150},
-    //{ field: 'model_type', heafderName: 'Model type', minWidth: 150},
-    //{ field: 'prompt', headerName: 'Prompt', minWidth: 150},
-    //{ field: 'train_cost', headerName: 'Train cost', minWidth: 150},
-    //{ field: 'inference_cost', headerName: 'Inference cost', minWidth: 150},
-  ];
-
-  const rows = [
-    { modelName: "My first model", id: 'jaslkdjaldakld', provider: 'OpenAI', prompt: 'Foobar lipsum dolor', trainCost: '0.0007', inferenceCost: '0.02'},
-    { modelName: "My second model", id: 'alkjasldjalkd', provider: 'OpenAI', prompt: 'Hi lipsum dolor', trainCost: '0.0007', inferenceCost: '0.01'},
-    { modelName: "My third model", id: '12909300923128', provider: 'OpenAI', prompt: 'Hi lipsum dolor sit amet blah blahHi lipsum dolor sit amet blah blaHi lipsum dolor sit amet blah blaHi lipsum dolor sit amet blah blaHi lipsum dolor sit amet blah blaHi lipsum dolor sit amet blah blahhhhh', trainCost: '0.0007', inferenceCost: '0.01'},
-  ];
-
   useEffect(() => {
     let projectName = '';
     if (localStorage.getItem("project")) {
@@ -51,10 +35,28 @@ export default function Models() {
       if (res.data !== "No data found") {
         let data = res.data;
         setModels(data);
+        console.log(data);
       }
       setLoading(false);
     }).catch((error) => {
       console.log(error);
+    });
+    window.addEventListener("storage", () => {
+      let projectName = '';
+      if (localStorage.getItem("project")) {
+        projectName = localStorage.getItem("project");
+      }
+      axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+        console.log(res.data);
+        if (res.data !== "No data found") {
+          let data = res.data;
+          setModels(data);
+          console.log(data);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
     });
   }, []);
 
@@ -86,16 +88,20 @@ export default function Models() {
               <TableHead sx={{backgroundColor:'#0077be'}}>
                 <TableRow>
                   <TableCell sx={{color:'white'}}>Name</TableCell>
+                  <TableCell sx={{color:'white'}}>ID</TableCell>
+                  <TableCell sx={{color:'white'}}>Provider</TableCell>
                   <TableCell sx={{color:'white'}}>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {models.map((model) => (
                   <TableRow
-                    key={model.id}
+                    key={model._id}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
                     <TableCell>{model.name}</TableCell>
+                    <TableCell>{model._id}</TableCell>
+                    <TableCell>{model.provider}</TableCell>
                     <TableCell>{model.status}</TableCell>
                   </TableRow>
                 ))}

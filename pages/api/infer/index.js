@@ -17,7 +17,7 @@ export default async function handler(request, response) {
   }
 
   const provider = request.body.provider;
-  const model = request.body.model;
+  let model = request.body.model;
   const prompt = request.body.prompt;
 
   const session = await getServerSession(request, response, authOptions);
@@ -40,19 +40,24 @@ export default async function handler(request, response) {
     }
 
 
-    openai.createCompletion({
-      model: model,
+    const finetunes = await openai.listFineTunes();
+
+    // This is a bit of a hack, we should store this in the backend
+    let openAiModelName = '';
+    console.log(finetunes.data.data.length);
+    for (let i=0; i<finetunes.data.data.length; i++) {
+      if (finetunes.data.data[i].id === model) {
+        openAiModelName = finetunes.data.data[i].fine_tuned_model;
+      }
+    }
+    const completion = await openai.createCompletion({
+      model: openAiModelName,
       prompt: prompt,
       temperature: 0.6,
       max_tokens: 100,
-    }).then((completion) => {
-      console.log(completion.data.choices[0].text);
-      response.status(200).json(completion.data);
-      return;
-    }).catch((e) => {
-      response.status(400).json({error: e});
-      return;
     });
+    console.log(completion.data.choices[0].text);
+    response.status(200).json(completion.data);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })
