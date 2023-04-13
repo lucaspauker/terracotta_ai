@@ -57,7 +57,7 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
-    
+
     const userId = user._id;
 
     const project = await db
@@ -73,9 +73,9 @@ export default async function handler(request, response) {
       .findOne({userId: userId, name: datasetName});
 
     //TODO: add logic for cases where we're training without a validation file
-    
+
     const trainFileName = dataset.trainFileName
-    const valFileName = dataset.valFileName 
+    const valFileName = dataset.valFileName
 
     const fileNames = [trainFileName, valFileName]
 
@@ -89,8 +89,7 @@ export default async function handler(request, response) {
       await downloadFile(params, fileName)
     }
 
-    // Use openai CLI tool to create train and validation jsonl files 
-
+    // Use openai CLI tool to create train and validation jsonl files
     execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${trainFileName} --val_fname ${valFileName}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
@@ -104,7 +103,6 @@ export default async function handler(request, response) {
     });
 
     // Upload files to openAI, need to modify this later and save into a new collection
-
     const preparedTrainFile = path.parse(trainFileName).name + "_prepared.jsonl";
     const preparedValFile = path.parse(valFileName).name + "_prepared.jsonl";
 
@@ -127,7 +125,7 @@ export default async function handler(request, response) {
       validation_file: valResponse.data.id,
       compute_classification_metrics: true,
       classification_positive_class: " baseball",
-      model: model,
+      model: modelArchitecture,
     });
 
     console.log(finetuneResponse.data)

@@ -52,7 +52,19 @@ export default function Dashboard() {
       </Typography>
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary">Dash</Button>
+      <div className='vertical-box'>
+        <Button variant='contained' color="secondary" component={Link} href="/projects/add">
+          Create new project
+        </Button>
+        <div className='small-space' />
+        <Button variant='contained' color="secondary" component={Link} href="/data/add">
+          Create new dataset
+        </Button>
+        <div className='small-space' />
+        <Button variant='contained' color="secondary" component={Link} href="/models/add">
+          Finetune model
+        </Button>
+      </div>
     </div>
   )
 }

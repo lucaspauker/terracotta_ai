@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -42,6 +43,8 @@ export default function Train() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
   const [modelName, setModelName] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter()
 
   const handleFinetune = () => {
     let projectName = '';
@@ -82,7 +85,7 @@ export default function Train() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" component={Link} href="/models">
+      <Button variant='contained' color="secondary" onClick={() => router.back()}>
         Back
       </Button>
       <Typography variant='h4' className='page-main-header'>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -39,6 +40,7 @@ export default function Add() {
   const descriptionRef = useRef();
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
+  const router = useRouter()
 
   const handleCreateProject = () => {
     if (nameRef.current.value === '') {
@@ -65,7 +67,7 @@ export default function Add() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" component={Link} href="/dashboard">
+      <Button variant='contained' color="secondary" onClick={() => router.back()}>
         Back
       </Button>
       <Typography variant='h4' className='page-main-header'>

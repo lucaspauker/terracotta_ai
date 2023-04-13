@@ -36,6 +36,7 @@ export default async function handler(request, response) {
       return;
     }
 
+    // Create user
     const u = await db
       .collection("users")
       .insertOne({
@@ -46,7 +47,6 @@ export default async function handler(request, response) {
           timeCreated: datetime,
         });
     console.log(u);
-    response.status(200).json(u);
 
   } catch (e) {
     console.error(e);

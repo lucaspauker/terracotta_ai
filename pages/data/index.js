@@ -61,6 +61,24 @@ export default function Data() {
       }).catch((error) => {
         console.log(error);
       });
+
+    window.addEventListener("storage", () => {
+      let p = project;
+      if (localStorage.getItem("project")) {
+        p = localStorage.getItem("project");
+        setProject(localStorage.getItem("project"));
+      };
+      axios.post("/api/data/list", {
+          projectName: p,
+        }).then((res) => {
+          if (res.data !== "No data found") {
+            setDatasets(res.data);
+          }
+          setLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+    });
   }, []);
 
   return (

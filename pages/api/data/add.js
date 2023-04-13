@@ -63,13 +63,14 @@ export default async function handler(request, response) {
     let initialValFileName = inputData.fields.initialValFileName;
     const datetime = inputData.fields.datetime;
     const projectName = inputData.fields.projectName;
-    const autoGenerateVal = inputData.fields.autoGenerateVal;
+    const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
     const numValExamples = inputData.fields.numValExamples;
 
     //const trainFileData = await jsonexport(trainFileDataJson);
 
     let trainFileData = {};
     let valFileData = {};
+    console.log(inputData.files);
     if (autoGenerateVal) {
       // Automatically generate validation data from training data
       console.log("Generating val file with this many entries: " + numValExamples);
@@ -82,17 +83,19 @@ export default async function handler(request, response) {
       trainFileData = await jsonexport(outputTrainFileDataJson);
     } else if (initialValFileName === '') {
       // No validation file specified, so set entries to null in the database
-      trainFileData = await fs.readFile(inputData.files.trainFilePath.filepath, {
+      console.log("No validation file specified");
+      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
         encoding: 'utf8',
       });
       valFileName = null;
       initialValFileName = null;
     } else {
       // Both train and val files are specified
-      trainFileData = await fs.readFile(inputData.files.trainFilePath.filepath, {
+      console.log("Both train and validation files are specified");
+      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
         encoding: 'utf8',
       });
-      valFileData = await fs.readFile(inputData.files.valFilePath.filepath, {
+      valFileData = await fs.readFile(inputData.files.valFileData.filepath, {
         encoding: 'utf8',
       });
     }
@@ -167,25 +170,25 @@ export default async function handler(request, response) {
         });
     console.log(d);
 
+    response.status(200).json(d);
+
     // Wrap writing files to S3 in a Promise
     return new Promise((resolve, reject) => {
       myBucket.putObject(trainParams, function(trainErr, trainData) {
         if (trainErr) {
-          response.status(400).json({ error: trainErr })
+          //response.status(400).json({ error: trainErr })
           reject();
         }
         console.log("Successfully wrote " + trainFileName);
         if (!valFileName) {
-          response.status(200).json();
           resolve();
         } else {
           myBucket.putObject(valParams, function(valErr, valData) {
             if (valErr) {
-              response.status(400).json({ error: valErr })
+              //response.status(400).json({ error: valErr })
               reject();
             } else {
               console.log("Successfully wrote " + valFileName);
-              response.status(200).json();
               resolve();
             };
           });
