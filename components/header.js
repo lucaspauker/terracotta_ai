@@ -13,10 +13,10 @@ import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import { useSession, signIn, signOut } from "next-auth/react";
-import { GiPalmTree } from 'react-icons/gi';
+import { GiPalmTree, GiPorcelainVase, GiClayBrick } from 'react-icons/gi';
 import { AiFillCaretDown } from 'react-icons/ai';
 import { BiUser, BiLogOutCircle, BiSun } from 'react-icons/bi';
-import {BsFillCaretDownFill} from 'react-icons/bs';
+import {BsFillCaretDownFill, BsFire} from 'react-icons/bs';
 import axios from 'axios';
 
 const drawerWidth = 250;
@@ -52,9 +52,9 @@ export default function Header() {
       className='header'
     >
       <Toolbar>
-        <GiPalmTree size='50'/>
-        <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30, fontWeight: 'bold', letterSpacing: 1}}>
-          &nbsp;Canopy
+        <GiClayBrick size='40'/>
+        <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30}} className='website-title'>
+          &nbsp;Terracotta.ai
         </Typography>
         <div className='horizontal-box'>
           {session ?
@@ -64,7 +64,6 @@ export default function Header() {
                   <img src={session.user.image} referrerPolicy="no-referrer"
                     className={open ? 'profile-picture profile-picture-active' : 'profile-picture'}/>
                 </div>
-                <BsFillCaretDownFill />
               </div>
               <Menu
                 className='menu'

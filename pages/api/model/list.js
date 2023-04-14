@@ -48,8 +48,6 @@ export default async function handler(request, response) {
       .find({userId: userId, projectId: projectId})
       .toArray();
 
-    let modelList = [];
-
     for (let i=0; i<models.length; i++) {
       let model = models[i];
       models[i]["status"] = "succeeded";

@@ -44,7 +44,7 @@ export default async function handler(request, response) {
 
   try {
     const provider = request.body.provider;
-    const modelArchitecture = request.body.architecture;
+    const modelArchitecture = request.body.modelArchitecture;
     const datasetName = request.body.dataset;
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;

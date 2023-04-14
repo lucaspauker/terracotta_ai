@@ -39,11 +39,9 @@ export default async function handler(request, response) {
       return;
     }
 
-
-    const finetunes = await openai.listFineTunes();
-
     // This is a bit of a hack, we should store this in the backend
-    let openAiModelName = '';
+    const finetunes = await openai.listFineTunes();
+    let openAiModelName = model;
     console.log(finetunes.data.data.length);
     for (let i=0; i<finetunes.data.data.length; i++) {
       if (finetunes.data.data[i].id === model) {

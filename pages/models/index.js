@@ -62,52 +62,49 @@ export default function Models() {
 
   return (
     <div className='main'>
-      <Typography variant='h4' className='page-main-header'>
-        Models
-      </Typography>
-      <div className='medium-space' />
 
       <div className='horizontal-box full-width'>
-        <Typography variant='h5'>
+        <Typography variant='h4' className='page-main-header'>
+          Models
         </Typography>
-        <div>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/add">
-            + Finetune model
-          </Button>
-        </div>
+        <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/add">
+          + Finetune model
+        </Button>
       </div>
-      <div className='small-space' />
+      <div className='tiny-space' />
 
       {loading ?
         <CircularProgress />
         :
         <div>
           {models.length > 0 ?
-            <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }}>
-              <TableHead sx={{backgroundColor:'#0077be'}}>
-                <TableRow>
-                  <TableCell sx={{color:'white'}}>Name</TableCell>
-                  <TableCell sx={{color:'white'}}>ID</TableCell>
-                  <TableCell sx={{color:'white'}}>Provider</TableCell>
-                  <TableCell sx={{color:'white'}}>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {models.map((model) => (
-                  <TableRow
-                    key={model._id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell>{model.name}</TableCell>
-                    <TableCell>{model._id}</TableCell>
-                    <TableCell>{model.provider}</TableCell>
-                    <TableCell>{model.status}</TableCell>
+            <Paper variant="outlined">
+              <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell className='table-cell'>Name</TableCell>
+                    <TableCell className='table-cell'>ID</TableCell>
+                    <TableCell className='table-cell'>Provider</TableCell>
+                    <TableCell className='table-cell'>Status</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {models.map((model) => (
+                    <TableRow
+                      key={model._id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell>{model.name}</TableCell>
+                      <TableCell>{model._id}</TableCell>
+                      <TableCell>{model.provider}</TableCell>
+                      <TableCell>{model.status}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
             :
             <Typography variant='body1'>
               No models found :(

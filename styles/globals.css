@@ -1,5 +1,5 @@
 html {
-  background-color: #f8f8ff;
+  background-color: #f6f6f4;
   color: black;
 }
 
@@ -71,13 +71,26 @@ a {
 .homepage {
   width: 100vw;
   height: 100vh;
-  padding: 6rem;
+  padding: 0px;
   display: flex;
   flex-direction: column;
-  background-color: #0077be;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   color: white;
+  background: #9c2315;
+  background: linear-gradient(to bottom, #9c2315, #f26a4b);
+}
+
+.homepageicon {
+  height: 120px;
+  width: 120px;
+}
+
+.homepagebutton {
+  font-size: 30px;
+  padding: 10px 30px;
+  border-radius: 20px;
+  color: #9c2315;
 }
 
 .text-label {
@@ -96,11 +109,6 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-.homepageicon {
-  height: 100px;
-  width: 100px;
 }
 
 .file-input {
@@ -203,11 +211,24 @@ a {
 }
 
 .page-main-header {
-  text-decoration: underline;
   border-radius: 50px;
   text-align: center;
   font-size: 40px;
-  font-weight: 600;
+  letter-spacing: 1px;
+  font-family: 'Bebas Neue', monospace;
+  margin-top: 8px;
+}
+
+.website-title {
+  margin-left: 10px;
+  letter-spacing: 1px;
+  font-family: 'Bebas Neue', monospace;
+}
+
+.splash-title {
+  letter-spacing: 5px;
+  font-family: 'Bebas Neue', monospace;
+  font-size: 120px;
 }
 
 .card {
@@ -226,5 +247,18 @@ a {
   margin: 0px 5px;
   padding: 0px 5px;
   border-radius: 5px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.back-icon {
+  margin-right: 20px;
+}
+
+.table-cell {
+  font-weight: bold;
+  border-bottom: 3px solid #9C2315;
 }
 

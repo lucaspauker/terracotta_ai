@@ -83,49 +83,48 @@ export default function Data() {
 
   return (
     <div className='main'>
-      <Typography variant='h4' className='page-main-header'>
-        Datasets
-      </Typography>
-      <div className='medium-space' />
-
       <div className='horizontal-box full-width'>
-        <Typography variant='h5'>
+        <Typography variant='h4' className='page-main-header'>
+          Datasets
         </Typography>
         <Button variant='contained' color="secondary" component={Link} href="/data/add">
           + Create dataset
         </Button>
       </div>
-      <div className='small-space' />
+      <div className='tiny-space' />
+
       {loading ?
         <CircularProgress />
         :
         <div>
           {datasets.length > 0 ?
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead sx={{backgroundColor:'#0077be'}}>
-                  <TableRow>
-                    <TableCell sx={{color:'white'}}>Name</TableCell>
-                    <TableCell sx={{color:'white'}}>ID</TableCell>
-                    <TableCell sx={{color:'white'}}>Description</TableCell>
-                    <TableCell sx={{color:'white'}}>Data filename</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {datasets.map((dataset) => (
-                    <TableRow
-                      key={dataset._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
-                      <TableCell>{dataset._id}</TableCell>
-                      <TableCell>{dataset.description}</TableCell>
-                      <TableCell>{dataset.initialTrainFileName}</TableCell>
+            <Paper variant="outlined">
+              <TableContainer>
+                <Table sx={{ minWidth: 650 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className='table-cell'>Name</TableCell>
+                      <TableCell className='table-cell'>ID</TableCell>
+                      <TableCell className='table-cell'>Description</TableCell>
+                      <TableCell className='table-cell'>Data filename</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {datasets.map((dataset) => (
+                      <TableRow
+                        key={dataset._id}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
+                        <TableCell>{dataset._id}</TableCell>
+                        <TableCell>{dataset.description}</TableCell>
+                        <TableCell>{dataset.initialTrainFileName}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
             :
             <Typography variant='body1'>
               No datasets found :(

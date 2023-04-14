@@ -33,7 +33,7 @@ export default function Playground() {
     axios.post("/api/infer", {
         provider: provider,
         model: model,
-        prompt: promptRef.current.value,
+        prompt: promptRef.current.value + "\n\n###\n\n",
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
@@ -140,8 +140,8 @@ export default function Playground() {
       {loading ?  <CircularProgress /> : null}
       <div className='medium-space' />
 
-      <Button variant='contained' color="primary" onClick={submit}>Submit</Button>
-      <Button className='button-margin' variant='contained' color="success" onClick={clear}>Clear</Button>
+      <Button className='button-margin' color='secondary' variant='contained' onClick={clear}>Clear</Button>
+      <Button variant='contained' color="success" onClick={submit}>Submit</Button>
     </div>
   )
 }

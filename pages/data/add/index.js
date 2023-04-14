@@ -21,6 +21,7 @@ import Papa from 'papaparse';
 import { v4 } from "uuid";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
+import { FaArrowLeft } from 'react-icons/fa';
 
 import styles from '@/styles/Data.module.css'
 
@@ -216,18 +217,15 @@ export default function AddDataset() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" onClick={() => router.back()}>
-        Back
-      </Button>
-      <div className='vertical-box'>
-        <Typography variant='h4' className='page-main-header'>
-          Create Dataset
-        </Typography>
-        <Typography variant='body1'>
-          Upload your data to fine tune later!
-        </Typography>
+      <div className='horizontal-box full-width'>
+        <div className='horizontal-box'>
+          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <Typography variant='h4' className='page-main-header'>
+            Create Dataset
+          </Typography>
+        </div>
       </div>
-      <div className='medium-space' />
+      <div className='small-space' />
 
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => {
@@ -248,10 +246,9 @@ export default function AddDataset() {
           );
         })}
       </Stepper>
-      <div className='medium-space' />
+      <div className='small-space' />
 
-      <Paper className='card vertical-box'>
-
+      <Paper className='card vertical-box' variant='outlined'>
         {activeStep === 0 ?
           <>
             <Typography variant='h6'>

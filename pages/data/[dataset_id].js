@@ -23,8 +23,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
+import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
+import axios from 'axios';
 
 import styles from '@/styles/Data.module.css';
 
@@ -156,38 +157,41 @@ export default function DataPage() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" component={Link} href="/data">
-        Back
-      </Button>
-
-      <Typography variant='h4' className='page-main-header'>
-        {dataset.name}
-      </Typography>
-      <Typography variant='h4' className='page-main-header'>
-        {dataset.description}
-      </Typography>
+      <div className='horizontal-box full-width'>
+        <div className='horizontal-box cursor-pointer'>
+          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
+          <Typography variant='h4' className='page-main-header'>
+            {dataset.name}
+          </Typography>
+        </div>
+        <div>
+          <Button className='button-margin' variant='contained' color="error" onClick={handleClickOpen}>Delete</Button>
+        </div>
+      </div>
       <div className='medium-space' />
 
-      <Typography variant='h6'>
-        Dataset info
-      </Typography>
-      <div className='tiny-space'/>
-      <Paper className='small-card'>
-        <Typography variant='body1'>
-          Task:&nbsp;{type}
+      <div>
+        <Typography variant='h6'>
+          Dataset info
         </Typography>
+        <div className='tiny-space'/>
+        <Paper className='small-card' variant='outlined'>
+          <Typography variant='body1'>
+            Task:&nbsp;{type}
+          </Typography>
 
-        {rawData.length > 0 ?
-          <div>
+          {rawData.length > 0 ?
             <div>
-              <Typography>Train file name: {displayFilename}</Typography>
-              <Typography># of train rows: {rawData.length}</Typography>
-              {rawDataVal ? <Typography># of validation rows: {rawDataVal.length}</Typography>
-                : <Typography>No validation data</Typography>}
-            </div>
-          </div> : null }
-      </Paper>
-      <div className='medium-space' />
+              <div>
+                <Typography>Train file name: {displayFilename}</Typography>
+                <Typography># of train rows: {rawData.length}</Typography>
+                {rawDataVal ? <Typography># of validation rows: {rawDataVal.length}</Typography>
+                  : <Typography>No validation data</Typography>}
+              </div>
+            </div> : null }
+        </Paper>
+        <div className='medium-space' />
+      </div>
 
       <div className='horizontal-box full-width'>
         <Typography variant='h6'>
@@ -211,13 +215,13 @@ export default function DataPage() {
         </ToggleButtonGroup> : null }
       </div>
       <div className='tiny-space' />
-      <Paper>
+      <Paper variant='outlined'>
         <TableContainer>
           <Table sx={{ minWidth: 650 }}>
-            <TableHead sx={{backgroundColor:'#d6daef'}}>
+            <TableHead>
               <TableRow>
-                <TableCell>Prompt</TableCell>
-                <TableCell>Completion</TableCell>
+                <TableCell className='table-cell'>Prompt</TableCell>
+                <TableCell className='table-cell'>Completion</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -244,9 +248,6 @@ export default function DataPage() {
         />
       </Paper>
       <div className='medium-space' />
-
-      <Button variant='contained' color="primary">Update</Button>
-      <Button className='button-margin' variant='contained' color="error" onClick={handleClickOpen}>Delete</Button>
 
       <Dialog
         open={open}
