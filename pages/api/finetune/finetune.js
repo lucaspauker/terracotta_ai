@@ -48,6 +48,7 @@ export default async function handler(request, response) {
     const datasetName = request.body.dataset;
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;
+    const hyperParams = request.body.hyperParams;
 
     console.log(request.body);
 
@@ -119,14 +120,18 @@ export default async function handler(request, response) {
     );
     console.log(valResponse.data);
 
-    // Create finetune, need to remove hardcodes
-    const finetuneResponse = await openai.createFineTune({
+    let finetuneRequest = {
       training_file: trainResponse.data.id,
       validation_file: valResponse.data.id,
       compute_classification_metrics: true,
       classification_positive_class: " baseball",
       model: modelArchitecture,
-    });
+    };
+
+    finetuneRequest = Object.assign({},finetuneRequest, hyperParams)
+
+    // Create finetune, need to remove hardcodes
+    const finetuneResponse = await openai.createFineTune(finetuneRequest);
 
     console.log(finetuneResponse.data)
 
@@ -141,6 +146,7 @@ export default async function handler(request, response) {
           datasetId: dataset._id,
           projectId: project._id,
           userId: userId,
+          hyperParams: hyperParams,
         });
     console.log(d);
 

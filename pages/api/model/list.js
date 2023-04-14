@@ -58,7 +58,7 @@ export default async function handler(request, response) {
           await db
             .collection("models")
             .updateOne({"providerModelId" : model.providerModelId},
-            {$set: { "status" : "succeeded"}});
+            {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.data.fine_tuned_model}});
         } else {
           models[i]["status"] = "training";
         }
