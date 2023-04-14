@@ -48,8 +48,6 @@ export default async function handler(request, response) {
       .find({userId: userId, projectId: projectId})
       .toArray();
 
-    let modelList = [];
-
     for (let i=0; i<models.length; i++) {
       let model = models[i];
       models[i]["status"] = "succeeded";
@@ -60,7 +58,7 @@ export default async function handler(request, response) {
           await db
             .collection("models")
             .updateOne({"providerModelId" : model.providerModelId},
-            {$set: { "status" : "succeeded"}});
+            {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.data.fine_tuned_model}});
         } else {
           models[i]["status"] = "training";
         }
