@@ -50,16 +50,51 @@ export default async function handler(request, response) {
 
     for (let i=0; i<models.length; i++) {
       let model = models[i];
+      const dataset = await db
+        .collection("datasets")
+        .findOne({_id: model.datasetId});
+      models[i]["datasetName"] = dataset.name;
 
-      if (model.status === "training") {
-        const finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
+      if (model.status !== "succeeded") {
+        let finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
         console.log(finetuneResponse.data);
-        if (finetuneResponse.data.status === "succeeded") {
+        
+        finetuneResponse = finetuneResponse.data;
+        const events = finetuneResponse.events;
+        if (finetuneResponse.status === "succeeded") {
           models[i]["status"] = "succeeded";
+          models[i]["providerModelName"] = finetuneResponse.fine_tuned_model;
           await db
             .collection("models")
             .updateOne({"providerModelId" : model.providerModelId},
-            {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.data.fine_tuned_model}});
+            {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.fine_tuned_model}});
+        } else {
+          // Cost update
+          if (!("cost" in models[i]) && events.length > 1) {
+            const costEvent = events[1];
+            if (costEvent["message"].startsWith("Fine-tune costs")) {
+              const cost = parseFloat(costEvent["message"].split('$')[1]);
+              models[i]["cost"] = cost;
+              await db
+                .collection("models")
+                .updateOne({"providerModelId" : model.providerModelId},
+                {$set: { "cost" : cost}}); 
+            }
+          }
+          // Check last event to update status
+          const lastMessage = events[events.length - 1]['message'];
+          if (events.length <= 3 || lastMessage.startsWith("Fine-tune is in the queue")) {
+            models[i]["status"] = "Queued for training";
+            continue;
+          } else if (lastMessage === "Fine-tune started") {
+            models[i]["status"] = "Training started";
+            continue;
+          } else if (lastMessage.startsWith("Completed epoch")) {
+            models[i]["status"] = lastMessage;
+            continue;
+          } else {
+            models[i]["status"] = "Uploading model"
+          }
         }
       }
     }
