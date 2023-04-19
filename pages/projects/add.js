@@ -60,6 +60,11 @@ export default function Add() {
       }).then((res) => {
         console.log(res.data);
         setError();
+
+        // Switch to the newly created project
+        localStorage.setItem("project", nameRef.current.value);
+        window.dispatchEvent(new Event("storage"));
+
         router.push('/projects');
       }).catch((err) => {
         console.log(err);

@@ -302,3 +302,11 @@ a {
   font-family: "Lato";
 }
 
+.italic {
+  font-style: italic;
+}
+
+.info-box {
+  padding: 20px;
+}
+

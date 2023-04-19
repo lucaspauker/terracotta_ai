@@ -13,6 +13,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import List from '@mui/material/List';
+import ListSubheader from '@mui/material/ListSubheader';
+import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
@@ -109,9 +112,34 @@ export default function Models() {
             </TableContainer>
           </Paper>
           :
-          <Typography variant='body1'>
-            No models found :(
-          </Typography>
+          <>
+          <div className='medium-space'/>
+          <Paper variant='outlined' className='info-box'>
+            <Typography variant='h4'>
+              What is a finetuned model?
+            </Typography>
+            <Typography variant='body1'>
+              Large language models (LLMs) such as GPT-3 are trained on large amounts
+              of text data and therefore understand language well. However, since they
+              are trained on general data, in order to create a model useful for a
+              specific use-case such as spam detection, one must finetune the model on
+              spam detection data. Then, the model uses what it learned on general data
+              and applies it to the new data and quickly learns the new task. This is
+              similar to teaching someone a new skill.
+            </Typography>
+            <div className='medium-space'/>
+
+            <Typography variant='h4'>
+              Is there a tutorial?
+            </Typography>
+            <Typography variant='body1'>
+              Check out our tutorial here:&nbsp;
+              <Link href='' className='link'>
+                some tutorial
+              </Link>
+            </Typography>
+          </Paper>
+          </>
         }
       </div>
     </div>

@@ -67,8 +67,8 @@ export default function AddDataset() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [numValExamples, setNumValExamples] = useState(10);
-  const [inputColumn, setInputColumn] = useState('');
-  const [outputColumn, setOutputColumn] = useState('');
+  const [inputColumn, setInputColumn] = useState(null);
+  const [outputColumn, setOutputColumn] = useState(null);
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
   const router = useRouter()
@@ -92,7 +92,7 @@ export default function AddDataset() {
     setSelectedFile(f);
     Papa.parse(f, { complete: function(results) {
       setNumRows(results.data.length);  // Subtract the header row
-      setNumValExamples(results.data.length / 5);
+      setNumValExamples(parseInt(results.data.length / 5));
       console.log(results);
     }, header: true, skipEmptyLines: true});
     uploadFile(f);
@@ -316,6 +316,7 @@ export default function AddDataset() {
                 <Typography variant='h6'>Input</Typography>
                 <div className='tiny-space' />
                 <Select
+                  defaultValue={{label: inputColumn, value: inputColumn}}
                   onChange={(e) => setInputColumn(e.value)}
                   options={options}
                   className="multi-select"
@@ -326,6 +327,7 @@ export default function AddDataset() {
                 <Typography variant='h6'>Output</Typography>
                 <div className='tiny-space' />
                 <Select
+                  defaultValue={{label: outputColumn, value: outputColumn}}
                   onChange={(e) => setOutputColumn(e.value)}
                   options={options}
                   className="multi-select"
