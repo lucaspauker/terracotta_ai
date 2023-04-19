@@ -15,6 +15,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
+import Select from 'react-select'
 import axios from 'axios';
 import AWS from 'aws-sdk';
 import Papa from 'papaparse';
@@ -24,18 +25,6 @@ import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
 import styles from '@/styles/Data.module.css'
-
-const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
-const REGION = process.env.NEXT_PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.NEXT_PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
 
 const steps = ['General information', 'Training data', 'Validation data', 'Review'];
 
@@ -69,6 +58,7 @@ export default function AddDataset() {
   const [progressVal, setProgressVal] = useState(0);
   const [autoGenerateVal, setAutoGenerateVal] = useState(false);
   const [headers, setHeaders] = useState([]);
+  const [options, setOptions] = useState([]);
   const [trainInputFileData, setTrainInputFileData] = useState({});
   const [valInputFileData, setValInputFileData] = useState({});
   const [numRows, setNumRows] = useState(0);
@@ -76,7 +66,9 @@ export default function AddDataset() {
   const [skipped, setSkipped] = useState(new Set());
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [numValExamples, setNumValExamples] = useState(100);
+  const [numValExamples, setNumValExamples] = useState(10);
+  const [inputColumn, setInputColumn] = useState('');
+  const [outputColumn, setOutputColumn] = useState('');
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
   const router = useRouter()
@@ -89,7 +81,13 @@ export default function AddDataset() {
     reader.onload = function(event) {
       const data = event.target.result;
       // Get the headers by splitting first row of CSV
-      setHeaders(data.split('\n')[0].split(','));
+      let h = data.split('\n')[0].split(',');
+      setHeaders(h);
+      let o = [];
+      for (let i=0; i<h.length; i++) {
+        o.push({value: h[i], label: h[i]});
+      }
+      setOptions(o);
     }
     setSelectedFile(f);
     Papa.parse(f, { complete: function(results) {
@@ -140,6 +138,8 @@ export default function AddDataset() {
     formData.append('valFileData', valInputFileData);
     formData.append('autoGenerateVal', autoGenerateVal);
     formData.append('numValExamples', numValExamples);
+    formData.append('inputColumn', inputColumn);
+    formData.append('outputColumn', outputColumn);
     formData.append('datetime', Date.now());
 
     axios.post("/api/data/add", formData, {
@@ -204,7 +204,7 @@ export default function AddDataset() {
     if (i === 0) {
       return name === '';
     } else if (i === 1) {
-      return !selectedFile;
+      return (!selectedFile || !inputColumn || !outputColumn);
     } else if (i === 2) {
       return false;
     }
@@ -275,25 +275,6 @@ export default function AddDataset() {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className='medium-space' />
-            <div className="horizontal-box flex-start">
-              <ToggleButtonGroup
-                value={type}
-                exclusive
-                onChange={(e, val) => setType(val)}
-              >
-                <ToggleButton value="classification">
-                  <Typography variant='body1'>
-                    Classification
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="generation">
-                  <Typography variant='body1'>
-                    Generative
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </div>
           </>
           : null}
 
@@ -302,20 +283,26 @@ export default function AddDataset() {
             <Typography variant='h6'>
               Training data
             </Typography>
-            <div className='small-space' />
+            <div className='tiny-space' />
             <div className="file-input">
               <div className='vertical-box'>
                 <Button variant="outlined" color="primary" component="label">
                   Upload training data
-                  <input type="file" accept=".csv, .json" onChange={handleFileInput}  hidden/>
+                  <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
                 </Button>
+                <div className='tiny-space' />
+                <Typography variant='body2' className='form-label'>
+                  Data must be uploaded as a CSV. After uploading a file, you can specify which
+                  column is the input and which column is the output.
+                </Typography>
               </div>
             </div>
             {selectedFile ?
               <>
                 <div className='medium-space' />
                 <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
-                <div className='horizontal-box'>
+                <div className='tiny-space' />
+                <div className='horizontal-box' className='headers-container'>
                   <Typography>Headers:&nbsp; </Typography>
                   {headers.map((h, i) =>
                     <div className='data-header' key={h}>
@@ -323,6 +310,26 @@ export default function AddDataset() {
                     </div>
                   )}
                 </div>
+                <div className='medium-space' />
+
+                <Typography variant='h6'>Input</Typography>
+                <div className='tiny-space' />
+                <Select
+                  onChange={(e) => setInputColumn(e.value)}
+                  options={options}
+                  className="multi-select"
+                  placeholder="Select input column"
+                />
+                <div className='medium-space' />
+
+                <Typography variant='h6'>Output</Typography>
+                <div className='tiny-space' />
+                <Select
+                  onChange={(e) => setOutputColumn(e.value)}
+                  options={options}
+                  className="multi-select"
+                  placeholder="Select output column"
+                />
               </>
               : null}
           </>
@@ -373,7 +380,7 @@ export default function AddDataset() {
                     sx={{width: 100}}
                     onChange={(e) => setNumValExamples(e.target.value)}
                   />
-                  <Typography>&nbsp;{Math.round((numValExamples / numRows) * 100) / 100}% of dataset</Typography>
+                  <Typography>&nbsp;{Math.round((numValExamples / numRows) * 100)}% of dataset</Typography>
                 </div>
               </> : null }
           </>
@@ -391,6 +398,8 @@ export default function AddDataset() {
               <Typography>Type: {type}</Typography>
               <Typography>Train file name: {selectedFile.name}</Typography>
               <Typography>Number of rows: {numRows}</Typography>
+              <Typography>Input column: {inputColumn}</Typography>
+              <Typography>Output column: {outputColumn}</Typography>
             </Box>
             <div className='small-space' />
             {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

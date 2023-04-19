@@ -16,6 +16,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import PaletteIcon from '@mui/icons-material/Palette';
 import Build from '@mui/icons-material/Build';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ConstructionIcon from '@mui/icons-material/Construction';
@@ -47,6 +48,8 @@ export default function Navbar() {
       return true;
     } else if (router.pathname.startsWith('/playground') && p === 'Playground') {
       return true;
+    } else if (router.pathname.startsWith('/projects') && p === 'Projects') {
+      return true;
     } else {
       return false;
     }
@@ -57,6 +60,8 @@ export default function Navbar() {
       return '/dashboard';
     } else if (p === 'Data') {
       return '/data';
+    } else if (p === 'Projects') {
+      return '/projects';
     } else if (p === 'Models') {
       return '/models';
     } else if (p === 'Playground') {
@@ -87,6 +92,20 @@ export default function Navbar() {
     }).catch((error) => {
       console.log(error);
     });
+    window.addEventListener("storage", () => {
+      if (localStorage.getItem("project")) {
+        setProject(localStorage.getItem("project"));
+      };
+      axios.get("/api/project/list").then((res) => {
+        console.log(res.data);
+        if (res.data !== "No data found") {
+          setAllProjects(res.data);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
+    });
   }, []);
 
   return(
@@ -110,8 +129,6 @@ export default function Navbar() {
               value={project}
               onChange={handleProjectChange}
             >
-              <MenuItem onClick={() => {Router.push('/projects/add')}} value={''}>+ New project</MenuItem>
-              <Divider />
               {allProjects.map((project) => (
                 <MenuItem key={project.name} value={project.name}>{project.name}</MenuItem>
               ))}
@@ -121,7 +138,7 @@ export default function Navbar() {
         <div className='tiny-space' />
         <Divider />
         <List>
-          {['Dashboard', 'Data', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
+          {['Dashboard', 'Projects', 'Data', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
             <ListItem key={text} disablePadding button component={Link} href={getLink(text)}>
               <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
@@ -129,6 +146,7 @@ export default function Navbar() {
                    text === 'Models' ? <LightbulbIcon /> :
                    text === 'Playground' ? <ConstructionIcon /> :
                    text === 'Dashboard' ? <DashboardIcon /> :
+                   text === 'Projects' ? <PaletteIcon /> :
                    text === 'Evaluate' ? <FunctionsIcon /> : null}
                 </ListItemIcon>
                 <ListItemText primary={text} />

@@ -50,17 +50,16 @@ export default async function handler(request, response) {
 
     for (let i=0; i<models.length; i++) {
       let model = models[i];
-      models[i]["status"] = "succeeded";
-      if (model.status == "training") {
+
+      if (model.status === "training") {
         const finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
         console.log(finetuneResponse.data);
-        if (finetuneResponse.data.status == "succeeded") {
+        if (finetuneResponse.data.status === "succeeded") {
+          models[i]["status"] = "succeeded";
           await db
             .collection("models")
             .updateOne({"providerModelId" : model.providerModelId},
             {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.data.fine_tuned_model}});
-        } else {
-          models[i]["status"] = "training";
         }
       }
     }

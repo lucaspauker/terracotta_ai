@@ -57,30 +57,49 @@ export default async function handler(request, response) {
     const description = inputData.fields.description;
     const project_id = inputData.fields.project_id;
     const filename = inputData.fields.filename;
-    const trainFileName = inputData.fields.trainFileName;
-    const initialTrainFileName = inputData.fields.initialTrainFileName;
-    let valFileName = inputData.fields.valFileName;
-    let initialValFileName = inputData.fields.initialValFileName;
     const datetime = inputData.fields.datetime;
     const projectName = inputData.fields.projectName;
     const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
     const numValExamples = inputData.fields.numValExamples;
+    const inputColumn = inputData.fields.inputColumn;
+    const outputColumn = inputData.fields.outputColumn;
 
-    //const trainFileData = await jsonexport(trainFileDataJson);
+    const trainFileName = inputData.fields.trainFileName;
+    const initialTrainFileName = inputData.fields.initialTrainFileName;
+    let valFileName = inputData.fields.valFileName;
+    let initialValFileName = inputData.fields.initialValFileName;
+    let numValWords = 0;
+    let numValCharacters = 0;
 
     let trainFileData = {};
     let valFileData = {};
-    console.log(inputData.files);
     if (autoGenerateVal) {
       // Automatically generate validation data from training data
       console.log("Generating val file with this many entries: " + numValExamples);
 
       const inputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
       const shuffled = inputTrainFileDataJson.sort(() => 0.5 - Math.random());
-      const outputValFileDataJson = shuffled.slice(0, numValExamples);
-      const outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
+      let outputValFileDataJson = shuffled.slice(0, numValExamples);
+      let outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
+
+      // Convert the data to the user-specified columns
+      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
+        let obj = Object.assign({}, x);
+        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+        return obj;
+      });
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        let obj = Object.assign({}, x);
+        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+        return obj;
+      });
+
+      // JSON to CSV
       valFileData = await jsonexport(outputValFileDataJson);
       trainFileData = await jsonexport(outputTrainFileDataJson);
+
+      numValWords = valFileData.split(" ").length;
+      numValCharacters = valFileData.length;
     } else if (initialValFileName === '') {
       // No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
@@ -98,7 +117,14 @@ export default async function handler(request, response) {
       valFileData = await fs.readFile(inputData.files.valFileData.filepath, {
         encoding: 'utf8',
       });
+
+      numValWords = valFileData.split(" ").length;
+      numValCharacters = valFileData.length;
     }
+
+    const numTrainWords = trainFileData.split(" ").length;
+    const numTrainCharacters = trainFileData.length;
+    console.log(numTrainWords, numTrainCharacters, numValWords, numValCharacters);
 
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
@@ -167,6 +193,10 @@ export default async function handler(request, response) {
           valFileName: valFileName,
           initialValFileName: initialValFileName,
           timeCreated: datetime,
+          numTrainWords: numTrainWords,
+          numTrainCharacters: numTrainCharacters,
+          numValWords: numValWords,
+          numValCharacters: numValCharacters,
         });
     console.log(d);
 
@@ -176,7 +206,6 @@ export default async function handler(request, response) {
     return new Promise((resolve, reject) => {
       myBucket.putObject(trainParams, function(trainErr, trainData) {
         if (trainErr) {
-          //response.status(400).json({ error: trainErr })
           reject();
         }
         console.log("Successfully wrote " + trainFileName);
@@ -185,7 +214,6 @@ export default async function handler(request, response) {
         } else {
           myBucket.putObject(valParams, function(valErr, valData) {
             if (valErr) {
-              //response.status(400).json({ error: valErr })
               reject();
             } else {
               console.log("Successfully wrote " + valFileName);

@@ -128,6 +128,10 @@ a {
   width: 200px;
 }
 
+.wide-select {
+  width: 500px;
+}
+
 .prompt {
   width: 100%;
 }
@@ -205,9 +209,8 @@ a {
 }
 
 .model-output {
-  background-color: #A3D3B3;
   padding: 10px;
-  border-radius: 20px;
+  border-radius: 4px;
 }
 
 .page-main-header {
@@ -260,5 +263,42 @@ a {
 .table-cell {
   font-weight: bold;
   border-bottom: 3px solid #9C2315;
+}
+
+.form-label {
+  max-width: 500px;
+  color: grey;
+}
+
+.project-card {
+  min-width: 250px;
+  margin-bottom: 20px;
+  transition: outline 0.1s;
+}
+
+.active-project-card {
+  outline: 5px solid green;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  grid-gap: 1rem;
+  justify-content: space-between;
+}
+
+.headers-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  max-width: 500px;
+  max-height: 300px;
+  overflow: scroll;
+}
+
+.multi-select {
+  width: 500px;
+  font-family: "Lato";
 }
 

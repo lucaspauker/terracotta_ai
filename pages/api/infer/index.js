@@ -51,8 +51,7 @@ export default async function handler(request, response) {
     const completion = await openai.createCompletion({
       model: openAiModelName,
       prompt: prompt,
-      temperature: 0.6,
-      max_tokens: 100,
+      max_tokens: 1000,
     });
     console.log(completion.data.choices[0].text);
     response.status(200).json(completion.data);
