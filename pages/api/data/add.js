@@ -103,20 +103,36 @@ export default async function handler(request, response) {
     } else if (initialValFileName === '') {
       // No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
-      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
-        encoding: 'utf8',
+
+      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        let obj = Object.assign({}, x);
+        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+        return obj;
       });
+      trainFileData = await jsonexport(outputTrainFileDataJson);
+
       valFileName = null;
       initialValFileName = null;
     } else {
       // Both train and val files are specified
       console.log("Both train and validation files are specified");
-      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
-        encoding: 'utf8',
+
+      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        let obj = Object.assign({}, x);
+        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+        return obj;
       });
-      valFileData = await fs.readFile(inputData.files.valFileData.filepath, {
-        encoding: 'utf8',
+      trainFileData = await jsonexport(outputTrainFileDataJson);
+
+      let outputValFileDataJson = await csv().fromFile(inputData.files.valFileData.filepath);
+      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
+        let obj = Object.assign({}, x);
+        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+        return obj;
       });
+      valFileData = await jsonexport(outputValFileDataJson);
 
       numValWords = valFileData.split(" ").length;
       numValCharacters = valFileData.length;
