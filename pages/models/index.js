@@ -60,12 +60,16 @@ export default function Models() {
     });
   }, []);
 
+  if (loading) {
+    return <div className='main vertical-box'><CircularProgress /></div>
+  }
+
   return (
     <div className='main'>
 
       <div className='horizontal-box full-width'>
         <Typography variant='h4' className='page-main-header'>
-          Models
+          Finetuned Models
         </Typography>
         <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/add">
           + Finetune model
@@ -73,19 +77,17 @@ export default function Models() {
       </div>
       <div className='tiny-space' />
 
-      {loading ?
-        <CircularProgress />
-        :
-        <div>
-          {models.length > 0 ?
-            <Paper variant="outlined">
-              <TableContainer>
+      <div>
+        {models.length > 0 ?
+          <Paper variant="outlined">
+            <TableContainer>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
                     <TableCell className='table-cell'>ID</TableCell>
                     <TableCell className='table-cell'>Provider</TableCell>
+                    <TableCell className='table-cell'>Architecture</TableCell>
                     <TableCell className='table-cell'>Status</TableCell>
                   </TableRow>
                 </TableHead>
@@ -98,6 +100,7 @@ export default function Models() {
                       <TableCell>{model.name}</TableCell>
                       <TableCell>{model._id}</TableCell>
                       <TableCell>{model.provider}</TableCell>
+                      <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell>{model.status}</TableCell>
                     </TableRow>
                   ))}
@@ -105,13 +108,12 @@ export default function Models() {
               </Table>
             </TableContainer>
           </Paper>
-            :
-            <Typography variant='body1'>
-              No models found :(
-            </Typography>
-          }
-        </div>
-      }
+          :
+          <Typography variant='body1'>
+            No models found :(
+          </Typography>
+        }
+      </div>
     </div>
   )
 }

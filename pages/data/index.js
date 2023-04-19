@@ -81,6 +81,10 @@ export default function Data() {
     });
   }, []);
 
+  if (loading) {
+    return <div className='main vertical-box'><CircularProgress /></div>
+  }
+
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -88,50 +92,46 @@ export default function Data() {
           Datasets
         </Typography>
         <Button variant='contained' color="secondary" component={Link} href="/data/add">
-          + Create dataset
+          + New dataset
         </Button>
       </div>
       <div className='tiny-space' />
 
-      {loading ?
-        <CircularProgress />
-        :
-        <div>
-          {datasets.length > 0 ?
-            <Paper variant="outlined">
-              <TableContainer>
-                <Table sx={{ minWidth: 650 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell className='table-cell'>Name</TableCell>
-                      <TableCell className='table-cell'>ID</TableCell>
-                      <TableCell className='table-cell'>Description</TableCell>
-                      <TableCell className='table-cell'>Data filename</TableCell>
+      <div>
+        {datasets.length > 0 ?
+          <Paper variant="outlined">
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell className='table-cell'>Name</TableCell>
+                    <TableCell className='table-cell'>ID</TableCell>
+                    <TableCell className='table-cell'>Description</TableCell>
+                    <TableCell className='table-cell'>Data filename</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {datasets.map((dataset) => (
+                    <TableRow
+                      key={dataset._id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
+                      <TableCell>{dataset._id}</TableCell>
+                      <TableCell>{dataset.description}</TableCell>
+                      <TableCell>{dataset.initialTrainFileName}</TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {datasets.map((dataset) => (
-                      <TableRow
-                        key={dataset._id}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                      >
-                        <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
-                        <TableCell>{dataset._id}</TableCell>
-                        <TableCell>{dataset.description}</TableCell>
-                        <TableCell>{dataset.initialTrainFileName}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-            :
-            <Typography variant='body1'>
-              No datasets found :(
-            </Typography>
-          }
-        </div>
-      }
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+          :
+          <Typography variant='body1'>
+            No datasets found :(
+          </Typography>
+        }
+      </div>
     </div>
   )
 }

@@ -19,6 +19,7 @@ import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
+import { FaArrowLeft } from 'react-icons/fa';
 
 import styles from '@/styles/Data.module.css'
 
@@ -51,13 +52,10 @@ export default function Train() {
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
   // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
   // dataset size in the datasets collection when it is uploaded.
-  const hyperParams = {"n_epochs": 4, "batch_size": null, "learning_rate_multuplier": null};
+  const hyperParams = {"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null};
   const router = useRouter();
 
-  const steps = ['Model and Dataset', 'Hyperparameter Selection'];
-
-
-  console.log(localStorage.getItem("project"));
+  const steps = ['Model and dataset', 'Hyperparameter selection', 'Review'];
 
   const handleFinetune = () => {
     let projectName = '';
@@ -74,6 +72,7 @@ export default function Train() {
       }).then((res) => {
         console.log(res.data);
         setError();
+        router.push('/models');
       }).catch((error) => {
         console.log(error);
         setError(error.response.data);
@@ -120,10 +119,15 @@ export default function Train() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" onClick={() => router.back()}>
-        Back
-      </Button>
-      <div className='medium-space' />
+      <div className='horizontal-box full-width'>
+        <div className='horizontal-box'>
+          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <Typography variant='h4' className='page-main-header'>
+            Finetune model
+          </Typography>
+        </div>
+      </div>
+      <div className='small-space' />
 
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => {
@@ -136,12 +140,16 @@ export default function Train() {
           );
         })}
       </Stepper>
-      <div className='medium-space' />
+      <div className='small-space' />
 
-      <Paper className='card vertical-box'>
+      <Paper className='card vertical-box' variant='outlined'>
 
         {activeStep === 0 ?
           <>
+            <Typography variant='h6'>
+              Model and dataset
+            </Typography>
+            <div className='small-space' />
             <TextField
               label="Model name"
               variant="outlined"
@@ -159,24 +167,24 @@ export default function Train() {
               <InputLabel id="provider-label">Provider</InputLabel>
               <Select
                 labelId="provider-label"
-                className="simple-select"
+                className="wide-select"
                 label="Provider"
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
                 required
               >
                 <MenuItem value={'openai'}>OpenAI</MenuItem>
-                <MenuItem value={'anthropic'}>Anthropic</MenuItem>
+                <MenuItem value={'cohere'}>Cohere</MenuItem>
               </Select>
               </FormControl>
               <div className='small-space' />
               <FormControl className='button-margin' disabled={provider !== 'openai'}>
-                <InputLabel id="model-label">Model Architecture</InputLabel>
+                <InputLabel id="model-label">Model architecture</InputLabel>
                 <Select
                   labelId="model-label"
-                  className="simple-select"
+                  className="wide-select"
                   value={modelArchitecture}
-                  label="Model"
+                  label="Model architecture"
                   onChange={(e) => setModelArchitecture(e.target.value)}
                   required
                 >
@@ -198,7 +206,7 @@ export default function Train() {
                       <InputLabel id="dataset-label">Dataset</InputLabel>
                       <Select
                         labelId="dataset-label"
-                        className="simple-select"
+                        className="wide-select"
                         value={dataset}
                         label="Dataset"
                         onChange={(e) => setDataset(e.target.value)}
@@ -210,12 +218,15 @@ export default function Train() {
                       </Select>
                     </FormControl>
                 }
-                <div className='medium-space' />
           </>
           : null}
 
         {activeStep === 1 ?
           <>
+            <Typography variant='h6'>
+              Hyperparameters
+            </Typography>
+            <div className='small-space' />
             <TextField
               label="Number of epochs"
               variant="outlined"
@@ -223,23 +234,49 @@ export default function Train() {
               value={hyperParams.n_epochs}
               onChange={(e) => hyperParams.n_epochs = e.target.value}
             />
+            <Typography variant='body2' className='form-label'>
+              The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
+            </Typography>
             <div className='medium-space' />
             <TextField
               label="Batch size"
               variant="outlined"
               className='text-label center'
-              value={hyperParams.batch_size}
+              value={hyperParams.batch_size ? hyperParams.batch_size : ''}
               onChange={(e) => hyperParams.batch_size = e.target.value}
             />
+            <Typography variant='body2' className='form-label'>
+              The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
+            </Typography>
             <div className='medium-space' />
             <TextField
               label="Learning rate multiplier"
               variant="outlined"
               className='text-label center'
-              value={hyperParams.learning_rate_multuplier}
-              onChange={(e) => hyperParams.learning_rate_multuplier = e.target.value}
+              value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
+              onChange={(e) => hyperParams.learning_rate_multiplier = e.target.value}
             />
+            <Typography variant='body2' className='form-label'>
+              By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
+            </Typography>
+          </>
+          : null}
+
+        {activeStep === 2 ?
+          <>
+            <Typography variant='h6'>
+              Review and launch
+            </Typography>
+            <div className='small-space' />
+            <Box sx={{textAlign: 'left'}}>
+              <Typography>Name: {modelName}</Typography>
+              <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
+              <Typography>Architecture: {modelArchitecture}</Typography>
+              <Typography>Dataset: {dataset}</Typography>
+              <Typography>Estimated cost: $4.10</Typography>
+            </Box>
             <div className='medium-space' />
+            {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
             <Button variant='contained' color="primary" onClick={handleFinetune}>Finetune</Button>
           </>
           : null}

@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
+import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
@@ -58,7 +60,7 @@ export default function Add() {
       }).then((res) => {
         console.log(res.data);
         setError();
-        window.location.href = '/dashboard';
+        router.push('/projects');
       }).catch((err) => {
         console.log(err);
         setError(err.response.data.error);
@@ -67,48 +69,52 @@ export default function Add() {
 
   return (
     <div className='main'>
-      <Button variant='contained' color="secondary" onClick={() => router.back()}>
-        Back
-      </Button>
-      <Typography variant='h4' className='page-main-header'>
-        Create Project
-      </Typography>
-      <div className='medium-space' />
-
-      <TextField
-        id="outlined-basic"
-        label="Project name"
-        variant="outlined"
-        className='text-label'
-        inputRef={nameRef}
-      />
-      <div className='medium-space' />
-
-      <div className="horizontal-box flex-start">
-        <Typography variant='body1'>
-          Type of data:&nbsp;&nbsp;
-        </Typography>
-        <ToggleButtonGroup
-          value={type}
-          exclusive
-          onChange={(e, val) => setType(val)}
-        >
-          <ToggleButton value="classification">
-            <Typography variant='body1'>
-              Classification
-            </Typography>
-          </ToggleButton>
-          <ToggleButton value="generative">
-            <Typography variant='body1'>
-              Generative
-            </Typography>
-          </ToggleButton>
-        </ToggleButtonGroup>
+      <div className='horizontal-box full-width'>
+        <div className='horizontal-box'>
+          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <Typography variant='h4' className='page-main-header'>
+            Create Project
+          </Typography>
+        </div>
       </div>
-      <div className='medium-space' />
+      <div className='small-space' />
 
-      {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-      <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
+      <Paper className='card vertical-box' variant='outlined'>
+        <TextField
+          id="outlined-basic"
+          label="Project name"
+          variant="outlined"
+          className='text-label'
+          inputRef={nameRef}
+        />
+        <div className='medium-space' />
+
+        <div className="horizontal-box flex-start">
+          <Typography variant='body1'>
+            Type of data:&nbsp;&nbsp;
+          </Typography>
+          <ToggleButtonGroup
+            value={type}
+            exclusive
+            onChange={(e, val) => setType(val)}
+          >
+            <ToggleButton value="classification">
+              <Typography variant='body1'>
+                Classification
+              </Typography>
+            </ToggleButton>
+            <ToggleButton value="generative">
+              <Typography variant='body1'>
+                Generative
+              </Typography>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+        <div className='medium-space' />
+
+        {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+        <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
+      </Paper>
     </div>
   )
 }

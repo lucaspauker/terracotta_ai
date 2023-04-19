@@ -33,7 +33,8 @@ export default function Playground() {
     axios.post("/api/infer", {
         provider: provider,
         model: model,
-        prompt: promptRef.current.value + "\n\n###\n\n",
+        //prompt: promptRef.current.value + "\n\n###\n\n",
+        prompt: promptRef.current.value + " ->",
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
@@ -86,9 +87,11 @@ export default function Playground() {
 
   return (
     <div className='main'>
-      <Typography variant='h4' className='page-main-header'>
-        Playground
-      </Typography>
+      <div className='horizontal-box full-width'>
+        <Typography variant='h4' className='page-main-header'>
+          Playground
+        </Typography>
+      </div>
       <div className='medium-space' />
 
       <Typography variant='body1'>
@@ -128,13 +131,18 @@ export default function Playground() {
         className='prompt'
         inputRef={promptRef}
       />
-      <Typography>Or choose prompt from dataset... (TODO)</Typography>
       <div className='medium-space' />
 
       {output ?
-        <Typography className='model-output'>
-          {output}
-        </Typography>
+        <>
+          <Typography variant='body1'>
+            Output
+          </Typography>
+          <div className='tiny-space' />
+          <Typography>
+            <span className='model-output'>{output}</span>
+          </Typography>
+        </>
         : null }
 
       {loading ?  <CircularProgress /> : null}

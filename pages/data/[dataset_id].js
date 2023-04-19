@@ -78,7 +78,7 @@ export default function DataPage() {
   const doDelete = () => {
     axios.post("/api/data/delete/" + dataset_id).then((res) => {
       console.log(res.data);
-      window.location.href = '/data';
+      router.push('/data');
     }).catch((error) => {
       console.log(error);
     });
@@ -220,8 +220,8 @@ export default function DataPage() {
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
-                <TableCell className='table-cell'>Prompt</TableCell>
-                <TableCell className='table-cell'>Completion</TableCell>
+                <TableCell className='table-cell'>Input</TableCell>
+                <TableCell className='table-cell'>Output</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

@@ -30,6 +30,18 @@ const openai = new OpenAIApi(configuration);
 
 const fs = require('fs');
 
+async function downloadFile(params, fileName) {
+  return new Promise((resolve, reject) => {
+    const readStream = myBucket.getObject(params).createReadStream();
+
+    console.log("Retreiving file: " + 'raw_data/' + fileName);
+    console.log(params);
+
+    const writeStream = fs.createWriteStream('jsonl_data/' + fileName)
+    readStream.pipe(writeStream).on("finish", () => resolve())
+  });
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })
@@ -91,7 +103,7 @@ export default async function handler(request, response) {
     }
 
     // Use openai CLI tool to create train and validation jsonl files
-    execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${trainFileName} --val_fname ${valFileName}`, (error, stdout, stderr) => {
+    execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -104,8 +116,8 @@ export default async function handler(request, response) {
     });
 
     // Upload files to openAI, need to modify this later and save into a new collection
-    const preparedTrainFile = path.parse(trainFileName).name + "_prepared.jsonl";
-    const preparedValFile = path.parse(valFileName).name + "_prepared.jsonl";
+    const preparedTrainFile = 'jsonl_data/' + path.parse(trainFileName).name + "_prepared.jsonl";
+    const preparedValFile = 'jsonl_data/' + path.parse(valFileName).name + "_prepared.jsonl";
 
     console.log(preparedTrainFile)
     const trainResponse = await openai.createFile(
@@ -124,11 +136,11 @@ export default async function handler(request, response) {
       training_file: trainResponse.data.id,
       validation_file: valResponse.data.id,
       compute_classification_metrics: true,
-      classification_positive_class: " baseball",
+      classification_positive_class: " spam",
       model: modelArchitecture,
     };
 
-    finetuneRequest = Object.assign({},finetuneRequest, hyperParams)
+    //finetuneRequest = Object.assign({}, finetuneRequest, hyperParams)
 
     // Create finetune, need to remove hardcodes
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
@@ -158,14 +170,3 @@ export default async function handler(request, response) {
   }
 }
 
-async function downloadFile(params, fileName) {
-  return new Promise((resolve, reject) => {
-    const readStream = myBucket.getObject(params).createReadStream();
-
-    console.log("Retreiving file: " + 'raw_data/' + fileName);
-    console.log(params);
-
-    const writeStream = fs.createWriteStream(fileName)
-    readStream.pipe(writeStream).on("finish", () => resolve())
-  });
-}
