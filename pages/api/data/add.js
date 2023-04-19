@@ -83,16 +83,16 @@ export default async function handler(request, response) {
       let outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
 
       // Convert the data to the user-specified columns
-      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
-        let obj = Object.assign({}, x);
-        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
-        return obj;
-      });
-      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
-        let obj = Object.assign({}, x);
-        obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
-        return obj;
-      });
+      // outputValFileDataJson = outputValFileDataJson.map((x, i) => {
+      //   let obj = Object.assign({}, x);
+      //   obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+      //   return obj;
+      // });
+      // outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+      //   let obj = Object.assign({}, x);
+      //   obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
+      //   return obj;
+      // });
 
       // JSON to CSV
       valFileData = await jsonexport(outputValFileDataJson);

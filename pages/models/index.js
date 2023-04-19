@@ -85,10 +85,12 @@ export default function Models() {
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
-                    <TableCell className='table-cell'>ID</TableCell>
+                    <TableCell className='table-cell'>Dataset Name</TableCell>
                     <TableCell className='table-cell'>Provider</TableCell>
                     <TableCell className='table-cell'>Architecture</TableCell>
                     <TableCell className='table-cell'>Status</TableCell>
+                    <TableCell className='table-cell'>Provider Model ID</TableCell>
+                    <TableCell className='table-cell'>Cost</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -98,10 +100,12 @@ export default function Models() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
                       <TableCell>{model.name}</TableCell>
-                      <TableCell>{model._id}</TableCell>
+                      <TableCell>{model.datasetName}</TableCell>
                       <TableCell>{model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell>{model.status}</TableCell>
+                      <TableCell>{"providerModelName" in model? model.providerModelName:"pending"}</TableCell>
+                      <TableCell>{"cost" in model ? "$" + model.cost :"pending"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

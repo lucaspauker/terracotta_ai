@@ -60,7 +60,13 @@ export default async function handler(request, response) {
     const datasetName = request.body.dataset;
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;
-    const hyperParams = request.body.hyperParams;
+    let hyperParams = request.body.hyperParams;
+
+    for (const [key, value] of Object.entries(hyperParams)){
+      if (hyperParams[key] === null) {
+        delete hyperParams[key];
+      }
+    } 
 
     console.log(request.body);
 
@@ -140,7 +146,7 @@ export default async function handler(request, response) {
       model: modelArchitecture,
     };
 
-    //finetuneRequest = Object.assign({}, finetuneRequest, hyperParams)
+    finetuneRequest = {...finetuneRequest,...hyperParams};
 
     // Create finetune, need to remove hardcodes
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
