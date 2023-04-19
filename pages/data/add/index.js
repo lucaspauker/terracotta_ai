@@ -67,8 +67,8 @@ export default function AddDataset() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [numValExamples, setNumValExamples] = useState(10);
-  const [inputColumn, setInputColumn] = useState('');
-  const [outputColumn, setOutputColumn] = useState('');
+  const [inputColumn, setInputColumn] = useState(null);
+  const [outputColumn, setOutputColumn] = useState(null);
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
   const router = useRouter()
@@ -92,6 +92,7 @@ export default function AddDataset() {
     setSelectedFile(f);
     Papa.parse(f, { complete: function(results) {
       setNumRows(results.data.length);  // Subtract the header row
+      setNumValExamples(parseInt(results.data.length / 5));
       console.log(results);
     }, header: true, skipEmptyLines: true});
     uploadFile(f);
@@ -315,6 +316,7 @@ export default function AddDataset() {
                 <Typography variant='h6'>Input</Typography>
                 <div className='tiny-space' />
                 <Select
+                  defaultValue={{label: inputColumn, value: inputColumn}}
                   onChange={(e) => setInputColumn(e.value)}
                   options={options}
                   className="multi-select"
@@ -325,6 +327,7 @@ export default function AddDataset() {
                 <Typography variant='h6'>Output</Typography>
                 <div className='tiny-space' />
                 <Select
+                  defaultValue={{label: outputColumn, value: outputColumn}}
                   onChange={(e) => setOutputColumn(e.value)}
                   options={options}
                   className="multi-select"
@@ -340,7 +343,7 @@ export default function AddDataset() {
             <Typography variant='h6'>
               Validation data (optional)
             </Typography>
-            <div className='small-space' />
+            <div className='tiny-space' />
             <div className="file-input">
               <div className='vertical-box'>
                 <Button variant="outlined" color="primary" component="label" disabled={autoGenerateVal}>
@@ -352,6 +355,10 @@ export default function AddDataset() {
                   : null}
               </div>
             </div>
+            <div className='tiny-space' />
+            <Typography variant='body2' className='form-label'>
+              The validation dataset must have the same column names as the training dataset.
+            </Typography>
             <div className='medium-space' />
 
             <FormGroup>
@@ -364,23 +371,27 @@ export default function AddDataset() {
               <>
                 <div className='medium-space' />
                 <Typography variant='body1'>
-                  Total number of examples: {numRows}
+                  Total number of examples: &nbsp;{numRows}
                 </Typography>
                 <div className='tiny-space' />
                 <div className='horizontal-box'>
                   <Typography variant='body1'>
-                    Number of validation examples:&nbsp;
+                    Number of validation examples:&nbsp;&nbsp;
                   </Typography>
-                  <TextField
-                    label="#"
-                    type="number"
-                    variant="outlined"
-                    className='center'
-                    value={numValExamples}
-                    sx={{width: 100}}
-                    onChange={(e) => setNumValExamples(e.target.value)}
-                  />
-                  <Typography>&nbsp;{Math.round((numValExamples / numRows) * 100)}% of dataset</Typography>
+                  <div className='vertical-box'>
+                    <TextField
+                      label="#"
+                      type="number"
+                      variant="outlined"
+                      className='center'
+                      value={numValExamples}
+                      sx={{width: 100}}
+                      onChange={(e) => setNumValExamples(e.target.value)}
+                    />
+                    <Typography variant='body2'>
+                      {Math.round((numValExamples / numRows) * 100)}% of dataset
+                    </Typography>
+                  </div>
                 </div>
               </> : null }
           </>

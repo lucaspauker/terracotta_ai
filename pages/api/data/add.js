@@ -71,10 +71,11 @@ export default async function handler(request, response) {
     let numValWords = 0;
     let numValCharacters = 0;
 
+    let trainOutputColumn = [];  // Used to get unique output classes
     let trainFileData = {};
     let valFileData = {};
     if (autoGenerateVal) {
-      // Automatically generate validation data from training data
+      // FIRST case: Automatically generate validation data from training data
       console.log("Generating val file with this many entries: " + numValExamples);
 
       const inputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
@@ -83,16 +84,17 @@ export default async function handler(request, response) {
       let outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
 
       // Convert the data to the user-specified columns
-      // outputValFileDataJson = outputValFileDataJson.map((x, i) => {
-      //   let obj = Object.assign({}, x);
-      //   obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
-      //   return obj;
-      // });
-      // outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
-      //   let obj = Object.assign({}, x);
-      //   obj = {prompt: obj[inputColumn], completion: obj[outputColumn]}
-      //   return obj;
-      // });
+      console.log(outputTrainFileDataJson[0]);
+      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
+        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
+        return obj;
+      });
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
+        trainOutputColumn.push(obj);
+        return obj;
+      });
+      console.log(outputTrainFileDataJson[0]);
 
       // JSON to CSV
       valFileData = await jsonexport(outputValFileDataJson);
@@ -101,30 +103,53 @@ export default async function handler(request, response) {
       numValWords = valFileData.split(" ").length;
       numValCharacters = valFileData.length;
     } else if (initialValFileName === '') {
-      // No validation file specified, so set entries to null in the database
+      // SECOND case: No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
-      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
-        encoding: 'utf8',
+
+      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
+        trainOutputColumn.push(obj);
+        return obj;
       });
+      trainFileData = await jsonexport(outputTrainFileDataJson);
+
       valFileName = null;
       initialValFileName = null;
     } else {
-      // Both train and val files are specified
+      // THIRD case: Both train and val files are specified
       console.log("Both train and validation files are specified");
-      trainFileData = await fs.readFile(inputData.files.trainFileData.filepath, {
-        encoding: 'utf8',
+
+      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
+        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
+        trainOutputColumn.push(obj);
+        return obj;
       });
-      valFileData = await fs.readFile(inputData.files.valFileData.filepath, {
-        encoding: 'utf8',
+      trainFileData = await jsonexport(outputTrainFileDataJson);
+
+      let outputValFileDataJson = await csv().fromFile(inputData.files.valFileData.filepath);
+      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
+        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
+        return obj;
       });
+      valFileData = await jsonexport(outputValFileDataJson);
 
       numValWords = valFileData.split(" ").length;
       numValCharacters = valFileData.length;
     }
 
+    // Get the number of characters and words in the train dataset
     const numTrainWords = trainFileData.split(" ").length;
     const numTrainCharacters = trainFileData.length;
-    console.log(numTrainWords, numTrainCharacters, numValWords, numValCharacters);
+
+    // Get the unique classes in the training dataset
+    trainOutputColumn = trainOutputColumn.map((x, i) => {
+      return x['completion'];
+    });
+    const classesSet = Array.from(new Set(trainOutputColumn));
+    console.log(classesSet.length + " classes found")
+    console.log(classesSet);
 
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
@@ -197,6 +222,7 @@ export default async function handler(request, response) {
           numTrainCharacters: numTrainCharacters,
           numValWords: numValWords,
           numValCharacters: numValCharacters,
+          classes: classesSet,
         });
     console.log(d);
 
