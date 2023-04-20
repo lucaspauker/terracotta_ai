@@ -138,17 +138,35 @@ export default async function handler(request, response) {
     );
     console.log(valResponse.data);
 
-    let finetuneRequest = {
-      training_file: trainResponse.data.id,
-      validation_file: valResponse.data.id,
-      compute_classification_metrics: true,
-      classification_positive_class: " spam",
-      model: modelArchitecture,
-    };
+    let finetuneRequest = null;
+    if (project.type === "classification") {
+      if (dataset.classes.length <= 1) {
+        response.status(400).json({ error: 'Dataset classes not speficied' });
+        return;
+      } else if (dataset.classes.length === 2) {  // Binary classification
+        finetuneRequest = {
+          training_file: trainResponse.data.id,
+          validation_file: valResponse.data.id,
+          compute_classification_metrics: true,
+          classification_positive_class: " " + dataset.classes[0],
+          model: modelArchitecture,
+        };
+      } else {  // Multiclass classification
+        finetuneRequest = {
+          training_file: trainResponse.data.id,
+          validation_file: valResponse.data.id,
+          compute_classification_metrics: true,
+          classification_n_classes: dataset.classes.length,
+          model: modelArchitecture,
+        };
+      }
+    } else {
+      response.status(400).json({ error: 'Only classification is supported' });
+      return;
+    }
 
+    // Create finetune
     finetuneRequest = {...finetuneRequest,...hyperParams};
-
-    // Create finetune, need to remove hardcodes
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
 
     console.log(finetuneResponse.data)
