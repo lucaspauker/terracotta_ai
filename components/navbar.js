@@ -66,6 +66,8 @@ export default function Navbar() {
       return '/models';
     } else if (p === 'Playground') {
       return '/playground';
+    } else if (p === 'API keys') {
+      return '/apikeys';
     } else {
       return '/';
     }
@@ -156,11 +158,11 @@ export default function Navbar() {
         </List>
         <Divider />
         <List>
-          {['Settings'].map((text, index) => (
+          {['API keys'].map((text, index) => (
             <ListItem key={text} disablePadding>
               <ListItemButton>
                 <ListItemIcon>
-                  {text === 'Settings' ? <SettingsIcon /> : null}
+                  {text === 'API keys' ? <SettingsIcon /> : null}
                 </ListItemIcon>
                 <ListItemText primary={text} />
               </ListItemButton>
