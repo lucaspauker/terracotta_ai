@@ -54,7 +54,7 @@ export default function Train() {
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
   // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
   // dataset size in the datasets collection when it is uploaded.
-  
+
   const router = useRouter();
 
   const steps = ['Model and dataset', 'Hyperparameter selection', 'Review'];
