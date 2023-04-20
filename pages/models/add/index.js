@@ -46,13 +46,15 @@ export default function Train() {
   const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [modelName, setModelName] = useState('');
+  const [modelName, setModelName] = useState(''); 
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
+  const [estimatedCost, setEstimatedCost] = useState('')
+  const [hyperParams, setHyperParams] = useState({"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null});
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
   // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
   // dataset size in the datasets collection when it is uploaded.
-  const hyperParams = {"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null};
+  
   const router = useRouter();
 
   const steps = ['Model and dataset', 'Hyperparameter selection', 'Review'];
@@ -73,6 +75,23 @@ export default function Train() {
         console.log(res.data);
         setError();
         router.push('/models');
+      }).catch((error) => {
+        console.log(error);
+        setError(error.response.data);
+      });
+  }
+
+  const estimateCost = () => {
+    axios.post("/api/finetune/cost", {
+        provider: provider,
+        modelArchitecture: modelArchitecture,
+        epochs: hyperParams["n_epochs"],
+        dataset: dataset,
+      }).then((res) => {
+        setEstimatedCost(res.data.estimatedCost);
+        console.log("response data")
+        console.log(res.data);
+        setError();
       }).catch((error) => {
         console.log(error);
         setError(error.response.data);
@@ -103,6 +122,9 @@ export default function Train() {
   };
 
   const handleNext = () => {
+    if (activeStep === 1) {
+      estimateCost()
+    }
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
@@ -232,7 +254,7 @@ export default function Train() {
               variant="outlined"
               className='text-label center'
               value={hyperParams.n_epochs}
-              onChange={(e) => hyperParams.n_epochs = e.target.value}
+              onChange={(e) => setHyperParams({...hyperParams, n_epochs: e.target.value})}
             />
             <Typography variant='body2' className='form-label'>
               The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
@@ -243,7 +265,7 @@ export default function Train() {
               variant="outlined"
               className='text-label center'
               value={hyperParams.batch_size ? hyperParams.batch_size : ''}
-              onChange={(e) => hyperParams.batch_size = e.target.value}
+              onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
             />
             <Typography variant='body2' className='form-label'>
               The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
@@ -254,7 +276,7 @@ export default function Train() {
               variant="outlined"
               className='text-label center'
               value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
-              onChange={(e) => hyperParams.learning_rate_multiplier = e.target.value}
+              onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
             />
             <Typography variant='body2' className='form-label'>
               By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
@@ -273,7 +295,7 @@ export default function Train() {
               <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
               <Typography>Architecture: {modelArchitecture}</Typography>
               <Typography>Dataset: {dataset}</Typography>
-              <Typography>Estimated cost: $4.10</Typography>
+              <Typography>Estimated cost: $ {estimatedCost}</Typography>
             </Box>
             <div className='medium-space' />
             {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
