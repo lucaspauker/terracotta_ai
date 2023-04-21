@@ -23,11 +23,6 @@ const myBucket = new AWS.S3({
 
 const { Configuration, OpenAIApi } = require("openai");
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
 const fs = require('fs');
 
 async function downloadFile(params, fileName) {
@@ -66,7 +61,7 @@ export default async function handler(request, response) {
       if (hyperParams[key] === null) {
         delete hyperParams[key];
       }
-    } 
+    }
 
     console.log(request.body);
 
@@ -76,8 +71,13 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
-
     const userId = user._id;
+
+    // Configure openai with user API key
+    const configuration = new Configuration({
+      apiKey: user.openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
 
     const project = await db
       .collection("projects")
