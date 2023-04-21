@@ -160,8 +160,14 @@ export default async function handler(request, response) {
           model: modelArchitecture,
         };
       }
+    } else if (project.type === "generation") {
+      finetuneRequest = {
+        training_file: trainResponse.data.id,
+        validation_file: valResponse.data.id,
+        model: modelArchitecture,
+      };
     } else {
-      response.status(400).json({ error: 'Only classification is supported' });
+      response.status(400).json({ error: 'Only classification and generation are supported' });
       return;
     }
 
