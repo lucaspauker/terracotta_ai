@@ -88,11 +88,11 @@ export default function Models() {
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
-                    <TableCell className='table-cell'>Dataset Name</TableCell>
+                    <TableCell className='table-cell'>Dataset name</TableCell>
                     <TableCell className='table-cell'>Provider</TableCell>
                     <TableCell className='table-cell'>Architecture</TableCell>
                     <TableCell className='table-cell'>Status</TableCell>
-                    <TableCell className='table-cell'>Provider Model ID</TableCell>
+                    <TableCell className='table-cell'>Provider model ID</TableCell>
                     <TableCell className='table-cell'>Cost</TableCell>
                   </TableRow>
                 </TableHead>
@@ -104,10 +104,14 @@ export default function Models() {
                     >
                       <TableCell>{model.name}</TableCell>
                       <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
-                      <TableCell>{model.provider}</TableCell>
+                      <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
-                      <TableCell>{model.status}</TableCell>
-                      <TableCell>{"providerModelName" in model? model.providerModelName:"pending"}</TableCell>
+                      <TableCell><span className={'model-' + model.status.split()[0]}>{model.status.toLowerCase()}</span></TableCell>
+                      <TableCell>{"providerModelName" in model?
+                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
+                                      {model.providerModelName}
+                                  </Link>
+                                  :"pending"}</TableCell>
                       <TableCell>{"cost" in model ? "$" + model.cost :"pending"}</TableCell>
                     </TableRow>
                   ))}
