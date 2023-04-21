@@ -106,7 +106,7 @@ export default function Models() {
                       <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
-                      <TableCell><span className={'model-' + model.status.split()[0]}>{model.status.toLowerCase()}</span></TableCell>
+                      <TableCell><span className={model.status==='succeeded' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}>{model.status.toLowerCase()}</span></TableCell>
                       <TableCell>{"providerModelName" in model?
                                   <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
                                       {model.providerModelName}

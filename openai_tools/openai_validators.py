@@ -148,7 +148,7 @@ def duplicated_rows_validator(df, fields=["prompt", "completion"]):
     )
 
 
-def long_examples_validator(df):
+def long_examples_validator(df, task):
     """
     This validator will suggest to the user to remove examples that are too long.
     """
@@ -156,8 +156,7 @@ def long_examples_validator(df):
     optional_msg = None
     optional_fn = None
 
-    ft_type = infer_task_type(df)
-    if ft_type != "open-ended generation":
+    if task != "generation":
         def get_long_indexes(d):
             long_examples = d.apply(
                 lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
@@ -171,7 +170,7 @@ def long_examples_validator(df):
             optional_msg = f"Remove {len(long_indexes)} long examples"
 
             def optional_fn(x):
-                
+
                 long_indexes_to_drop = get_long_indexes(x)
                 if long_indexes != long_indexes_to_drop:
                     sys.stdout.write(f"The indices of the long examples has changed as a result of a previously applied recommendation.\nThe {len(long_indexes_to_drop)} long examples to be dropped are now at the following indices: {long_indexes_to_drop}\n")
@@ -185,7 +184,7 @@ def long_examples_validator(df):
     )
 
 
-def common_prompt_suffix_validator(df):
+def common_prompt_suffix_validator(df, task):
     """
     This validator will suggest to add a common suffix to the prompt if one doesn't already exist in case of classification or conditional generation.
     """
@@ -195,62 +194,61 @@ def common_prompt_suffix_validator(df):
     optional_fn = None
 
     # Find a suffix which is not contained within the prompt otherwise
-    suggested_suffix = "\n\n### =>\n\n"
-    suffix_options = [
-        " ->",
-        "\n\n###\n\n",
-        "\n\n===\n\n",
-        "\n\n---\n\n",
-        "\n\n===>\n\n",
-        "\n\n--->\n\n",
-    ]
-    for suffix_option in suffix_options:
-        if suffix_option == " ->":
-            if df.prompt.str.contains("\n").any():
-                continue
-        if df.prompt.str.contains(suffix_option, regex=False).any():
-            continue
-        suggested_suffix = suffix_option
-        break
+    suggested_suffix = "\n\n###\n\n"  # For now, we will just use this suffix for all finetunings
+    # suffix_options = [
+    #     " ->",
+    #     "\n\n###\n\n",
+    #     "\n\n===\n\n",
+    #     "\n\n---\n\n",
+    #     "\n\n===>\n\n",
+    #     "\n\n--->\n\n",
+    # ]
+    # for suffix_option in suffix_options:
+    #     if suffix_option == " ->":
+    #         if df.prompt.str.contains("\n").any():
+    #             continue
+    #     if df.prompt.str.contains(suffix_option, regex=False).any():
+    #         continue
+    #     suggested_suffix = suffix_option
+    #     break
     display_suggested_suffix = suggested_suffix.replace("\n", "\\n")
 
-    ft_type = infer_task_type(df)
-    if ft_type == "open-ended generation":
-        return Remediation(name="common_suffix")
+    # if task == "generation":
+    #     return Remediation(name="common_suffix")
 
     def add_suffix(x, suffix):
         x["prompt"] += suffix
         return x
 
-    common_suffix = get_common_xfix(df.prompt, xfix="suffix")
-    if (df.prompt == common_suffix).all():
-        error_msg = f"All prompts are identical: `{common_suffix}`\nConsider leaving the prompts blank if you want to do open-ended generation, otherwise ensure prompts are different"
-        return Remediation(name="common_suffix", error_msg=error_msg)
+    # common_suffix = get_common_xfix(df.prompt, xfix="suffix")
+    # if (df.prompt == common_suffix).all():
+    #     error_msg = f"All prompts are identical: `{common_suffix}`\nConsider leaving the prompts blank if you want to do open-ended generation, otherwise ensure prompts are different"
+    #     return Remediation(name="common_suffix", error_msg=error_msg)
 
-    if common_suffix != "":
-        common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
-        immediate_msg = (
-            f"\n- All prompts end with suffix `{common_suffix_new_line_handled}`"
-        )
-        if len(common_suffix) > 10:
-            immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
-        if (
-            df.prompt.str[: -len(common_suffix)]
-            .str.contains(common_suffix, regex=False)
-            .any()
-        ):
-            immediate_msg += f"\n  WARNING: Some of your prompts contain the suffix `{common_suffix}` more than once. We strongly suggest that you review your prompts and add a unique suffix"
+    # if common_suffix != "":
+    #     common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
+    #     immediate_msg = (
+    #         f"\n- All prompts end with suffix `{common_suffix_new_line_handled}`"
+    #     )
+    #     if len(common_suffix) > 10:
+    #         immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
+    #     if (
+    #         df.prompt.str[: -len(common_suffix)]
+    #         .str.contains(common_suffix, regex=False)
+    #         .any()
+    #     ):
+    #         immediate_msg += f"\n  WARNING: Some of your prompts contain the suffix `{common_suffix}` more than once. We strongly suggest that you review your prompts and add a unique suffix"
 
-    else:
-        immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
+    # else:
+    #     immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
 
-    if common_suffix == "":
-        optional_msg = (
-            f"Add a suffix separator `{display_suggested_suffix}` to all prompts"
-        )
+    # if common_suffix == "":
+    optional_msg = (
+        f"Add a suffix separator `{display_suggested_suffix}` to all prompts"
+    )
 
-        def optional_fn(x):
-            return add_suffix(x, suggested_suffix)
+    def optional_fn(x):
+        return add_suffix(x, suggested_suffix)
 
     return Remediation(
         name="common_completion_suffix",
@@ -336,7 +334,7 @@ def common_completion_prefix_validator(df):
     )
 
 
-def common_completion_suffix_validator(df):
+def common_completion_suffix_validator(df, task):
     """
     This validator will suggest to add a common suffix to the completion if one doesn't already exist in case of classification or conditional generation.
     """
@@ -345,9 +343,8 @@ def common_completion_suffix_validator(df):
     optional_msg = None
     optional_fn = None
 
-    ft_type = infer_task_type(df)
-    if ft_type == "open-ended generation" or ft_type == "classification":
-        return Remediation(name="common_suffix")
+    # if task == "generation" or task == "classification":
+    #     return Remediation(name="common_suffix")
 
     common_suffix = get_common_xfix(df.completion, xfix="suffix")
     if (df.completion == common_suffix).all():
@@ -355,53 +352,53 @@ def common_completion_suffix_validator(df):
         return Remediation(name="common_suffix", error_msg=error_msg)
 
     # Find a suffix which is not contained within the completion otherwise
-    suggested_suffix = " [END]"
-    suffix_options = [
-        "\n",
-        ".",
-        " END",
-        "***",
-        "+++",
-        "&&&",
-        "$$$",
-        "@@@",
-        "%%%",
-    ]
-    for suffix_option in suffix_options:
-        if df.completion.str.contains(suffix_option, regex=False).any():
-            continue
-        suggested_suffix = suffix_option
-        break
+    suggested_suffix = " [END]"  # Also, hardcode this
+    # suffix_options = [
+    #     "\n",
+    #     ".",
+    #     " END",
+    #     "***",
+    #     "+++",
+    #     "&&&",
+    #     "$$$",
+    #     "@@@",
+    #     "%%%",
+    # ]
+    # for suffix_option in suffix_options:
+    #     if df.completion.str.contains(suffix_option, regex=False).any():
+    #         continue
+    #     suggested_suffix = suffix_option
+    #     break
     display_suggested_suffix = suggested_suffix.replace("\n", "\\n")
 
     def add_suffix(x, suffix):
         x["completion"] += suffix
         return x
 
-    if common_suffix != "":
-        common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
-        immediate_msg = (
-            f"\n- All completions end with suffix `{common_suffix_new_line_handled}`"
-        )
-        if len(common_suffix) > 10:
-            immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
-        if (
-            df.completion.str[: -len(common_suffix)]
-            .str.contains(common_suffix, regex=False)
-            .any()
-        ):
-            immediate_msg += f"\n  WARNING: Some of your completions contain the suffix `{common_suffix}` more than once. We suggest that you review your completions and add a unique ending"
+    # if common_suffix != "":
+    #     common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
+    #     immediate_msg = (
+    #         f"\n- All completions end with suffix `{common_suffix_new_line_handled}`"
+    #     )
+    #     if len(common_suffix) > 10:
+    #         immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
+    #     if (
+    #         df.completion.str[: -len(common_suffix)]
+    #         .str.contains(common_suffix, regex=False)
+    #         .any()
+    #     ):
+    #         immediate_msg += f"\n  WARNING: Some of your completions contain the suffix `{common_suffix}` more than once. We suggest that you review your completions and add a unique ending"
 
-    else:
-        immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
+    # else:
+    #     immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
 
-    if common_suffix == "":
-        optional_msg = (
-            f"Add a suffix ending `{display_suggested_suffix}` to all completions"
-        )
+    # if common_suffix == "":
+    optional_msg = (
+        f"Add a suffix ending `{display_suggested_suffix}` to all completions"
+    )
 
-        def optional_fn(x):
-            return add_suffix(x, suggested_suffix)
+    def optional_fn(x):
+        return add_suffix(x, suggested_suffix)
 
     return Remediation(
         name="common_completion_suffix",
@@ -553,15 +550,14 @@ def read_any_format(fname, fields=["prompt", "completion"]):
     return df, remediation
 
 
-def format_inferrer_validator(df):
+def format_inferrer_validator(df, task):
     """
     This validator will infer the likely fine-tuning format of the data, and display it to the user if it is classification.
     It will also suggest to use ada and explain train/validation split benefits.
     """
-    ft_type = infer_task_type(df)
     immediate_msg = None
-    if ft_type == "classification":
-        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {ft_type}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
+    if task == "classification":
+        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {task}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
     return Remediation(name="num_examples", immediate_msg=immediate_msg)
 
 
@@ -773,22 +769,22 @@ def get_common_xfix(series, xfix="suffix"):
     return common_xfix
 
 
-def get_validators():
+def get_validators(task):
     return [
         num_examples_validator,
         lambda x: necessary_column_validator(x, "prompt"),
         lambda x: necessary_column_validator(x, "completion"),
         additional_column_validator,
         non_empty_field_validator,
-        format_inferrer_validator,
+        lambda x: format_inferrer_validator(x, task),
         duplicated_rows_validator,
-        long_examples_validator,
+        lambda x: long_examples_validator(x, task),
         lambda x: lower_case_validator(x, "prompt"),
         lambda x: lower_case_validator(x, "completion"),
-        common_prompt_suffix_validator,
+        lambda x: common_prompt_suffix_validator(x, task),
         common_prompt_prefix_validator,
         common_completion_prefix_validator,
-        common_completion_suffix_validator,
+        lambda x: common_completion_suffix_validator(x, task),
         completions_space_start_validator,
     ]
 

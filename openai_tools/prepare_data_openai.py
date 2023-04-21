@@ -9,18 +9,18 @@ from openai_validators import (
     write_out_file,
 )
 
-def prepare_data(train_fname, val_fname):
+def prepare_data(train_fname, val_fname, task='classification'):
     for fname in [train_fname, val_fname]:
         df, remediation = read_any_format(fname)
         apply_necessary_remediation(None, remediation)
-        validators = get_validators()
+        validators = get_validators(task)
         apply_validators(
             df,
             fname,
             remediation,
             validators,
             True, # auto_accept
-            write_out_file_func=write_out_file,
+            write_out_file_func=write_out_file
         )
 
 if __name__ == "__main__":

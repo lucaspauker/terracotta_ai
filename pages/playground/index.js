@@ -25,6 +25,7 @@ export default function Playground() {
   const [output, setOutput] = useState('');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [project, setProject] = useState('');
   const promptRef = useRef();
 
   const submit = () => {
@@ -32,13 +33,14 @@ export default function Playground() {
     setOutput("");
     setLoading(true);
     axios.post("/api/infer/" + provider, {
-        model: model,
-        prompt: provider === "openai"? promptRef.current.value + "\n\n###\n\n": promptRef.current.value,
-        //prompt: promptRef.current.value + " ->",
+        provider: provider,
+        modelName: model,
+        prompt: promptRef.current.value,
+        projectName: project,
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
-          setOutput(res.data["output"]);
+          setOutput(res.data.choices[0].text);
         }
         setLoading(false);
       }).catch((error) => {
@@ -47,7 +49,7 @@ export default function Playground() {
   }
 
   const clear = () => {
-    setOutput("");
+    setOutput('');
     setModel('');
     promptRef.current.value = '';
   }
@@ -64,6 +66,7 @@ export default function Playground() {
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
+      setProject(projectName);
     }
 
     axios.post("/api/model/list", {projectName: projectName}).then((res) => {
@@ -75,7 +78,6 @@ export default function Playground() {
     }).catch((error) => {
       console.log(error);
     });
-
 
     // LOOK HERE
     axios.get("/api/providers/list").then((res) => {
@@ -94,6 +96,7 @@ export default function Playground() {
       let projectName = '';
       if (localStorage.getItem("project")) {
         projectName = localStorage.getItem("project");
+        setProject(projectName);
       }
       axios.post("/api/model/list", {projectName: projectName}).then((res) => {
         console.log(res.data);
@@ -149,7 +152,7 @@ export default function Playground() {
           value={model}
           label="Model"
           onChange={(e) => setModel(e.target.value)}
-        >  
+        >
           <MenuItem value={'text-ada-001'}>OpenAI GPT-3 Ada</MenuItem>
           <MenuItem value={'text-babbage-001'}>OpenAI GPT-3 Babbage</MenuItem>
           <MenuItem value={'text-curie-001'}>OpenAI GPT-3 Curie</MenuItem>
