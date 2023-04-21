@@ -103,7 +103,7 @@ export default function Models() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
                       <TableCell>{model.name}</TableCell>
-                      <TableCell>{model.datasetName}</TableCell>
+                      <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
                       <TableCell>{model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell>{model.status}</TableCell>
