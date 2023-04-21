@@ -160,7 +160,7 @@ export default async function handler(request, response) {
           model: modelArchitecture,
         };
       }
-    } else if (project.type === "generation") {
+    } else if (project.type === "generative") {
       finetuneRequest = {
         training_file: trainResponse.data.id,
         validation_file: valResponse.data.id,
