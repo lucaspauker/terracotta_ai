@@ -31,15 +31,14 @@ export default function Playground() {
     console.log(promptRef.current.value);
     setOutput("");
     setLoading(true);
-    axios.post("/api/infer", {
-        provider: provider,
+    axios.post("/api/infer/" + provider, {
         model: model,
-        //prompt: promptRef.current.value + "\n\n###\n\n",
-        prompt: promptRef.current.value + " ->",
+        prompt: provider === "openai"? promptRef.current.value + "\n\n###\n\n": promptRef.current.value,
+        //prompt: promptRef.current.value + " ->",
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
-          setOutput(res.data.choices[0].text);
+          setOutput(res.data["output"]);
         }
         setLoading(false);
       }).catch((error) => {
@@ -155,6 +154,12 @@ export default function Playground() {
           <MenuItem value={'text-babbage-001'}>OpenAI GPT-3 Babbage</MenuItem>
           <MenuItem value={'text-curie-001'}>OpenAI GPT-3 Curie</MenuItem>
           <MenuItem value={'text-davinci-003'}>OpenAI GPT-3 Davinci</MenuItem>
+          <MenuItem value={'generate-medium'}>Cohere Generate (Medium)</MenuItem>
+          <MenuItem value={'generate-xlarge'}>Cohere Generate (XLarge)</MenuItem>
+          <MenuItem value={'classify-small'}>Cohere Classify (Medium)</MenuItem>
+          <MenuItem value={'classify-large'}>Cohere Classify (Large)</MenuItem>
+          <MenuItem value={'classify-multilingual'}>Cohere Classify (Multilingual)</MenuItem>
+
           {finetunedModels.length > 0 ? <Divider /> : null}
           {finetunedModels.map((model) => (
             <MenuItem value={model.providerModelId} key={model._id}>{model.name}</MenuItem>
