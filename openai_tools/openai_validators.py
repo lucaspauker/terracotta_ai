@@ -352,7 +352,7 @@ def common_completion_suffix_validator(df, task):
         return Remediation(name="common_suffix", error_msg=error_msg)
 
     # Find a suffix which is not contained within the completion otherwise
-    suggested_suffix = " [END]"  # Also, hardcode this
+    suggested_suffix = " \n"  # Also, hardcode this
     # suffix_options = [
     #     "\n",
     #     ".",
