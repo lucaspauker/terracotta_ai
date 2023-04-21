@@ -10,7 +10,7 @@ async function initializeDatabase() {
     await db
         .collection("providerModels")
         .insertMany([
-                {
+                {   
                     finetuneName: "ada",
                     completionName: "text-ada-001",
                     provider: "openai",

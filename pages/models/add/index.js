@@ -64,7 +64,8 @@ export default function Train() {
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
-    axios.post("/api/finetune/finetune", {
+    if (provider === "openai") {
+      axios.post("/api/finetune/openai", {
         provider: provider,
         modelArchitecture: modelArchitecture,
         modelName: modelName,
@@ -79,6 +80,9 @@ export default function Train() {
         console.log(error);
         setError(error.response.data);
       });
+    } else if (provider === "cohere") {
+      
+    }
   }
 
   const estimateCost = () => {
