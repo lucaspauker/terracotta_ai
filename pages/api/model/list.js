@@ -5,10 +5,6 @@ import { MongoClient } from 'mongodb'
 const client = new MongoClient(process.env.MONGODB_URI);
 
 const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -30,6 +26,12 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
+
+    // Configure openai with user API key
+    const configuration = new Configuration({
+      apiKey: user.openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
 
     const userId = user._id;
 
