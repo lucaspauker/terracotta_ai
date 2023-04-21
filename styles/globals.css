@@ -313,18 +313,18 @@ a {
 .model-succeeded {
   background-color: lightgreen;
   border-radius: 5px;
-  padding: 2px;
+  padding: 5px;
 }
 
 .model-failed {
   background-color: #ff726f;
   border-radius: 5px;
-  padding: 2px;
+  padding: 5px;
 }
 
-.model-queued {
+.model-training {
   background-color: tan;
   border-radius: 5px;
-  padding: 2px;
+  padding: 5px;
 }
 

@@ -24,6 +24,7 @@ export default function Playground() {
   const [output, setOutput] = useState('');
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [project, setProject] = useState('');
   const promptRef = useRef();
 
   const submit = () => {
@@ -32,9 +33,11 @@ export default function Playground() {
     setLoading(true);
     axios.post("/api/infer", {
         provider: provider,
-        model: model,
-        //prompt: promptRef.current.value + "\n\n###\n\n",
-        prompt: promptRef.current.value + " ->",
+        modelName: model,
+        prompt: promptRef.current.value + "\n\n###\n\n",
+        //prompt: promptRef.current.value + " ->",
+        //prompt: promptRef.current.value, // + " ->",
+        projectName: project,
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
@@ -56,6 +59,7 @@ export default function Playground() {
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
+      setProject(projectName);
     }
     axios.post("/api/model/list", {projectName: projectName}).then((res) => {
       console.log(res.data);
@@ -71,6 +75,7 @@ export default function Playground() {
       let projectName = '';
       if (localStorage.getItem("project")) {
         projectName = localStorage.getItem("project");
+        setProject(projectName);
       }
       axios.post("/api/model/list", {projectName: projectName}).then((res) => {
         console.log(res.data);

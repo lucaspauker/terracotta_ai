@@ -13,8 +13,9 @@ export default async function handler(request, response) {
   }
 
   const provider = request.body.provider;
-  let model = request.body.model;
   const prompt = request.body.prompt;
+  let modelName = request.body.modelName;
+  let projectName = request.body.projectName;
 
   const session = await getServerSession(request, response, authOptions);
   if (!session) {
@@ -41,22 +42,46 @@ export default async function handler(request, response) {
     });
     const openai = new OpenAIApi(configuration);
 
-    // This is a bit of a hack, we should store this in the backend
-    const finetunes = await openai.listFineTunes();
-    let openAiModelName = model;
-    console.log(finetunes.data.data.length);
-    for (let i=0; i<finetunes.data.data.length; i++) {
-      if (finetunes.data.data[i].id === model) {
-        openAiModelName = finetunes.data.data[i].fine_tuned_model;
+    let max_tokens = 100;  // Default
+    console.log(modelName);
+    if (modelName.substring(0,4) === 'text') {  // Stock OpenAI model
+      const completion = await openai.createCompletion({
+        model: modelName,
+        prompt: prompt,
+        max_tokens: max_tokens,
+      });
+      response.status(200).json(completion.data);
+      return;
+    } else {  // Finetuned model
+
+      const project = await db
+        .collection("projects")
+        .findOne({userId: user._id, name: projectName});
+      if (!project) {
+        response.status(400).json({ error: 'Project not found' });
+        return;
       }
+      console.log(project);
+
+      // Get model based on the name and project
+      const model = await db
+        .collection("models")
+        .findOne({providerModelId: modelName, projectId: project._id});
+      if (!user) {
+        response.status(400).json({ error: 'User not found' });
+        return;
+      }
+      console.log(model);
+
+      if (project.type === 'classification') max_tokens = 1;  // Classification
+      const completion = await openai.createCompletion({
+        model: model.providerModelName,
+        prompt: prompt,
+        max_tokens: max_tokens,
+      });
+      response.status(200).json(completion.data);
+      return;
     }
-    const completion = await openai.createCompletion({
-      model: openAiModelName,
-      prompt: prompt,
-      max_tokens: 1000,
-    });
-    console.log(completion.data.choices[0].text);
-    response.status(200).json(completion.data);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })
