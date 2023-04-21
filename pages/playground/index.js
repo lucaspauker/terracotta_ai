@@ -20,6 +20,7 @@ export default function Playground() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
   const [finetunedModels, setFinetunedModels] = useState([]);
+  const [baseModels, setBaseModels] = useState([]);
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState('');
   const [selectedFile, setSelectedFile] = useState();
@@ -30,15 +31,14 @@ export default function Playground() {
     console.log(promptRef.current.value);
     setOutput("");
     setLoading(true);
-    axios.post("/api/infer", {
-        provider: provider,
+    axios.post("/api/infer/" + provider, {
         model: model,
-        //prompt: promptRef.current.value + "\n\n###\n\n",
-        prompt: promptRef.current.value + " ->",
+        prompt: provider === "openai"? promptRef.current.value + "\n\n###\n\n": promptRef.current.value,
+        //prompt: promptRef.current.value + " ->",
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
-          setOutput(res.data.choices[0].text);
+          setOutput(res.data["output"]);
         }
         setLoading(false);
       }).catch((error) => {
@@ -52,13 +52,21 @@ export default function Playground() {
     promptRef.current.value = '';
   }
 
+  const groupByProviders = (models) => {
+      let result = {"openai":[],"cohere":[]};
+      for (let i = 0; i < models.length; i++) {
+        result[models[i].provider].push(models[i]);
+      }
+      return result;
+  }
+
   useEffect(() => {
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
+
     axios.post("/api/model/list", {projectName: projectName}).then((res) => {
-      console.log(res.data);
       if (res.data !== "No data found") {
         let data = res.data;
         setFinetunedModels(data);
@@ -67,6 +75,21 @@ export default function Playground() {
     }).catch((error) => {
       console.log(error);
     });
+
+
+    // LOOK HERE
+    axios.get("/api/providers/list").then((res) => {
+      console.log(res.data);
+      const temp = groupByProviders(res.data);
+      setBaseModels(temp);
+      console.log("base models");
+      console.log(temp);
+    }).catch((error) => {
+      console.log(error);
+    });
+
+
+
     window.addEventListener("storage", () => {
       let projectName = '';
       if (localStorage.getItem("project")) {
@@ -95,22 +118,48 @@ export default function Playground() {
       <div className='medium-space' />
 
       <Typography variant='body1'>
+        Provider
+      </Typography>
+      <div className='tiny-space' />
+      <FormControl>
+        <InputLabel id="provider-label">Provider</InputLabel>
+          <Select
+            labelId="provider-label"
+            className="wide-select"
+            label="Provider"
+            value={provider}
+            onChange={(e) => setProvider(e.target.value)}
+           >
+            <MenuItem value={'openai'}>OpenAI</MenuItem>
+            <MenuItem value={'cohere'}>Cohere</MenuItem>
+          </Select>
+      </FormControl>
+
+      <div className='tiny-space' />
+
+      <Typography variant='body1'>
         Model
       </Typography>
       <div className='tiny-space' />
-      <FormControl className="model-select">
+      <FormControl>
         <InputLabel id="model-label">Model</InputLabel>
         <Select
           labelId="model-label"
-          className="model-select"
+          className="wide-select"
           value={model}
           label="Model"
           onChange={(e) => setModel(e.target.value)}
-        >
+        >  
           <MenuItem value={'text-ada-001'}>OpenAI GPT-3 Ada</MenuItem>
           <MenuItem value={'text-babbage-001'}>OpenAI GPT-3 Babbage</MenuItem>
           <MenuItem value={'text-curie-001'}>OpenAI GPT-3 Curie</MenuItem>
           <MenuItem value={'text-davinci-003'}>OpenAI GPT-3 Davinci</MenuItem>
+          <MenuItem value={'generate-medium'}>Cohere Generate (Medium)</MenuItem>
+          <MenuItem value={'generate-xlarge'}>Cohere Generate (XLarge)</MenuItem>
+          <MenuItem value={'classify-small'}>Cohere Classify (Medium)</MenuItem>
+          <MenuItem value={'classify-large'}>Cohere Classify (Large)</MenuItem>
+          <MenuItem value={'classify-multilingual'}>Cohere Classify (Multilingual)</MenuItem>
+
           {finetunedModels.length > 0 ? <Divider /> : null}
           {finetunedModels.map((model) => (
             <MenuItem value={model.providerModelId} key={model._id}>{model.name}</MenuItem>

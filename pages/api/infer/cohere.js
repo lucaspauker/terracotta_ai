@@ -4,7 +4,7 @@ import { MongoClient } from 'mongodb';
 const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
-const { Configuration, OpenAIApi } = require("openai");
+const cohere = require('cohere-ai');
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -12,7 +12,6 @@ export default async function handler(request, response) {
     return;
   }
 
-  const provider = request.body.provider;
   let model = request.body.model;
   const prompt = request.body.prompt;
 
@@ -35,28 +34,30 @@ export default async function handler(request, response) {
       return;
     }
 
-    // Configure openai with user API key
-    const configuration = new Configuration({
-      apiKey: user.openAiKey,
-    });
-    const openai = new OpenAIApi(configuration);
+    // Configure cohere with user API key
+    cohere.init(user.cohereKey);
 
-    // This is a bit of a hack, we should store this in the backend
-    const finetunes = await openai.listFineTunes();
-    let openAiModelName = model;
-    console.log(finetunes.data.data.length);
-    for (let i=0; i<finetunes.data.data.length; i++) {
-      if (finetunes.data.data[i].id === model) {
-        openAiModelName = finetunes.data.data[i].fine_tuned_model;
-      }
+    if (model.startsWith("generate")) {
+
+        const generateResponse = await cohere.generate({
+            prompt: prompt,
+            max_tokens: 50,
+            model: model.split('-')[1]
+        });
+      
+        console.log(generateResponse);
+      
+        const output = generateResponse["body"]["generations"][0]["text"];
+
+        response.status(200).json({"output":output});
+
+    } else if (model.startsWith("classify")) {
+        response.status(200).json({"output":"Classification not supported yet"});
+    } else {
+        response.status(400).json({ error: 'Invalid model type' });
     }
-    const completion = await openai.createCompletion({
-      model: openAiModelName,
-      prompt: prompt,
-      max_tokens: 1000,
-    });
-    console.log(completion.data.choices[0].text);
-    response.status(200).json(completion.data);
+    
+    
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

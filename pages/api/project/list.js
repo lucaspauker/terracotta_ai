@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb';
-const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(request, response) {
