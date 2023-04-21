@@ -222,7 +222,8 @@ export default async function handler(request, response) {
           numTrainCharacters: numTrainCharacters,
           numValWords: numValWords,
           numValCharacters: numValCharacters,
-          classes: classesSet,
+          //classes: classesSet,
+          classes: [],
         });
     console.log(d);
 

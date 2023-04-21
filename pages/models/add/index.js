@@ -50,7 +50,7 @@ export default function Train() {
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
   const [estimatedCost, setEstimatedCost] = useState('')
-  const [hyperParams, setHyperParams] = useState({"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null});
+  const [hyperParams, setHyperParams] = useState({"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null, "prompt_loss_weight":null});
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
   // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
   // dataset size in the datasets collection when it is uploaded.
@@ -285,6 +285,19 @@ export default function Train() {
             <Typography variant='body2' className='form-label'>
               By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
             </Typography>
+            <div className='medium-space' />
+            <TextField
+              label="Prompt loss weight"
+              variant="outlined"
+              className='text-label center'
+              value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
+              onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
+            />
+            <Typography variant='body2' className='form-label'>
+            This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short. 
+            If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
+            </Typography>
+
           </>
           : null}
 
