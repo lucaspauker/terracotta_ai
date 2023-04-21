@@ -5,10 +5,6 @@ import { MongoClient } from 'mongodb'
 const client = new MongoClient(process.env.MONGODB_URI);
 
 const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -30,6 +26,12 @@ export default async function handler(request, response) {
     const user = await db
       .collection("users")
       .findOne({email: session.user.email});
+
+    // Configure openai with user API key
+    const configuration = new Configuration({
+      apiKey: user.openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
 
     const userId = user._id;
 
@@ -54,11 +56,12 @@ export default async function handler(request, response) {
         .collection("datasets")
         .findOne({_id: model.datasetId});
       models[i]["datasetName"] = dataset.name;
+      models[i]["datasetId"] = dataset._id;
 
       if (model.status !== "succeeded") {
         let finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
         console.log(finetuneResponse.data);
-        
+
         finetuneResponse = finetuneResponse.data;
         const events = finetuneResponse.events;
         if (finetuneResponse.status === "succeeded") {
@@ -66,34 +69,42 @@ export default async function handler(request, response) {
           models[i]["providerModelName"] = finetuneResponse.fine_tuned_model;
           await db
             .collection("models")
-            .updateOne({"providerModelId" : model.providerModelId},
+            .updateOne({"_id" : model._id},
             {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.fine_tuned_model}});
+        } else if (finetuneResponse.status === "failed") {
+          models[i]["status"] = "failed";
+          await db
+            .collection("models")
+            .updateOne({"_id" : model._id},
+            {$set: { "status" : "failed", "providerModelName": finetuneResponse.fine_tuned_model}});
+          continue;
         } else {
-          // Cost update
-          if (!("cost" in models[i]) && events.length > 1) {
-            const costEvent = events[1];
-            if (costEvent["message"].startsWith("Fine-tune costs")) {
-              const cost = parseFloat(costEvent["message"].split('$')[1]);
-              models[i]["cost"] = cost;
-              await db
-                .collection("models")
-                .updateOne({"providerModelId" : model.providerModelId},
-                {$set: { "cost" : cost}}); 
-            }
-          }
           // Check last event to update status
           const lastMessage = events[events.length - 1]['message'];
-          if (events.length <= 3 || lastMessage.startsWith("Fine-tune is in the queue")) {
-            models[i]["status"] = "Queued for training";
-            continue;
+          if (events.length <= 3 || lastMessage.startsWith("Fine-tune is in the queue")
+            || lastMessage.startsWith("Fine-tune costs")) {
+            models[i]["status"] = "queued for training";
           } else if (lastMessage === "Fine-tune started") {
-            models[i]["status"] = "Training started";
-            continue;
+            models[i]["status"] = "training started";
           } else if (lastMessage.startsWith("Completed epoch")) {
             models[i]["status"] = lastMessage;
-            continue;
+          } else if (lastMessage.startsWith("Uploaded")) {
+            models[i]["status"] = "creating model endpoint";
           } else {
-            models[i]["status"] = "Uploading model"
+            models[i]["status"] = "";
+          }
+        }
+
+        // Cost update
+        if (!("cost" in models[i]) && events.length > 1) {
+          const costEvent = events[1];
+          if (costEvent["message"].startsWith("Fine-tune costs")) {
+            const cost = parseFloat(costEvent["message"].split('$')[1]);
+            models[i]["cost"] = cost;
+            await db
+              .collection("models")
+              .updateOne({"_id" : model._id},
+              {$set: { "cost" : cost}});
           }
         }
       }

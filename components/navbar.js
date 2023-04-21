@@ -50,6 +50,8 @@ export default function Navbar() {
       return true;
     } else if (router.pathname.startsWith('/projects') && p === 'Projects') {
       return true;
+    } else if (router.pathname.startsWith('/settings') && p === 'API keys') {
+      return true;
     } else {
       return false;
     }
@@ -66,6 +68,8 @@ export default function Navbar() {
       return '/models';
     } else if (p === 'Playground') {
       return '/playground';
+    } else if (p === 'API keys') {
+      return '/settings';
     } else {
       return '/';
     }
@@ -156,11 +160,11 @@ export default function Navbar() {
         </List>
         <Divider />
         <List>
-          {['Settings'].map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
+          {['API keys'].map((text, index) => (
+            <ListItem key={text} disablePadding button component={Link} href={getLink(text)}>
+              <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
-                  {text === 'Settings' ? <SettingsIcon /> : null}
+                  {text === 'API keys' ? <SettingsIcon /> : null}
                 </ListItemIcon>
                 <ListItemText primary={text} />
               </ListItemButton>

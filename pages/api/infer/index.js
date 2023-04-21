@@ -5,10 +5,6 @@ const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
 const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -38,6 +34,12 @@ export default async function handler(request, response) {
       response.status(400).json({ error: 'User not found' });
       return;
     }
+
+    // Configure openai with user API key
+    const configuration = new Configuration({
+      apiKey: user.openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
 
     // This is a bit of a hack, we should store this in the backend
     const finetunes = await openai.listFineTunes();

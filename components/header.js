@@ -83,18 +83,10 @@ export default function Header() {
                   <Typography>{session.user.name}</Typography>
                   <Typography className='subtitle' variant='subtitle2'>{session.user.email}</Typography>
                 </div>
-                <div className='small-space' />
+                <div className='tiny-space' />
                 <Divider />
-                <div className='small-space' />
+                <div className='tiny-space' />
                 <div className='vertical-box menu-box'>
-                  <MenuItem onClick={handleClose} className='menu-item'>
-                    <ListItemIcon><BiUser /></ListItemIcon>
-                    <ListItemText>Profile</ListItemText>
-                  </MenuItem>
-                  <MenuItem onClick={handleClose} className='menu-item'>
-                    <ListItemIcon><BiSun /></ListItemIcon>
-                    <ListItemText>Upgrade account</ListItemText>
-                  </MenuItem>
                   <MenuItem onClick={handleSignOut} className='menu-item'>
                     <ListItemIcon><BiLogOutCircle /></ListItemIcon>
                     <ListItemText>Sign out</ListItemText>
