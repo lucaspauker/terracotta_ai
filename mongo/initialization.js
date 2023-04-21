@@ -10,7 +10,7 @@ async function initializeDatabase() {
     await db
         .collection("providerModels")
         .insertMany([
-                {
+                {   
                     finetuneName: "ada",
                     completionName: "text-ada-001",
                     provider: "openai",
@@ -37,6 +37,26 @@ async function initializeDatabase() {
                     provider: "openai",
                     trainingCost: 0.0300,
                     completionCost: 0.1200
+                },
+                {
+                    completionName: "generate-medium",
+                    provider: "cohere"
+                },
+                {
+                    completionName: "generate-xlarge",
+                    provider: "cohere"
+                },
+                {
+                    completionName: "classify-small",
+                    provider: "cohere"
+                },
+                {
+                    completionName: "classify-large",
+                    provider: "cohere"
+                },
+                {
+                    completionName: "classify-multilingual",
+                    provider: "cohere"
                 }
         ]);
         mongoClient.close();

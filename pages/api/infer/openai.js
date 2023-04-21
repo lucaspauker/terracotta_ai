@@ -12,7 +12,6 @@ export default async function handler(request, response) {
     return;
   }
 
-  const provider = request.body.provider;
   const prompt = request.body.prompt;
   let modelName = request.body.modelName;
   let projectName = request.body.projectName;
@@ -76,7 +75,7 @@ export default async function handler(request, response) {
       if (project.type === 'classification') max_tokens = 1;  // Classification
       const completion = await openai.createCompletion({
         model: model.providerModelName,
-        prompt: prompt,
+        prompt: prompt + "\n\n###\n\n",
         max_tokens: max_tokens,
       });
       response.status(200).json(completion.data);
