@@ -15,6 +15,7 @@ export default async function handler(request, response) {
   const prompt = request.body.prompt;
   let modelName = request.body.modelName;
   let projectName = request.body.projectName;
+  let hyperParams = request.body.hyperParams;
 
   const session = await getServerSession(request, response, authOptions);
   if (!session) {
@@ -41,13 +42,15 @@ export default async function handler(request, response) {
     });
     const openai = new OpenAIApi(configuration);
 
-    let max_tokens = 100;  // Default
+    let max_tokens = Number(hyperParams.maxTokens);
+    let temperature = Number(hyperParams.temperature);
     console.log(modelName);
     if (modelName.substring(0,4) === 'text') {  // Stock OpenAI model
       const completion = await openai.createCompletion({
         model: modelName,
         prompt: prompt,
         max_tokens: max_tokens,
+        temperature: temperature,
       });
       response.status(200).json(completion.data);
       return;
@@ -72,11 +75,13 @@ export default async function handler(request, response) {
       }
       console.log(model);
 
-      if (project.type === 'classification') max_tokens = 1;  // Classification
+      //if (project.type === 'classification') max_tokens = 20;  // Classification
       const completion = await openai.createCompletion({
         model: model.providerModelName,
         prompt: prompt + "\n\n###\n\n",
         max_tokens: max_tokens,
+        temperature: temperature,
+        stop: ' \n',
       });
       response.status(200).json(completion.data);
       return;

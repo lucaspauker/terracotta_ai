@@ -112,7 +112,7 @@ export default function Models() {
                                       {model.providerModelName}
                                   </Link>
                                   :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? "$" + model.cost :"pending"}</TableCell>
+                      <TableCell>{"cost" in model ? model.cost === 0 ? "<$0.01" : "$" + model.cost :"pending"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

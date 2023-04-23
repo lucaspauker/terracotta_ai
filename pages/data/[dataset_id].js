@@ -187,8 +187,10 @@ export default function DataPage() {
                 <Typography># of train rows: {rawData.length}</Typography>
                 {rawDataVal ? <Typography># of validation rows: {rawDataVal.length}</Typography>
                   : <Typography>No validation data</Typography>}
-                <Typography>Classes: {dataset.classes.map((x, i) =>
-                  (i < dataset.classes.length - 1 ? x + ", " : x))}</Typography>
+                {dataset.classes ?
+                  <Typography>Classes: {dataset.classes.map((x, i) =>
+                    (i < dataset.classes.length - 1 ? x + ", " : x))}</Typography>
+                  : null }
               </div>
             </div> : null }
         </Paper>
