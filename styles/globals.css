@@ -375,3 +375,18 @@ a {
   background-color: white;
 }
 
+.check-success {
+  color: green;
+  font-size: 18px;
+}
+
+.check-failure {
+  color: red;
+  font-size: 18px;
+}
+
+.trash-icon {
+  width: 12px;
+  color: grey;
+}
+
