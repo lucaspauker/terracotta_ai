@@ -33,7 +33,7 @@ export default function Models() {
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
-    axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+    axios.post("/api/models", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
         let data = res.data;
@@ -49,7 +49,7 @@ export default function Models() {
       if (localStorage.getItem("project")) {
         projectName = localStorage.getItem("project");
       }
-      axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+      axios.post("/api/models", {projectName: projectName}).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
           let data = res.data;
@@ -74,9 +74,14 @@ export default function Models() {
         <Typography variant='h4' className='page-main-header'>
           Finetuned Models
         </Typography>
-        <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/add">
-          + Finetune model
-        </Button>
+        <div>
+          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
+            + Import model
+          </Button>
+          <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
+            + Finetune model
+          </Button>
+        </div>
       </div>
       <div className='tiny-space' />
 
@@ -106,13 +111,13 @@ export default function Models() {
                       <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
-                      <TableCell><span className={model.status==='succeeded' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}>{model.status.toLowerCase()}</span></TableCell>
+                      <TableCell><span className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}>{model.status.toLowerCase()}</span></TableCell>
                       <TableCell>{"providerModelName" in model?
                                   <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
                                       {model.providerModelName}
                                   </Link>
                                   :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? "$" + model.cost :"pending"}</TableCell>
+                      <TableCell>{"cost" in model ? (model.cost? "$" + model.cost: "unavailable") :"pending"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

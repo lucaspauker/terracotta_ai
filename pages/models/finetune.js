@@ -65,7 +65,7 @@ export default function Train() {
       projectName = localStorage.getItem("project");
     }
     if (provider === "openai") {
-      axios.post("/api/finetune/openai", {
+      axios.post("/api/models/finetune/openai", {
         provider: provider,
         modelArchitecture: modelArchitecture,
         modelName: modelName,
@@ -86,7 +86,7 @@ export default function Train() {
   }
 
   const estimateCost = () => {
-    axios.post("/api/finetune/cost", {
+    axios.post("/api/models/finetune/cost", {
         provider: provider,
         modelArchitecture: modelArchitecture,
         epochs: hyperParams["n_epochs"],

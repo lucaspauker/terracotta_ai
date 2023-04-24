@@ -77,6 +77,8 @@ export default async function handler(request, response) {
         model: model.providerModelName,
         prompt: prompt + "\n\n###\n\n",
         max_tokens: max_tokens,
+        temperature: 0,
+        stop: "[END]"
       });
       response.status(200).json(completion.data);
       return;

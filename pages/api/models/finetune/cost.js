@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../auth/[...nextauth]"
+import { authOptions } from "../../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);

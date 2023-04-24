@@ -52,6 +52,9 @@ export default async function handler(request, response) {
 
     for (let i=0; i<models.length; i++) {
       let model = models[i];
+      if (model.status === "imported") {
+        continue;
+      }
       const dataset = await db
         .collection("datasets")
         .findOne({_id: model.datasetId});
