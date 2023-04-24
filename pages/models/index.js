@@ -173,16 +173,12 @@ export default function Models() {
                                       {model.providerModelName}
                                   </Link>
                                   :"pending"}</TableCell>
-<<<<<<< HEAD
-                      <TableCell>{"cost" in model ? (model.cost? "$" + model.cost: "unavailable") :"pending"}</TableCell>
-=======
-                      <TableCell>{"cost" in model ? model.cost === 0 ? "<$0.01" : "$" + model.cost :"pending"}</TableCell>
+                      <TableCell>{"cost" in model ? (model.cost? ( model.cost === 0 ? "<$0.01" : "$" + model.cost): "unavailable") :"pending"}</TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleOpen(model._id)}>
                           <FaTrash className='trash-icon'/>
                         </IconButton>
                       </TableCell>
->>>>>>> db3d17712c9e13cbceaf8eb04b991784d3461997
                     </TableRow>
                   ))}
                 </TableBody>

@@ -76,6 +76,7 @@ export default function Import() {
             model: importModel,
             }).then((res) => {
               setError();
+              router.push('/models');
             }).catch((err) => {
               console.log(err);
               setError(err.response.data.error);
