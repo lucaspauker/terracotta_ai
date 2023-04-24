@@ -12,7 +12,7 @@ export default async function handler(request, response) {
     return;
   }
 
-  let model = request.body.model;
+  let model = request.body.modelName;
   const prompt = request.body.prompt;
 
   const session = await getServerSession(request, response, authOptions);
@@ -44,9 +44,9 @@ export default async function handler(request, response) {
             max_tokens: 50,
             model: model.split('-')[1]
         });
-      
+
         console.log(generateResponse);
-      
+
         const output = generateResponse["body"]["generations"][0]["text"];
 
         response.status(200).json({"output":output});
@@ -56,8 +56,6 @@ export default async function handler(request, response) {
     } else {
         response.status(400).json({ error: 'Invalid model type' });
     }
-    
-    
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

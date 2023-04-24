@@ -328,3 +328,65 @@ a {
   padding: 5px;
 }
 
+.leftright {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.left {
+  width: 70%;
+}
+
+.right {
+  width: 20%;
+  text-align: center;
+}
+
+.output-box {
+  width: 48%;
+  margin-bottom: 20px;
+}
+
+.output-text-box {
+  width: 100%;
+}
+
+.model-select-box {
+  margin-bottom: 10px;
+  justify-content: flex-start;
+  cursor: pointer;
+  user-select: none;
+}
+
+.model-output {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.white {
+  background-color: white;
+}
+
+.check-success {
+  color: green;
+  font-size: 18px;
+}
+
+.check-failure {
+  color: red;
+  font-size: 18px;
+}
+
+.trash-icon {
+  width: 12px;
+  color: grey;
+}
+

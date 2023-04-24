@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -13,12 +13,20 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
+import {FaTrash} from "react-icons/fa";
 
 import styles from '@/styles/Data.module.css'
 
@@ -27,8 +35,18 @@ export default function Models() {
   const [models, setModels] = useState([]);
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [page, setPage] = useState(0);
+  const [visibleRows, setVisibleRows] = useState(null);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [open, setOpen] = useState(false);
+  const [idToDelete, setIdToDelete] = useState(null);
 
-  useEffect(() => {
+  const handleOpen = (id) => {
+    setIdToDelete(id);
+  };
+
+  const refreshModels = () => {
+    setLoading(true);
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
@@ -36,30 +54,67 @@ export default function Models() {
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
-        let data = res.data;
-        setModels(data);
-        console.log(data);
+        setModels(res.data);
+        console.log(res.data);
+        setPage(0);
+        const newPage = 0;
+        const updatedRows = res.data.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
       }
       setLoading(false);
     }).catch((error) => {
       console.log(error);
     });
+  }
+
+  const doDelete = () => {
+    axios.post("/api/model/delete/" + idToDelete).then((res) => {
+      console.log(res.data);
+      setOpen(false);
+      refreshModels();
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  const handleChangePage = useCallback(
+    (event, newPage) => {
+      setPage(newPage);
+      const updatedRows = models.slice(
+        newPage * rowsPerPage,
+        newPage * rowsPerPage + rowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
+
+  const handleChangeRowsPerPage = useCallback(
+    (event) => {
+      const updatedRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(updatedRowsPerPage);
+      setPage(0);
+
+      const updatedRows = models.slice(
+        0 * updatedRowsPerPage,
+        0 * updatedRowsPerPage + updatedRowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
+
+  useEffect(() => {
+    if (idToDelete !== null) {
+      setOpen(true);
+    }
+  }, [idToDelete]);
+
+  useEffect(() => {
+    refreshModels();
     window.addEventListener("storage", () => {
-      let projectName = '';
-      if (localStorage.getItem("project")) {
-        projectName = localStorage.getItem("project");
-      }
-      axios.post("/api/models", {projectName: projectName}).then((res) => {
-        console.log(res.data);
-        if (res.data !== "No data found") {
-          let data = res.data;
-          setModels(data);
-          console.log(data);
-        }
-        setLoading(false);
-      }).catch((error) => {
-        console.log(error);
-      });
+      refreshModels();
     });
   }, []);
 
@@ -99,10 +154,11 @@ export default function Models() {
                     <TableCell className='table-cell'>Status</TableCell>
                     <TableCell className='table-cell'>Provider model ID</TableCell>
                     <TableCell className='table-cell'>Cost</TableCell>
+                    <TableCell className='table-cell'></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {models.map((model) => (
+                  {visibleRows.map((model) => (
                     <TableRow
                       key={model._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -117,11 +173,30 @@ export default function Models() {
                                       {model.providerModelName}
                                   </Link>
                                   :"pending"}</TableCell>
+<<<<<<< HEAD
                       <TableCell>{"cost" in model ? (model.cost? "$" + model.cost: "unavailable") :"pending"}</TableCell>
+=======
+                      <TableCell>{"cost" in model ? model.cost === 0 ? "<$0.01" : "$" + model.cost :"pending"}</TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => handleOpen(model._id)}>
+                          <FaTrash className='trash-icon'/>
+                        </IconButton>
+                      </TableCell>
+>>>>>>> db3d17712c9e13cbceaf8eb04b991784d3461997
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <Divider/>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={models.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
             </TableContainer>
           </Paper>
           :
@@ -155,6 +230,25 @@ export default function Models() {
           </>
         }
       </div>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Delete finetuned model?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This action is permanent and cannot be reversed.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={doDelete} autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

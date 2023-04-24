@@ -70,6 +70,7 @@ export default async function handler(request, response) {
     let initialValFileName = inputData.fields.initialValFileName;
     let numValWords = 0;
     let numValCharacters = 0;
+    let numTrainExamples = 0;
 
     let trainOutputColumn = [];  // Used to get unique output classes
     let trainFileData = {};
@@ -102,6 +103,7 @@ export default async function handler(request, response) {
 
       numValWords = valFileData.split(" ").length;
       numValCharacters = valFileData.length;
+      numTrainExamples = outputTrainFileDataJson.length;
     } else if (initialValFileName === '') {
       // SECOND case: No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
@@ -116,6 +118,7 @@ export default async function handler(request, response) {
 
       valFileName = null;
       initialValFileName = null;
+      numTrainExamples = outputTrainFileDataJson.length;
     } else {
       // THIRD case: Both train and val files are specified
       console.log("Both train and validation files are specified");
@@ -137,6 +140,7 @@ export default async function handler(request, response) {
 
       numValWords = valFileData.split(" ").length;
       numValCharacters = valFileData.length;
+      numTrainExamples = outputTrainFileDataJson.length;
     }
 
     // Get the number of characters and words in the train dataset
@@ -147,7 +151,7 @@ export default async function handler(request, response) {
     trainOutputColumn = trainOutputColumn.map((x, i) => {
       return x['completion'];
     });
-    const classesSet = Array.from(new Set(trainOutputColumn));
+    let classesSet = Array.from(new Set(trainOutputColumn));
     console.log(classesSet.length + " classes found")
     console.log(classesSet);
 
@@ -181,6 +185,9 @@ export default async function handler(request, response) {
     if (!project) {
       response.status(400).json({ error: 'Project not found' });
       return;
+    }
+    if (project.type !== 'classification') {
+      classesSet = null;
     }
 
     // Check if dataset already exists
@@ -222,8 +229,9 @@ export default async function handler(request, response) {
           numTrainCharacters: numTrainCharacters,
           numValWords: numValWords,
           numValCharacters: numValCharacters,
-          //classes: classesSet,
-          classes: [],
+          numTrainExamples: numTrainExamples,
+          numValExamples: numValExamples,
+          classes: classesSet,
         });
     console.log(d);
 
