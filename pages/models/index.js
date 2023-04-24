@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -13,6 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -34,6 +35,9 @@ export default function Models() {
   const [models, setModels] = useState([]);
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [page, setPage] = useState(0);
+  const [visibleRows, setVisibleRows] = useState(null);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
 
@@ -50,9 +54,15 @@ export default function Models() {
     axios.post("/api/model/list", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
-        let data = res.data;
-        setModels(data);
-        console.log(data);
+        setModels(res.data);
+        console.log(res.data);
+        setPage(0);
+        const newPage = 0;
+        const updatedRows = res.data.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
       }
       setLoading(false);
     }).catch((error) => {
@@ -69,6 +79,31 @@ export default function Models() {
       console.log(error);
     });
   }
+
+  const handleChangePage = useCallback(
+    (event, newPage) => {
+      setPage(newPage);
+      const updatedRows = models.slice(
+        newPage * rowsPerPage,
+        newPage * rowsPerPage + rowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
+
+  const handleChangeRowsPerPage = useCallback(
+    (event) => {
+      const updatedRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(updatedRowsPerPage);
+      setPage(0);
+
+      const updatedRows = models.slice(
+        0 * updatedRowsPerPage,
+        0 * updatedRowsPerPage + updatedRowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
 
   useEffect(() => {
     if (idToDelete !== null) {
@@ -118,7 +153,7 @@ export default function Models() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {models.map((model) => (
+                  {visibleRows.map((model) => (
                     <TableRow
                       key={model._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -143,6 +178,16 @@ export default function Models() {
                   ))}
                 </TableBody>
               </Table>
+              <Divider/>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={models.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
             </TableContainer>
           </Paper>
           :

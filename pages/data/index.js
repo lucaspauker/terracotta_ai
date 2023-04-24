@@ -60,7 +60,7 @@ export default function Data() {
   const router = useRouter()
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
 
@@ -185,7 +185,7 @@ export default function Data() {
                       <TableCell>{dataset.numTrainWords}</TableCell>
                       <TableCell>{dataset.numTrainExamples}</TableCell>
                       <TableCell>{dataset.numValExamples}</TableCell>
-                      <TableCell>{dataset.classes.length}</TableCell>
+                      <TableCell>{dataset.classes ? dataset.classes.length : null}</TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleOpen(dataset._id)}>
                           <FaTrash className='trash-icon'/>
@@ -195,6 +195,7 @@ export default function Data() {
                   ))}
                 </TableBody>
               </Table>
+              <Divider/>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"

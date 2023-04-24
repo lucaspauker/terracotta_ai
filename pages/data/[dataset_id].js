@@ -241,6 +241,7 @@ export default function DataPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <Divider/>
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
