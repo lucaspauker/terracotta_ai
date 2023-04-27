@@ -58,14 +58,16 @@ export default async function handler(request, response) {
           name: modelName,
           provider: "openai",
           modelArchitecture: model.model,
-          providerModelId: model.id,
           status: "imported",
           datasetId: null,
           projectId: project._id,
           userId: userId,
-          hyperParams: model.hyperParams,
           cost: null,
-          providerModelName: model.fine_tuned_model,
+          providerData: {
+            finetuneId: model.id,
+            modelId: model.fine_tuned_model,
+            hyperParams: model.hyperParams
+          },
         });
 
       response.status(200).send();

@@ -183,12 +183,14 @@ export default async function handler(request, response) {
           name: modelName,
           provider: provider,
           modelArchitecture: modelArchitecture,
-          providerModelId: finetuneResponse.data.id,
           status: "training",
           datasetId: dataset._id,
           projectId: project._id,
           userId: userId,
-          hyperParams: hyperParams,
+          providerData: {
+            finetuneId: finetuneResponse.data.id,
+            hyperParams: hyperParams,
+          },
         });
     console.log(d);
 

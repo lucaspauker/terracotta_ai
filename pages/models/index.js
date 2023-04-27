@@ -169,9 +169,9 @@ export default function Models() {
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>
-                      <TableCell>{"providerModelName" in model?
-                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
-                                      {model.providerModelName}
+                      <TableCell>{"modelId" in model.providerData?
+                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>
+                                      {model.providerData.modelId}
                                   </Link>
                                   :"pending"}</TableCell>
                       <TableCell>{"cost" in model ? (model.cost? ( model.cost === 0 ? "<$0.01" : "$" + model.cost): "unavailable") :"pending"}</TableCell>

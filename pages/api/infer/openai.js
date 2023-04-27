@@ -68,7 +68,7 @@ export default async function handler(request, response) {
       // Get model based on the name and project
       const model = await db
         .collection("models")
-        .findOne({providerModelId: modelName, projectId: project._id});
+        .findOne({provider: "openai","providerData.finetuneId": modelName, projectId: project._id});
       if (!user) {
         response.status(400).json({ error: 'User not found' });
         return;
@@ -77,7 +77,7 @@ export default async function handler(request, response) {
 
       //if (project.type === 'classification') max_tokens = 20;  // Classification
       const completion = await openai.createCompletion({
-        model: model.providerModelName,
+        model: model.providerData.modelId,
         prompt: prompt + "\n\n###\n\n",
         max_tokens: max_tokens,
         temperature: temperature,
