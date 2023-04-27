@@ -24,67 +24,86 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
-import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
+import { useRouter } from 'next/router'
+import { getSession, useSession, signIn, signOut } from "next-auth/react"
+import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
-import {BsFillCircleFill} from "react-icons/bs";
 
 import styles from '@/styles/Data.module.css'
 
-export default function Models() {
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
+export default function Evaluate() {
   const [loading, setLoading] = useState(true);
-  const [models, setModels] = useState([]);
-  const [selectedFile, setSelectedFile] = useState();
-	const [isFilePicked, setIsFilePicked] = useState(false);
+  const [evals, setEvals] = useState([]);
+  const [project, setProject] = useState('');
+  const router = useRouter()
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const { data: session } = useSession();
 
   const handleOpen = (id) => {
     setIdToDelete(id);
   };
 
-  const refreshModels = () => {
-    setLoading(true);
-    let projectName = '';
-    if (localStorage.getItem("project")) {
-      projectName = localStorage.getItem("project");
-    }
-    axios.post("/api/models", {projectName: projectName}).then((res) => {
+  const doDelete = () => {
+    axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
       console.log(res.data);
-      if (res.data !== "No data found") {
-        setModels(res.data);
-        console.log(res.data);
-        setPage(0);
-        const newPage = 0;
-        const updatedRows = res.data.slice(
-          newPage * rowsPerPage,
-          newPage * rowsPerPage + rowsPerPage,
-        );
-        setVisibleRows(updatedRows);
-      }
-      setLoading(false);
+      setOpen(false);
+      refreshData();
     }).catch((error) => {
       console.log(error);
     });
   }
 
-  const doDelete = () => {
-    axios.post("/api/models/delete/" + idToDelete).then((res) => {
-      console.log(res.data);
-      setOpen(false);
-      refreshModels();
-    }).catch((error) => {
-      console.log(error);
-    });
+  const refreshData = () => {
+    let p = project;
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+      setProject(localStorage.getItem("project"));
+    };
+    axios.post("/api/evaluate", {
+        projectName: p,
+      }).then((res) => {
+        if (res.data !== "No data found") {
+          setEvals(res.data);
+          setPage(0);
+          const newPage = 0;
+          const updatedRows = res.data.slice(
+            newPage * rowsPerPage,
+            newPage * rowsPerPage + rowsPerPage,
+          );
+          setVisibleRows(updatedRows);
+        }
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
   }
 
   const handleChangePage = useCallback(
     (event, newPage) => {
       setPage(newPage);
-      const updatedRows = models.slice(
+      const updatedRows = evals.slice(
         newPage * rowsPerPage,
         newPage * rowsPerPage + rowsPerPage,
       );
@@ -98,7 +117,7 @@ export default function Models() {
       setRowsPerPage(updatedRowsPerPage);
       setPage(0);
 
-      const updatedRows = models.slice(
+      const updatedRows = evals.slice(
         0 * updatedRowsPerPage,
         0 * updatedRowsPerPage + updatedRowsPerPage,
       );
@@ -113,9 +132,10 @@ export default function Models() {
   }, [idToDelete]);
 
   useEffect(() => {
-    refreshModels();
+    refreshData();
+
     window.addEventListener("storage", () => {
-      refreshModels();
+      refreshData();
     });
   }, []);
 
@@ -125,58 +145,44 @@ export default function Models() {
 
   return (
     <div className='main'>
-
       <div className='horizontal-box full-width'>
         <Typography variant='h4' className='page-main-header'>
-          Finetuned Models
+          Evaluations
         </Typography>
-        <div>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
-            + Import model
-          </Button>
-          <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
-            + Finetune model
-          </Button>
-        </div>
+        <Button variant='contained' color="secondary" component={Link} href="/evaluate/evaluate">
+          + New evaluation
+        </Button>
       </div>
       <div className='tiny-space' />
 
       <div>
-        {models.length > 0 ?
+        {evals.length > 0 ?
           <Paper variant="outlined">
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
+                    <TableCell className='table-cell'>Description</TableCell>
+                    <TableCell className='table-cell'>Model name</TableCell>
                     <TableCell className='table-cell'>Dataset name</TableCell>
-                    <TableCell className='table-cell'>Provider</TableCell>
-                    <TableCell className='table-cell'>Architecture</TableCell>
-                    <TableCell className='table-cell'>Status</TableCell>
-                    <TableCell className='table-cell'>Provider model ID</TableCell>
-                    <TableCell className='table-cell'>Cost</TableCell>
+                    <TableCell className='table-cell'>Metrics</TableCell>
                     <TableCell className='table-cell'></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visibleRows.map((model) => (
+                  {visibleRows.map((e) => (
                     <TableRow
-                      key={model._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      key={e._id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
-                      <TableCell><Link className='link' href={'models/' + model._id}>{model.name}</Link></TableCell>
-                      <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
-                      <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
-                      <TableCell>{model.modelArchitecture}</TableCell>
-                      <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>
-                      <TableCell>{"providerModelName" in model?
-                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
-                                      {model.providerModelName}
-                                  </Link>
-                                  :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? (model.cost? ( model.cost === 0 ? "<$0.01" : "$" + model.cost): "unavailable") :"pending"}</TableCell>
+                      <TableCell>{e.name}</TableCell>
+                      <TableCell>{e.description}</TableCell>
+                      <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
+                      <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
+                      <TableCell>{e.metrics}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(model._id)}>
+                        <IconButton onClick={() => handleOpen(e._id)}>
                           <FaTrash className='trash-icon'/>
                         </IconButton>
                       </TableCell>
@@ -188,7 +194,7 @@ export default function Models() {
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={models.length}
+                count={evals.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
@@ -201,17 +207,43 @@ export default function Models() {
           <div className='medium-space'/>
           <Paper variant='outlined' className='info-box'>
             <Typography variant='h4'>
-              What is a finetuned model?
+              What is an evaluation?
             </Typography>
             <Typography variant='body1'>
-              Large language models (LLMs) such as GPT-3 are trained on large amounts
-              of text data and therefore understand language well. However, since they
-              are trained on general data, in order to create a model useful for a
-              specific use-case such as spam detection, one must finetune the model on
-              spam detection data. Then, the model uses what it learned on general data
-              and applies it to the new data and quickly learns the new task. This is
-              similar to teaching someone a new skill.
+              A dataset is your data that you can use to finetune a large language model (LLM).
+              Datasets consist of two columns: <span className='italic'>input</span> and
+              <span className='italic'>output</span>.
             </Typography>
+            <div className='medium-space'/>
+
+            <Typography variant='h4'>
+              How can I get started?
+            </Typography>
+            <Typography variant='body1'>
+              To create a dataset, you need a CSV file of your data. Then, click the
+              "new dataset" button to build a dataset. This will take you to the
+              new dataset page, which will let you upload a CSV file and
+              choose which columns of your CSV
+              data are input and output. Or, if you don't have data, check out some of
+              these links to get started:
+            </Typography>
+            <List sx={{ listStyleType: 'disc' }}>
+              <ListItem>
+                <Link href='' className='link'>
+                  <Typography>SMS spam dataset</Typography>
+                </Link>
+              </ListItem>
+              <ListItem>
+                <Link href='' className='link'>
+                  <Typography>Sports commentary classification dataset</Typography>
+                </Link>
+              </ListItem>
+              <ListItem>
+                <Link href='' className='link'>
+                  <Typography>Another dataset</Typography>
+                </Link>
+              </ListItem>
+            </List>
             <div className='medium-space'/>
 
             <Typography variant='h4'>
@@ -232,7 +264,7 @@ export default function Models() {
         onClose={() => setOpen(false)}
       >
         <DialogTitle id="alert-dialog-title">
-          {"Delete finetuned model?"}
+          {"Delete evaluation?"}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">

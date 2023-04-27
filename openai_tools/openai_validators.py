@@ -346,13 +346,13 @@ def common_completion_suffix_validator(df, task):
     # if task == "generation" or task == "classification":
     #     return Remediation(name="common_suffix")
 
-    common_suffix = get_common_xfix(df.completion, xfix="suffix")
-    if (df.completion == common_suffix).all():
-        error_msg = f"All completions are identical: `{common_suffix}`\nEnsure completions are different, otherwise the model will just repeat `{common_suffix}`"
-        return Remediation(name="common_suffix", error_msg=error_msg)
+    # common_suffix = get_common_xfix(df.completion, xfix="suffix")
+    # if (df.completion == common_suffix).all():
+    #     error_msg = f"All completions are identical: `{common_suffix}`\nEnsure completions are different, otherwise the model will just repeat `{common_suffix}`"
+    #     return Remediation(name="common_suffix", error_msg=error_msg)
 
     # Find a suffix which is not contained within the completion otherwise
-    suggested_suffix = " \n"  # Also, hardcode this
+    suggested_suffix = "$$$"  # Also, hardcode this
     # suffix_options = [
     #     "\n",
     #     ".",

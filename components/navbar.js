@@ -42,6 +42,8 @@ export default function Navbar() {
   const isSelected = (p) => {
     if (router.pathname === '/dashboard' && p === 'Dashboard') {
       return true;
+    } else if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
+      return true;
     } else if (router.pathname.startsWith('/data') && p === 'Data') {
       return true;
     } else if (router.pathname.startsWith('/models') && p === 'Models') {
@@ -68,6 +70,8 @@ export default function Navbar() {
       return '/models';
     } else if (p === 'Playground') {
       return '/playground';
+    } else if (p === 'Evaluate') {
+      return '/evaluate';
     } else if (p === 'API keys') {
       return '/settings';
     } else {
