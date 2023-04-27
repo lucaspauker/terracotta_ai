@@ -73,7 +73,12 @@ export default async function handler(request, response) {
           await db
             .collection("models")
             .updateOne({"_id" : model._id},
-            {$set: { "status" : "succeeded", "providerData.modelId": finetuneResponse.fine_tuned_model}});
+            {$set: { 
+              "status" : "succeeded", 
+              "providerData.modelId": finetuneResponse.fine_tuned_model,
+              "providerData.resultsFileId": finetuneResponse.result_files[0].id
+            }
+            });
         } else if (finetuneResponse.status === "failed") {
           models[i]["status"] = "failed";
           await db
