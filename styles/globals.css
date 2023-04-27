@@ -311,21 +311,26 @@ a {
 }
 
 .model-succeeded {
-  background-color: lightgreen;
-  border-radius: 5px;
-  padding: 5px;
+  margin-top: 2px;
+  margin-right: 5px;
+  color: lightgreen;
 }
 
 .model-failed {
-  background-color: #ff726f;
-  border-radius: 5px;
-  padding: 5px;
+  margin-right: 5px;
+  color: #ff726f;
 }
 
 .model-training {
-  background-color: tan;
-  border-radius: 5px;
-  padding: 5px;
+  margin-top: 2px;
+  margin-right: 5px;
+  color: tan;
+}
+
+.status {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .leftright {
@@ -388,5 +393,9 @@ a {
 .trash-icon {
   width: 12px;
   color: grey;
+}
+
+.align-left {
+  align-items: flex-start;
 }
 

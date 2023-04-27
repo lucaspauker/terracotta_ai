@@ -148,7 +148,7 @@ export default async function handler(request, response) {
           training_file: trainResponse.data.id,
           validation_file: valResponse.data.id,
           compute_classification_metrics: true,
-          classification_positive_class: " " + dataset.classes[0],
+          classification_positive_class: " " + dataset.classes[0] + "$$$",
           model: modelArchitecture,
         };
       } else {  // Multiclass classification
