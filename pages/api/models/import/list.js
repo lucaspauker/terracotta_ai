@@ -53,7 +53,7 @@ export default async function handler(request, response) {
       .find({userId: userId, projectId: projectId, provider: "openai"})
       .toArray();
     
-    const currentModelIds = currentModels.map(({providerModelId})=>providerModelId);
+    const currentModelIds = currentModels.map(({providerData})=>providerData.fintuneId);
 
     let importableModels = [];
 

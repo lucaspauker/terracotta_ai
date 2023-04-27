@@ -83,7 +83,7 @@ export default function Playground() {
         console.log("Sending request for " + m.name);
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
-            modelName: m.providerModelId,
+            modelName: m.providerData.finetuneId,
             prompt: promptRef.current.value,
             projectName: project,
             hyperParams: hyperParams,
@@ -146,7 +146,7 @@ export default function Playground() {
       setProject(projectName);
     }
 
-    axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+    axios.post("/api/models", {projectName: projectName}).then((res) => {
       if (res.data !== "No data found") {
         let data = res.data;
         setFinetunedModels(data);
@@ -177,7 +177,7 @@ export default function Playground() {
         projectName = localStorage.getItem("project");
         setProject(projectName);
       }
-      axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+      axios.post("/api/models", {projectName: projectName}).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
           let data = res.data;

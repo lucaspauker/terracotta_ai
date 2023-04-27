@@ -62,24 +62,24 @@ export default async function handler(request, response) {
       models[i]["datasetId"] = dataset._id;
 
       if (model.status !== "succeeded") {
-        let finetuneResponse = await openai.retrieveFineTune(model.providerModelId);
+        let finetuneResponse = await openai.retrieveFineTune(model.providerData.finetuneId);
         console.log(finetuneResponse.data);
 
         finetuneResponse = finetuneResponse.data;
         const events = finetuneResponse.events;
         if (finetuneResponse.status === "succeeded") {
           models[i]["status"] = "succeeded";
-          models[i]["providerModelName"] = finetuneResponse.fine_tuned_model;
+          models[i].providerData.modelId = finetuneResponse.fine_tuned_model;
           await db
             .collection("models")
             .updateOne({"_id" : model._id},
-            {$set: { "status" : "succeeded", "providerModelName": finetuneResponse.fine_tuned_model}});
+            {$set: { "status" : "succeeded", "providerData.modelId": finetuneResponse.fine_tuned_model}});
         } else if (finetuneResponse.status === "failed") {
           models[i]["status"] = "failed";
           await db
             .collection("models")
             .updateOne({"_id" : model._id},
-            {$set: { "status" : "failed", "providerModelName": finetuneResponse.fine_tuned_model}});
+            {$set: { "status" : "failed", "providerData.modelId": finetuneResponse.fine_tuned_model}});
           continue;
         } else {
           // Check last event to update status

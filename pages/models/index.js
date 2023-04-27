@@ -71,7 +71,7 @@ export default function Models() {
   }
 
   const doDelete = () => {
-    axios.post("/api/model/delete/" + idToDelete).then((res) => {
+    axios.post("/api/models/delete/" + idToDelete).then((res) => {
       console.log(res.data);
       setOpen(false);
       refreshModels();
@@ -168,9 +168,9 @@ export default function Models() {
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell><span className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}>{model.status.toLowerCase()}</span></TableCell>
-                      <TableCell>{"providerModelName" in model?
-                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerModelName}>
-                                      {model.providerModelName}
+                      <TableCell>{"modelId" in model.providerData?
+                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>
+                                      {model.providerData.modelId}
                                   </Link>
                                   :"pending"}</TableCell>
                       <TableCell>{"cost" in model ? (model.cost? ( model.cost === 0 ? "<$0.01" : "$" + model.cost): "unavailable") :"pending"}</TableCell>
