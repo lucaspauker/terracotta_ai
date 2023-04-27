@@ -146,7 +146,7 @@ export default function Playground() {
       setProject(projectName);
     }
 
-    axios.post("/api/model/list", {projectName: projectName}).then((res) => {
+    axios.post("/api/models", {projectName: projectName}).then((res) => {
       if (res.data !== "No data found") {
         let data = res.data;
         setFinetunedModels(data);

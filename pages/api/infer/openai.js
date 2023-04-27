@@ -81,7 +81,7 @@ export default async function handler(request, response) {
         prompt: prompt + "\n\n###\n\n",
         max_tokens: max_tokens,
         temperature: temperature,
-        stop: ' \n',
+        stop: '$$$',
       });
       response.status(200).json(completion.data);
       return;
