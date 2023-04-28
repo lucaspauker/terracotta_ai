@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]"
+import { authOptions } from "../../../auth/[...nextauth]"
 import { MongoClient } from 'mongodb';
 const client = new MongoClient(process.env.MONGODB_URI);
 const { Configuration, OpenAIApi } = require("openai");
@@ -53,7 +53,10 @@ export default async function handler(request, response) {
       .find({userId: userId, projectId: projectId, provider: "openai"})
       .toArray();
     
-    const currentModelIds = currentModels.map(({providerData})=>providerData.fintuneId);
+    const providerDataList = currentModels.map(({providerData})=>providerData);
+    const currentModelIds = providerDataList.map(({finetuneId})=>finetuneId);
+
+    console.log(currentModelIds);
 
     let importableModels = [];
 

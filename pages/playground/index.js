@@ -63,13 +63,14 @@ export default function Playground() {
         console.log("Sending request for " + m.completionName);
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
-            modelName: m.completionName,
+            completionName: m.completionName,
             prompt: promptRef.current.value,
             projectName: project,
             hyperParams: hyperParams,
           }).then((res) => {
             if (res.data !== "No data found") {
-              storeOutput(m.completionName, res.data.choices[0].text);
+              console.log(res.data);
+              storeOutput(m.completionName, res.data);
             }
           }).catch((error) => {
             console.log(error);
@@ -83,13 +84,13 @@ export default function Playground() {
         console.log("Sending request for " + m.name);
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
-            modelName: m.providerData.finetuneId,
+            providerData: m.providerData,
             prompt: promptRef.current.value,
             projectName: project,
             hyperParams: hyperParams,
           }).then((res) => {
             if (res.data !== "No data found") {
-              storeOutput(m._id, res.data.choices[0].text);
+              storeOutput(m._id, res.data);
             }
           }).catch((error) => {
             console.log(error);
