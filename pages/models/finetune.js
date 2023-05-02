@@ -46,7 +46,7 @@ export default function Train() {
   const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [modelName, setModelName] = useState(''); 
+  const [modelName, setModelName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
   const [estimatedCost, setEstimatedCost] = useState('')
@@ -78,10 +78,9 @@ export default function Train() {
         router.push('/models');
       }).catch((error) => {
         console.log(error);
-        setError(error.response.data);
+        setError('Error finetuning model');
       });
     } else if (provider === "cohere") {
-      
     }
   }
 

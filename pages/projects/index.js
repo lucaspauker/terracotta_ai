@@ -22,6 +22,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import List from '@mui/material/List';
+import ListSubheader from '@mui/material/ListSubheader';
+import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -169,9 +172,28 @@ export default function Projects() {
             ))}
           </div>
           :
-          <Typography variant='body1'>
-            No projects found :(
-          </Typography>
+         <>
+          <Paper variant='outlined' className='info-box'>
+            <Typography variant='h4'>
+              What is a project?
+            </Typography>
+            <Typography variant='body1'>
+              To get started, create a project. Create a new project for every
+              kind of task you want to do.
+            </Typography>
+            <div className='medium-space'/>
+
+            <Typography variant='h4'>
+              Is there a tutorial?
+            </Typography>
+            <Typography variant='body1'>
+              Check out our tutorial here:&nbsp;
+              <Link href='' className='link'>
+                some tutorial
+              </Link>
+            </Typography>
+          </Paper>
+          </>
         }
       </div>
       <Dialog

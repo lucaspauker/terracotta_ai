@@ -40,9 +40,7 @@ export default function Navbar() {
   const [allProjects, setAllProjects] = useState([]);
 
   const isSelected = (p) => {
-    if (router.pathname === '/dashboard' && p === 'Dashboard') {
-      return true;
-    } else if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
+    if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
       return true;
     } else if (router.pathname.startsWith('/data') && p === 'Data') {
       return true;
@@ -60,9 +58,7 @@ export default function Navbar() {
   }
 
   const getLink = (p) => {
-    if (p === 'Dashboard') {
-      return '/dashboard';
-    } else if (p === 'Data') {
+    if (p === 'Data') {
       return '/data';
     } else if (p === 'Projects') {
       return '/projects';
@@ -146,14 +142,20 @@ export default function Navbar() {
         <div className='tiny-space' />
         <Divider />
         <List>
-          {['Dashboard', 'Projects', 'Data', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
-            <ListItem key={text} disablePadding button component={Link} href={getLink(text)}>
+          {['Projects', 'Data', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
+            <ListItem
+              key={text}
+              disablePadding
+              button
+              component={Link}
+              href={getLink(text)}
+              disabled={allProjects.length === 0 && text !== 'Projects'}
+            >
               <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
                   {text === 'Data' ? <TextSnippetIcon /> :
                    text === 'Models' ? <LightbulbIcon /> :
                    text === 'Playground' ? <ConstructionIcon /> :
-                   text === 'Dashboard' ? <DashboardIcon /> :
                    text === 'Projects' ? <PaletteIcon /> :
                    text === 'Evaluate' ? <FunctionsIcon /> : null}
                 </ListItemIcon>

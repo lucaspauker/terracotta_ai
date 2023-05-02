@@ -60,6 +60,8 @@ export default async function handler(request, response) {
     for (const [key, value] of Object.entries(hyperParams)){
       if (hyperParams[key] === null) {
         delete hyperParams[key];
+      } else {
+        hyperParams[key] = Number(value);
       }
     }
 
@@ -112,10 +114,12 @@ export default async function handler(request, response) {
     execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
+            response.status(400).json({ error: error.message });
             return;
         }
         if (stderr) {
             console.log(`stderr: ${stderr}`);
+            response.status(400).json({ error: stderr });
             return;
         }
         console.log(`stdout: ${stdout}`);
@@ -141,7 +145,7 @@ export default async function handler(request, response) {
     let finetuneRequest = null;
     if (project.type === "classification") {
       if (dataset.classes.length <= 1) {
-        response.status(400).json({ error: 'Dataset classes not speficied' });
+        response.status(400).json({ error: 'Dataset classes not specified' });
         return;
       } else if (dataset.classes.length === 2) {  // Binary classification
         finetuneRequest = {
