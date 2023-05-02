@@ -40,26 +40,59 @@ ChartJS.register(
   Legend
 );
 
+const plugins = [
+  {
+    afterDraw: chart => {
+      if (chart.tooltip?._active?.length) {
+        let x = chart.tooltip._active[0].element.x;
+        let yAxis = chart.scales.y;
+        let ctx = chart.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, yAxis.top);
+        ctx.lineTo(x, yAxis.bottom);
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]); // set a dash pattern
+        ctx.strokeStyle = 'black'; // set the line color to black
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+];
+
 const options = {
   responsive: true,
   plugins: {
     title: {
       display: true,
       text: 'Training loss curve',
+      color: 'black',
+      font: {
+        size: 16,
+        weight: 'normal',
+      },
     },
     legend: {
-      display: false,
+      display: true,
+    },
+    tooltip: {
+      mode: 'index',
+      intersect: false,
+      enabled: true,
     },
   },
   scales: {
     y: {
       title: {
+        color: 'black',
         display: true,
         text: 'Loss',
       },
     },
     x: {
       title: {
+        color: 'black',
         display: true,
         text: 'Step',
       },
@@ -109,10 +142,18 @@ export default function ModelPage() {
               labels,
               datasets: [
                 {
+                  label: 'Training loss moving average',
+                  data: res.data.trainingCurve.yMovingAverage,
+                  borderColor: 'rgba(0, 0, 255, 1)',
+                  borderWidth: 3,
+                  pointRadius: 0,
+                },
+                {
                   label: 'Training loss',
                   data: res.data.trainingCurve.y,
-                  borderColor: '#9C2315',
-                  borderWidth: 1,
+                  borderColor: 'rgba(156, 35, 21, 0.7)',
+                  borderWidth: 2,
+                  pointRadius: 0,
                 },
               ],
             });
@@ -179,7 +220,7 @@ export default function ModelPage() {
         <div>
           <div className='tiny-space'/>
           <Paper className='card' variant='outlined' className='vertical-box'>
-            {graphData ? <Line options={options} data={graphData} className='chart'/> : null}
+            {graphData ? <Line options={options} plugins={plugins} data={graphData} className='chart'/> : null}
             <div className='horizontal-box'>
               {trainEval.metrics.map(metric => (
                 <div className="metric-box" key={metric}>

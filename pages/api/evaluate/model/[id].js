@@ -81,6 +81,8 @@ export default async function handler(request, response) {
       };
       let x = [];
       let y = [];
+      let yMovingAverage = [];
+      const n = 100;  // Moving average parameter
       const s3Res = await myBucket.getObject(params).promise();
       const data = s3Res.Body.toString('utf-8').split('\n');
       // Skip the first row since it is the header row
@@ -89,12 +91,22 @@ export default async function handler(request, response) {
         let splitData = data[i].split(',');
         x.push(Number(splitData[0]));
         y.push(Number(splitData[3]));
+
+
+        // Calculate the moving average of y using a sliding window
+        if (i >= n) {
+          let sum = y.slice(i - n, i).reduce((a, b) => a + b);
+          yMovingAverage.push(sum / n);
+        } else {
+          yMovingAverage.push(null);
+        }
       }
       response.status(200).json({
         'evals': evals,
         'trainingCurve': {
           'x': x,
           'y': y,
+          'yMovingAverage': yMovingAverage,
         },
       });
       return;

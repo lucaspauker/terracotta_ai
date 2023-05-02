@@ -98,7 +98,9 @@ export default async function handler(request, response) {
 
           let metrics = [];
           let metricResults = [];
-          if (dataset.classes.length === 2) {
+          if (!dataset.classes) {
+            // Generative tasks, do something here
+          } else if (dataset.classes.length === 2) {
             const accuracy = splitData[splitData.length - 6].replace(/\s+/g, '');
             const precision = splitData[splitData.length - 5].replace(/\s+/g, '');
             const recall = splitData[splitData.length - 4].replace(/\s+/g, '');
