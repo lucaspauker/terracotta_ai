@@ -42,19 +42,20 @@ export default function Import() {
     const [error, setError] = useState();
     const [type, setType] = useState('classification');
     const [importableModels, setImportableModels] = useState([]);
-    const [importModel, setImportModel] = useState({});
+    const [importModel, setImportModel] = useState('');
     const [modelName, setModelName] = useState('');
     const router = useRouter()
   
     const handleProviderChange = (provider) => {
       setProvider(provider);
-      setImportModel({});
-      let p = '';
-      if (localStorage.getItem("project")) {
-        p = localStorage.getItem("project");
-      };
-      axios.post("/api/models/import/list", {
-        projectName: p,
+      setImportModel('');
+      if (provider === 'openai') {
+        let p = '';
+        if (localStorage.getItem("project")) {
+          p = localStorage.getItem("project");
+        };
+        axios.post("/api/models/import/openai/list", {
+          projectName: p,
         }).then((res) => {
           console.log(res.data);
           setError();
@@ -63,6 +64,7 @@ export default function Import() {
           console.log(err);
           setError(err.response.data.error);
         });
+      }
     }
 
     const handleImportModel = () => {
@@ -70,7 +72,7 @@ export default function Import() {
         if (localStorage.getItem("project")) {
             p = localStorage.getItem("project");
         };
-        axios.post("/api/models/import/add", {
+        axios.post("/api/models/import/" + provider +"/add", {
             projectName: p,
             modelName: modelName,
             model: importModel,
@@ -114,21 +116,32 @@ export default function Import() {
             </Select>
           </FormControl>
           <div className='tiny-space' />
-          <FormControl>
-            <InputLabel id="model-label">Model</InputLabel>
-            <Select
+          {provider !== 'cohere' ? 
+            <FormControl>
+              <InputLabel id="model-label">Model</InputLabel>
+              <Select
                 labelId="model-label"
                 className="wide-select"
                 label="Model"
                 value={importModel}
                 onChange={(e) => setImportModel(e.target.value)}
                 required
-            >
+              >
               {importableModels.map((model) => (
                 <MenuItem value={model} key={model.id}>{model.id}</MenuItem>
               ))}
-            </Select>
-          </FormControl>
+              </Select>
+            </FormControl>
+          : <TextField
+              label="Model id"
+              variant="outlined"
+              className='text-label center'
+              value={importModel}
+              onChange={(e) => setImportModel(e.target.value)}
+              required
+            />
+          }
+          
           <div className='small-space' />
             <TextField
               label="Model name"

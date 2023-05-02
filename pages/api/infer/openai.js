@@ -13,7 +13,8 @@ export default async function handler(request, response) {
   }
 
   const prompt = request.body.prompt;
-  let modelName = request.body.modelName;
+  let modelName = request.body.providerData?.finetuneId;
+  let completionName = request.body.completionName;
   let projectName = request.body.projectName;
   let hyperParams = request.body.hyperParams;
 
@@ -44,15 +45,15 @@ export default async function handler(request, response) {
 
     let max_tokens = Number(hyperParams.maxTokens);
     let temperature = Number(hyperParams.temperature);
-    console.log(modelName);
-    if (modelName.substring(0,4) === 'text') {  // Stock OpenAI model
+
+    if (completionName) {  // Stock OpenAI model
       const completion = await openai.createCompletion({
-        model: modelName,
+        model: completionName,
         prompt: prompt,
         max_tokens: max_tokens,
         temperature: temperature,
       });
-      response.status(200).json(completion.data);
+      response.status(200).json(completion.data.choices[0].text);
       return;
     } else {  // Finetuned model
 
@@ -63,7 +64,6 @@ export default async function handler(request, response) {
         response.status(400).json({ error: 'Project not found' });
         return;
       }
-      console.log(project);
 
       // Get model based on the name and project
       const model = await db
@@ -73,7 +73,6 @@ export default async function handler(request, response) {
         response.status(400).json({ error: 'User not found' });
         return;
       }
-      console.log(model);
 
       //if (project.type === 'classification') max_tokens = 20;  // Classification
       const completion = await openai.createCompletion({
@@ -83,7 +82,7 @@ export default async function handler(request, response) {
         temperature: temperature,
         stop: '$$$',
       });
-      response.status(200).json(completion.data);
+      response.status(200).json(completion.data.choices[0].text);
       return;
     }
   } catch (e) {
