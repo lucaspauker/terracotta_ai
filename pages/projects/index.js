@@ -28,8 +28,7 @@ import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
-
-import styles from '@/styles/Data.module.css'
+import {timestampToDateTime, toTitleCase} from "../../components/utils";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -152,14 +151,15 @@ export default function Projects() {
               <Card variant="outlined" key={project._id}
                     className={project.name===currentProject ? 'project-card active-project-card' : 'project-card'}>
                 <CardContent>
-                  <Typography variant="h6" component="div">
+                  <Typography variant="h6">
                     {project.name}
                   </Typography>
-                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                    {project.type}
+                  <div className="tiny-space"/>
+                  <Typography>
+                    Created {timestampToDateTime(project.timeCreated)}
                   </Typography>
-                  <Typography variant="body2">
-                    {project._id}
+                  <Typography color="text.secondary">
+                    {toTitleCase(project.type)}
                   </Typography>
                 </CardContent>
                 <CardActions className='vertical-box'>
