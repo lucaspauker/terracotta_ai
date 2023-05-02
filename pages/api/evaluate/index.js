@@ -57,7 +57,7 @@ export default async function handler(request, response) {
           },
         },
         {
-          $unwind: "$dataset",
+          $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
         },
         {
           $unwind: "$model",
@@ -72,6 +72,8 @@ export default async function handler(request, response) {
             modelName: "$model.name",
             description: "$description",
             metrics: "$metrics",
+            metricResults: "$metricResults",
+            trainingEvaluation: "$trainingEvaluation",
           }
         }
       ]).toArray();
