@@ -399,3 +399,16 @@ a {
   align-items: flex-start;
 }
 
+.metric-box {
+  background-color: #dca894;
+  border-radius: 4px;
+  padding: 20px;
+  margin: 10px;
+  min-width: 150px;
+}
+
+.chart {
+  padding: 20px;
+  max-height: 400px;
+}
+

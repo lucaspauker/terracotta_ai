@@ -18,15 +18,64 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
-import styles from '@/styles/Data.module.css';
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const options = {
+  responsive: true,
+  plugins: {
+    title: {
+      display: true,
+      text: 'Training loss curve',
+    },
+    legend: {
+      display: false,
+    },
+  },
+  scales: {
+    y: {
+      title: {
+        display: true,
+        text: 'Loss',
+      },
+    },
+    x: {
+      title: {
+        display: true,
+        text: 'Step',
+      },
+    },
+  },
+};
+
 
 export default function ModelPage() {
   const [loading, setLoading] = useState(true);
   const [model, setModel] = useState(null);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
+  const [trainEval, setTrainEval] = useState(null);
   const [evals, setEvals] = useState([]);
+  const [graphData, setGraphData] = useState(null);
   const router = useRouter();
   const { model_id } = router.query;
 
@@ -51,8 +100,35 @@ export default function ModelPage() {
     const last = window.location.href.split('/').pop();  // This is a hack
     axios.get("/api/models/" + last).then((res) => {
       setModel(res.data);
+
+      // Get the evaluations associated with the model
       axios.get("/api/evaluate/model/" + last).then((res) => {
-          setEvals(res.data);
+          if (res.data.trainingCurve) {
+            const labels = res.data.trainingCurve.x;
+            setGraphData({
+              labels,
+              datasets: [
+                {
+                  label: 'Training loss',
+                  data: res.data.trainingCurve.y,
+                  borderColor: '#9C2315',
+                  borderWidth: 1,
+                },
+              ],
+            });
+          }
+
+          let evalsList = [];
+          // The training evaluation is special, so deal with it separately
+          const resEvals = res.data.evals;
+          for (let i=0; i<resEvals.length; i++) {
+            if (resEvals[i].trainingEvaluation) {
+              setTrainEval(resEvals[i]);
+            } else {
+              evalsList.push(resEvals[i]);
+            }
+          }
+          setEvals(evalsList);
           setLoading(false);
         }).catch((error) => {
           console.log(error);
@@ -89,10 +165,39 @@ export default function ModelPage() {
         <Paper className='small-card' variant='outlined'>
           <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
           <Typography>Architecture: {model.modelArchitecture}</Typography>
+          <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
           <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></Typography>
         </Paper>
         <div className='medium-space' />
       </div>
+
+      {trainEval ?
+        <>
+        <Typography variant='h6'>
+          Training evaluation
+        </Typography>
+        <div>
+          <div className='tiny-space'/>
+          <Paper className='card' variant='outlined' className='vertical-box'>
+            {graphData ? <Line options={options} data={graphData} className='chart'/> : null}
+            <div className='horizontal-box'>
+              {trainEval.metrics.map(metric => (
+                <div className="metric-box" key={metric}>
+                  <Typography variant='h6'>
+                    {metric.charAt(0).toUpperCase() + metric.slice(1)}
+                  </Typography>
+                  <div className='small-space'/>
+                  <Typography>
+                    {parseFloat(trainEval.metricResults[metric] * 100).toFixed(2)} %
+                  </Typography>
+                </div>
+              ))}
+            </div>
+          </Paper>
+        </div>
+        <div className='medium-space' />
+        </>
+        : null }
 
       {evals.length > 0 ?
         <>

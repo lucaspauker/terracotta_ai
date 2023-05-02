@@ -24,11 +24,12 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import {FaTrash} from "react-icons/fa";
 import {BsFillCircleFill} from "react-icons/bs";
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import {HiOutlineRefresh} from "react-icons/hi";
 
 import styles from '@/styles/Data.module.css'
 
@@ -132,6 +133,9 @@ export default function Models() {
           Finetuned Models
         </Typography>
         <div>
+          <Button variant='text' color="secondary" onClick={refreshModels}>
+            <HiOutlineRefresh size={25} />
+          </Button>
           <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
             + Import model
           </Button>

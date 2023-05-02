@@ -68,6 +68,7 @@ export default async function handler(request, response) {
             modelId: model.fine_tuned_model,
             hyperParams: model.hyperParams
           },
+          timeCreated: Date.now(),
         });
 
       response.status(200).send();

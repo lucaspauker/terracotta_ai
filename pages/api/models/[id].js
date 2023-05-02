@@ -24,13 +24,29 @@ export default async function handler(request, response) {
     const m = await db
       .collection("models")
       .findOne({_id: new ObjectId(id)});
-
     if (!m) {
       response.status(400).json({error:"Model not found!"});
       return;
     }
 
-    response.status(200).json(m);
+    const dataset = await db
+      .collection("datasets")
+      .findOne({_id: m.datasetId});
+    console.log(dataset);
+
+    const modelWithDataset = {
+      _id: m._id,
+      name: m.name,
+      status: m.status,
+      modelArchitecture: m.modelArchitecture,
+      provider: m.provider,
+      providerData: m.providerData,
+      cost: m.cost,
+      datasetId: m.datasetId,
+      datasetName: dataset ? dataset.name : null,
+    };
+
+    response.status(200).json(modelWithDataset);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

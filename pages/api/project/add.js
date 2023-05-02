@@ -20,7 +20,6 @@ export default async function handler(request, response) {
 
     const name = request.body.name;
     const type = request.body.type;
-    const datetime = request.body.datetime;
 
     if (name === '') {
       response.status(400).json({ error: 'Must specify a name' })
@@ -54,7 +53,7 @@ export default async function handler(request, response) {
           name: name,
           type: type,
           userId: user_id,
-          timeCreated: datetime,
+          timeCreated: Date.now(),
         });
     console.log(d);
     response.status(200).json(d);
