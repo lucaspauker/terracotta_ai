@@ -14,7 +14,6 @@ export default async function handler(request, response) {
     const first_name = request.body.first_name;
     const last_name = request.body.last_name;
     const picture = request.body.picture;
-    const datetime = request.body.datetime;
     if (!email) {
       response.status(400).json({error: "Must provide email!"});
       return;
@@ -44,7 +43,7 @@ export default async function handler(request, response) {
           firstName: first_name,
           lastName: last_name,
           picture: picture,
-          timeCreated: datetime,
+          timeCreated: Date.now(),
         });
     console.log(u);
 

@@ -57,7 +57,6 @@ export default async function handler(request, response) {
     const description = inputData.fields.description;
     const project_id = inputData.fields.project_id;
     const filename = inputData.fields.filename;
-    const datetime = inputData.fields.datetime;
     const projectName = inputData.fields.projectName;
     const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
     const numValExamples = inputData.fields.numValExamples;
@@ -224,7 +223,6 @@ export default async function handler(request, response) {
           initialTrainFileName: initialTrainFileName,
           valFileName: valFileName,
           initialValFileName: initialValFileName,
-          timeCreated: datetime,
           numTrainWords: numTrainWords,
           numTrainCharacters: numTrainCharacters,
           numValWords: numValWords,
@@ -232,6 +230,7 @@ export default async function handler(request, response) {
           numTrainExamples: numTrainExamples,
           numValExamples: numValExamples,
           classes: classesSet,
+          timeCreated: Date.now(),
         });
     console.log(d);
 

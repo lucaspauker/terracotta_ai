@@ -191,6 +191,7 @@ export default async function handler(request, response) {
             finetuneId: finetuneResponse.data.id,
             hyperParams: hyperParams,
           },
+          timeCreated: Date.now(),
         });
     console.log(d);
 

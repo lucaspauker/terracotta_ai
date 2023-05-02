@@ -94,6 +94,7 @@ export default async function handler(request, response) {
           metrics: metrics,
           metricResults: {},
           trainingEvaluation: false,
+          timeCreated: Date.now(),
         });
     console.log(ret);
 
