@@ -2,13 +2,17 @@ import Head from 'next/head'
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Navbar from './navbar'
 import Header from './header'
-import { Lato, Inter } from 'next/font/google'
+import { Lato, Inter, Bebas_Neue } from 'next/font/google'
 
 const lato = Lato({
   subsets: ['latin'],
   weight: ['100', '300', '400', '700', '900'],
 })
 const inter = Inter({ subsets: ['latin'] })
+const bebas = Bebas_Neue({
+  subsets: ['latin'],
+  weight: ['400'],
+})
 
 const theme = createTheme({
   typography: {
@@ -21,6 +25,18 @@ const theme = createTheme({
     },
     secondary: {
       fontFamily: lato.style.fontFamily,
+    },
+    h1: {
+      fontFamily: bebas.style.fontFamily,
+    },
+    h2: {
+      fontFamily: bebas.style.fontFamily,
+    },
+    h3: {
+      fontFamily: bebas.style.fontFamily,
+    },
+    h4: {
+      fontFamily: bebas.style.fontFamily,
     },
   },
   palette: {
@@ -42,9 +58,6 @@ export function Layout({ children }) {
         <meta name="description" content="Terracotta LLM Management" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow&family=Bebas+Neue&family=Roboto+Condensed&display=swap" rel="stylesheet" />
       </Head>
       <Header />
       <Navbar />
@@ -60,10 +73,6 @@ export function SimpleLayout({ children }) {
         <title>Terracotta</title>
         <meta name="description" content="Sharpen LLM Management" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow&family=Bebas+Neue&family=Roboto+Condensed&display=swap" rel="stylesheet" />
       </Head>
       <main>{children}</main>
     </ThemeProvider>

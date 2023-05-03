@@ -218,19 +218,16 @@ a {
   text-align: center;
   font-size: 40px;
   letter-spacing: 1px;
-  font-family: 'Bebas Neue', monospace;
   margin-top: 8px;
 }
 
 .website-title {
   margin-left: 10px;
   letter-spacing: 1px;
-  font-family: 'Bebas Neue', monospace;
 }
 
 .splash-title {
   letter-spacing: 5px;
-  font-family: 'Bebas Neue', monospace;
   font-size: 120px;
 }
 
