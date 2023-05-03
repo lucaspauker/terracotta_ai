@@ -149,7 +149,6 @@ export default async function handler(request, response) {
     const uploadInfo = await db
       .collection("datasets")
       .findOne({"_id":dataset._id})
-      .project({"openaiData": 1})
 
     let finetuneRequest = null;
     if (project.type === "classification") {
