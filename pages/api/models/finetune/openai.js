@@ -93,25 +93,27 @@ export default async function handler(request, response) {
       .collection("datasets")
       .findOne({userId: userId, name: datasetName});
 
-    //TODO: add logic for cases where we're training without a validation file
+    // Only download from S3 and upload to openai once
 
-    const trainFileName = dataset.trainFileName
-    const valFileName = dataset.valFileName
+    if (!dataset.openaiData) {
 
-    const fileNames = [trainFileName, valFileName]
+      const trainFileName = dataset.trainFileName
+      const valFileName = dataset.valFileName
 
-    for(var i=0; i < 2; i++){
-      const fileName = fileNames[i]
-      const params = {
-        Bucket: S3_BUCKET,
-        Key: 'raw_data/' + fileName,
-      };
+      const fileNames = [trainFileName, valFileName]
 
-      await downloadFile(params, fileName)
-    }
+      for(var i=0; i < 2; i++){
+        const fileName = fileNames[i]
+        const params = {
+          Bucket: S3_BUCKET,
+          Key: 'raw_data/' + fileName,
+        };
 
-    // Use openai CLI tool to create train and validation jsonl files
-    execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
+        await downloadFile(params, fileName)
+      }
+
+      // Use openai CLI tool to create train and validation jsonl files
+      execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             response.status(400).json({ error: error.message });
@@ -123,24 +125,35 @@ export default async function handler(request, response) {
             return;
         }
         console.log(`stdout: ${stdout}`);
-    });
+      });
 
-    // Upload files to openAI, need to modify this later and save into a new collection
-    const preparedTrainFile = 'jsonl_data/' + path.parse(trainFileName).name + "_prepared.jsonl";
-    const preparedValFile = 'jsonl_data/' + path.parse(valFileName).name + "_prepared.jsonl";
+      // Upload files to openAI, need to modify this later and save into a new collection
+      const preparedTrainFile = 'jsonl_data/' + path.parse(trainFileName).name + "_prepared.jsonl";
+      const preparedValFile = 'jsonl_data/' + path.parse(valFileName).name + "_prepared.jsonl";
 
-    console.log(preparedTrainFile)
-    const trainResponse = await openai.createFile(
-      fs.createReadStream(preparedTrainFile),
-      "fine-tune"
-    );
-    console.log(trainResponse.data);
+      console.log(preparedTrainFile)
+      const trainResponse = await openai.createFile(
+        fs.createReadStream(preparedTrainFile),
+        "fine-tune"
+      );
+      console.log(trainResponse.data);
 
-    const valResponse = await openai.createFile(
-      fs.createReadStream(preparedValFile),
-      "fine-tune"
-    );
-    console.log(valResponse.data);
+      const valResponse = await openai.createFile(
+        fs.createReadStream(preparedValFile),
+        "fine-tune"
+      );
+      console.log(valResponse.data);
+
+      await db
+        .collection("datasets")
+        .updateOne({"_id":dataset._id},
+        {$set: { "openaiData" : {"trainFile": trainResponse.data.id, "valFile": valResponse.data.id}}})
+    }
+
+    const uploadInfo = await db
+      .collection("datasets")
+      .findOne({"_id":dataset._id})
+    
 
     let finetuneRequest = null;
     if (project.type === "classification") {
@@ -149,16 +162,16 @@ export default async function handler(request, response) {
         return;
       } else if (dataset.classes.length === 2) {  // Binary classification
         finetuneRequest = {
-          training_file: trainResponse.data.id,
-          validation_file: valResponse.data.id,
+          training_file: uploadInfo.openaiData.trainFile,
+          validation_file: uploadInfo.openaiData.valFile,
           compute_classification_metrics: true,
           classification_positive_class: " " + dataset.classes[0] + "$$$",
           model: modelArchitecture,
         };
       } else {  // Multiclass classification
         finetuneRequest = {
-          training_file: trainResponse.data.id,
-          validation_file: valResponse.data.id,
+          training_file: uploadInfo.openaiData.trainFile,
+          validation_file: uploadInfo.openaiData.valFile,
           compute_classification_metrics: true,
           classification_n_classes: dataset.classes.length,
           model: modelArchitecture,
@@ -166,8 +179,8 @@ export default async function handler(request, response) {
       }
     } else if (project.type === "generative") {
       finetuneRequest = {
-        training_file: trainResponse.data.id,
-        validation_file: valResponse.data.id,
+        training_file: uploadInfo.openaiData.trainFile,
+        validation_file: uploadInfo.openaiData.valFile,
         model: modelArchitecture,
       };
     } else {
