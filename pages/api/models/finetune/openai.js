@@ -60,6 +60,8 @@ export default async function handler(request, response) {
     for (const [key, value] of Object.entries(hyperParams)){
       if (hyperParams[key] === null) {
         delete hyperParams[key];
+      } else {
+        hyperParams[key] = Number(value);
       }
     }
 
@@ -112,15 +114,17 @@ export default async function handler(request, response) {
 
       // Use openai CLI tool to create train and validation jsonl files
       execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
-          if (error) {
-              console.log(`error: ${error.message}`);
-              return;
-          }
-          if (stderr) {
-              console.log(`stderr: ${stderr}`);
-              return;
-          }
-          console.log(`stdout: ${stdout}`);
+        if (error) {
+            console.log(`error: ${error.message}`);
+            response.status(400).json({ error: error.message });
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            response.status(400).json({ error: stderr });
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
       });
 
       // Upload files to openAI, need to modify this later and save into a new collection
@@ -149,11 +153,12 @@ export default async function handler(request, response) {
     const uploadInfo = await db
       .collection("datasets")
       .findOne({"_id":dataset._id})
+    
 
     let finetuneRequest = null;
     if (project.type === "classification") {
       if (dataset.classes.length <= 1) {
-        response.status(400).json({ error: 'Dataset classes not speficied' });
+        response.status(400).json({ error: 'Dataset classes not specified' });
         return;
       } else if (dataset.classes.length === 2) {  // Binary classification
         finetuneRequest = {
@@ -203,6 +208,7 @@ export default async function handler(request, response) {
             finetuneId: finetuneResponse.data.id,
             hyperParams: hyperParams,
           },
+          timeCreated: Date.now(),
         });
     console.log(d);
 

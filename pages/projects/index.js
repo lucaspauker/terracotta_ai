@@ -22,11 +22,13 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import List from '@mui/material/List';
+import ListSubheader from '@mui/material/ListSubheader';
+import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
-
-import styles from '@/styles/Data.module.css'
+import {timestampToDateTime, toTitleCase} from "../../components/utils";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -149,14 +151,15 @@ export default function Projects() {
               <Card variant="outlined" key={project._id}
                     className={project.name===currentProject ? 'project-card active-project-card' : 'project-card'}>
                 <CardContent>
-                  <Typography variant="h6" component="div">
+                  <Typography variant="h6">
                     {project.name}
                   </Typography>
-                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                    {project.type}
+                  <div className="tiny-space"/>
+                  <Typography>
+                    Created {timestampToDateTime(project.timeCreated)}
                   </Typography>
-                  <Typography variant="body2">
-                    {project._id}
+                  <Typography color="text.secondary">
+                    {toTitleCase(project.type)}
                   </Typography>
                 </CardContent>
                 <CardActions className='vertical-box'>
@@ -169,9 +172,28 @@ export default function Projects() {
             ))}
           </div>
           :
-          <Typography variant='body1'>
-            No projects found :(
-          </Typography>
+         <>
+          <Paper variant='outlined' className='info-box'>
+            <Typography variant='h4'>
+              What is a project?
+            </Typography>
+            <Typography variant='body1'>
+              To get started, create a project. Create a new project for every
+              kind of task you want to do.
+            </Typography>
+            <div className='medium-space'/>
+
+            <Typography variant='h4'>
+              Is there a tutorial?
+            </Typography>
+            <Typography variant='body1'>
+              Check out our tutorial here:&nbsp;
+              <Link href='' className='link'>
+                some tutorial
+              </Link>
+            </Typography>
+          </Paper>
+          </>
         }
       </div>
       <Dialog

@@ -399,3 +399,24 @@ a {
   align-items: flex-start;
 }
 
+.metric-box {
+  background-color: #dca894;
+  border-radius: 4px;
+  padding: 20px;
+  margin: 10px;
+  min-width: 150px;
+}
+
+.chart {
+  padding: 20px;
+  max-height: 400px;
+}
+
+.tooltip-line {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  background-color: black;
+  pointer-events: none;
+}
+

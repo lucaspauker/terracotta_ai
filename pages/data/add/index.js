@@ -141,7 +141,6 @@ export default function AddDataset() {
     formData.append('numValExamples', numValExamples);
     formData.append('inputColumn', inputColumn);
     formData.append('outputColumn', outputColumn);
-    formData.append('datetime', Date.now());
 
     axios.post("/api/data/add", formData, {
         headers: {

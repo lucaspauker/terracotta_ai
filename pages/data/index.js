@@ -209,7 +209,6 @@ export default function Data() {
           </Paper>
           :
           <>
-          <div className='medium-space'/>
           <Paper variant='outlined' className='info-box'>
             <Typography variant='h4'>
               What is a dataset?
