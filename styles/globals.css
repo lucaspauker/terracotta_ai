@@ -354,6 +354,12 @@ a {
   width: 100%;
 }
 
+.output-code-box .MuiOutlinedInput-root {
+  font-family: monospace;
+  color: white;
+  background-color: rgb(36,36,36);
+}
+
 .model-select-box {
   margin-bottom: 10px;
   justify-content: flex-start;
@@ -392,6 +398,11 @@ a {
   color: grey;
 }
 
+.trash-icon-large {
+  width: 16px;
+  color: grey;
+}
+
 .align-left {
   align-items: flex-start;
 }
@@ -417,3 +428,18 @@ a {
   pointer-events: none;
 }
 
+.copy {
+  color: black;
+}
+
+.create-field {
+  width: 100%;
+}
+
+.no-border {
+  border: none;
+}
+
+.no-margin {
+  margin: 0px;
+}
