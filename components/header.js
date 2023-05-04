@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router'
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import AppBar from '@mui/material/AppBar';
@@ -25,6 +26,7 @@ export default function Header() {
   const { data: session } = useSession()
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const router = useRouter();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -34,10 +36,10 @@ export default function Header() {
   };
 
   const handleSignOut = () => {
-    window.location.href = '/';
-    axios.post("http://localhost:3005/admin/logout", {
+    axios.post("http://localhost:3000/admin/logout", {
       }).then((res) => {
         console.log('Logging out status: ' + res.status);
+        router.push("/");
       }).catch((error) => {
         console.log(error);
       });

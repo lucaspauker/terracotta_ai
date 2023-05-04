@@ -29,12 +29,13 @@ export const authOptions = {
           datetime: Date.now(),
         }).then((res) => {
           console.log(res.status);
+          redirect("/projects");
         }).catch((error) => {
           console.log(error);
         });
       return true;
     }
-  }
+  },
 };
 
 export default NextAuth(authOptions);

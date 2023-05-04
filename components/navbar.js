@@ -23,6 +23,7 @@ import ConstructionIcon from '@mui/icons-material/Construction';
 import BrushIcon from '@mui/icons-material/Brush';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import RocketIcon from '@mui/icons-material/Rocket';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -42,15 +43,17 @@ export default function Navbar() {
   const isSelected = (p) => {
     if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
       return true;
-    } else if (router.pathname.startsWith('/data') && p === 'Data') {
+    } else if (router.pathname.startsWith('/data') && p === 'Datasets') {
       return true;
     } else if (router.pathname.startsWith('/models') && p === 'Models') {
       return true;
-    } else if (router.pathname.startsWith('/playground') && p === 'Playground') {
+    } else if (router.pathname.startsWith('/playground') && p === 'Test') {
       return true;
     } else if (router.pathname.startsWith('/projects') && p === 'Projects') {
       return true;
     } else if (router.pathname.startsWith('/settings') && p === 'API keys') {
+      return true;
+    } else if (router.pathname.startsWith('/deploy') && p === 'Deploy') {
       return true;
     } else {
       return false;
@@ -58,18 +61,20 @@ export default function Navbar() {
   }
 
   const getLink = (p) => {
-    if (p === 'Data') {
+    if (p === 'Datasets') {
       return '/data';
     } else if (p === 'Projects') {
       return '/projects';
     } else if (p === 'Models') {
       return '/models';
-    } else if (p === 'Playground') {
+    } else if (p === 'Test') {
       return '/playground';
     } else if (p === 'Evaluate') {
       return '/evaluate';
     } else if (p === 'API keys') {
       return '/settings';
+    } else if (p === 'Deploy') {
+      return '/deploy';
     } else {
       return '/';
     }
@@ -142,7 +147,7 @@ export default function Navbar() {
         <div className='tiny-space' />
         <Divider />
         <List>
-          {['Projects', 'Data', 'Models', 'Playground', 'Evaluate'].map((text, index) => (
+          {['Projects', 'Datasets', 'Models', 'Test', 'Evaluate', 'Deploy'].map((text, index) => (
             <ListItem
               key={text}
               disablePadding
@@ -153,10 +158,11 @@ export default function Navbar() {
             >
               <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
-                  {text === 'Data' ? <TextSnippetIcon /> :
+                  {text === 'Datasets' ? <TextSnippetIcon /> :
                    text === 'Models' ? <LightbulbIcon /> :
-                   text === 'Playground' ? <ConstructionIcon /> :
+                   text === 'Test' ? <ConstructionIcon /> :
                    text === 'Projects' ? <PaletteIcon /> :
+                   text === 'Deploy' ? <RocketIcon /> :
                    text === 'Evaluate' ? <FunctionsIcon /> : null}
                 </ListItemIcon>
                 <ListItemText primary={text} />

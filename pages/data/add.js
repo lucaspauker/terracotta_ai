@@ -221,7 +221,7 @@ export default function AddDataset() {
         <div className='horizontal-box'>
           <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
           <Typography variant='h4' className='page-main-header'>
-            Create Dataset
+            Import Dataset
           </Typography>
         </div>
       </div>
