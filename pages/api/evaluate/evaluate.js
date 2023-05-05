@@ -8,6 +8,8 @@ const csv = require('csvtojson');
 const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
 const REGION = process.env.NEXT_PUBLIC_S3_REGION;
 
+const { Configuration, OpenAIApi } = require("openai");
+
 AWS.config.update({
   accessKeyId: process.env.NEXT_PUBLIC_S3_ACCESS_KEY,
   secretAccessKey: process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY
@@ -48,6 +50,11 @@ export default async function handler(request, response) {
       .findOne({email: session.user.email});
     const userId = user._id;
 
+    const configuration = new Configuration({
+      apiKey: user.openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
+
     const project = await db
       .collection("projects")
       .findOne({userId: userId, name: projectName});
@@ -82,6 +89,30 @@ export default async function handler(request, response) {
     const stream = myBucket.getObject(params).createReadStream();
     const json_output = await csv().fromStream(stream);
 
+    let completions = []
+
+    const requests = json_output.map((row) => 
+      openai.createCompletion({
+        model: model.providerData.modelId,
+        prompt: row.prompt + "\n\n###\n\n",
+        max_tokens: 1,
+        temperature: 0,
+        stop: '$$$',
+      })
+    );
+    
+    const results = await Promise.all(requests);
+
+    results.map((completion) => {
+      completions.push(completion.data.choices[0].text);
+    });
+
+    
+
+    console.log(completions);
+    response.status(200).json();
+
+    /*
     const ret = await db
       .collection("evaluations")
       .insertOne({
@@ -97,8 +128,10 @@ export default async function handler(request, response) {
           timeCreated: Date.now(),
         });
     console.log(ret);
+    
 
     response.status(200).send(ret);
+    */
 
   } catch (e) {
     console.error(e);
