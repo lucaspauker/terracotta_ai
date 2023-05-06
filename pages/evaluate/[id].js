@@ -92,14 +92,14 @@ export default function ModelPage() {
           <div className='tiny-space'/>
           <Paper className='card' variant='outlined' className='vertical-box'>
             <div className='horizontal-box'>
-              {evaluations.metrics.map(metric => (
+              {evaluation.metrics.map(metric => (
                 <div className="metric-box" key={metric}>
                   <Typography variant='h6'>
                     {metric.charAt(0).toUpperCase() + metric.slice(1)}
                   </Typography>
                   <div className='small-space'/>
                   <Typography>
-                    {parseFloat(trainEval.metricResults[metric] * 100).toFixed(2)} %
+                    {parseFloat(evaluation.metricResults[metric] * 100).toFixed(2)} %
                   </Typography>
                 </div>
               ))}
