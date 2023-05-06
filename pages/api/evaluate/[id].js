@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
-
+import { MongoClient } from 'mongodb';
+const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(request, response) {
-  if (request.method !== 'POST') {
-    response.status(400).json({ error: 'Use POST request' })
+  if (request.method !== 'GET') {
+    response.status(400).json({ error: 'Use GET request' })
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -15,30 +15,17 @@ export default async function handler(request, response) {
     return;
   }
 
-  try {
-    const projectName = request.body.projectName;
+  const { id } = request.query;
 
+  try {
     await client.connect();
     const db = client.db("sharpen");
 
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
-    const userId = user._id;
-
-    const project = await db
-      .collection("projects")
-      .findOne({userId: userId, name: projectName});
-    if (!project) {
-      response.status(400).json({ error: 'Project not found' });
-      return;
-    }
-    const projectId = project._id;
-
-    const evals = await db.collection("evaluations")
+    // TODO: add datasetName and modelName to return
+    const evaluation = await db.collection("evaluations")
       .aggregate([
         {
-          $match: { userId: userId, projectId: projectId, trainingEvaluation: false}
+          $match: { _id: new ObjectId(id) }
         },
         {
           $lookup: {
@@ -54,13 +41,13 @@ export default async function handler(request, response) {
             localField: "modelId",
             foreignField: "_id",
             as: "model"
-          },
+          }
         },
         {
           $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
         },
         {
-          $unwind: "$model",
+          $unwind: { path: "$model", preserveNullAndEmptyArrays: true }
         },
         {
           $project: {
@@ -68,7 +55,6 @@ export default async function handler(request, response) {
             name: "$name",
             datasetId: "$dataset._id",
             datasetName: "$dataset.name",
-            modelId: "$model._id",
             modelName: "$model.name",
             description: "$description",
             metrics: "$metrics",
@@ -77,9 +63,14 @@ export default async function handler(request, response) {
           }
         }
       ]).toArray();
-    console.log(evals);
 
-    response.status(200).json(evals);
+    if (!evaluation) {
+      response.status(400).json({error:"Evaluation not found!"});
+      return;
+    }
+    
+    response.status(200).send(evaluation[0]);
+    return;
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })
