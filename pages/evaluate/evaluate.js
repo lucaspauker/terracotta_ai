@@ -99,7 +99,7 @@ export default function DoEvaluate() {
       }).then((res) => {
         console.log(res.data);
         setError();
-        router.push('/evaluate');
+        router.push('/evaluate/' + res.data);
       }).catch((err) => {
         console.log(err);
         setError(err.response.data.error);

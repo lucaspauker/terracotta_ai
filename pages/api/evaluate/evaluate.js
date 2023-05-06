@@ -40,8 +40,6 @@ export default async function handler(request, response) {
     const projectName = request.body.projectName;
     const metrics = request.body.metrics;
 
-    console.log(request.body);
-
     await mongoClient.connect();
     const db = mongoClient.db("sharpen");
 
@@ -104,15 +102,50 @@ export default async function handler(request, response) {
     const results = await Promise.all(requests);
 
     results.map((completion) => {
-      completions.push(completion.data.choices[0].text);
+      completions.push(completion.data.choices[0].text.trim());
     });
 
+    let metricResults = {}
+    const total = completions.length;
+    let tp = 0, fp = 0, tn = 0, fn = 0;
+    const positiveClass = dataset.classes[0];
     
+    for (let i = 0; i < total; i++) {
+      const prediction = completions[i];
+      const actual = json_output[i].completion;
+      if (actual === positiveClass) {
+        if (prediction === positiveClass) {
+          tp ++;
+        } else {
+          fn ++;
+        }
+      } else {
+        if (prediction === positiveClass) {
+          fp ++;
+        } else {
+          tn ++;
+        }
+      }
+    }
 
-    console.log(completions);
-    response.status(200).json();
+    for (let i = 0; i < metrics.length; i++) {
+      if (metrics[i] === "accuracy") {
+        metricResults["accuracy"] = (tp + tn)/(total);
+      }
+      if (metrics[i] === "precision") {
+        metricResults["precision"] = (tp)/(tp + fp);
+      }
+      if (metrics[i] === "recall") {
+        metricResults["recall"] = (tp)/(tp + fn);
+      }
+      if (metrics[i] === "f1") {
+        const precision = (tp)/(tp + fp);
+        const recall = (tp)/(tp + fn);
+        metricResults["f1"] = (2*precision*recall)/(precision + recall);
+      }
+    }
 
-    /*
+    
     const ret = await db
       .collection("evaluations")
       .insertOne({
@@ -123,15 +156,14 @@ export default async function handler(request, response) {
           modelId: model._id,
           userId: user._id,
           metrics: metrics,
-          metricResults: {},
+          metricResults: metricResults,
           trainingEvaluation: false,
           timeCreated: Date.now(),
         });
-    console.log(ret);
-    
 
-    response.status(200).send(ret);
-    */
+    console.log(ret);
+
+    response.status(200).send(ret._id);
 
   } catch (e) {
     console.error(e);
