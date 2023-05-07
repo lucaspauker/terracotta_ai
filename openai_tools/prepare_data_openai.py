@@ -1,4 +1,3 @@
-import pandas as pd
 import fire
 from typing import Any, Callable, NamedTuple, Optional
 from openai_validators import (
@@ -9,8 +8,9 @@ from openai_validators import (
     write_out_file,
 )
 
-def prepare_data(train_fname, val_fname, task='classification'):
+def prepare_data(train_fname, val_fname=None, task='classification'):
     for fname in [train_fname, val_fname]:
+        if (not fname): continue
         df, remediation = read_any_format(fname)
         apply_necessary_remediation(None, remediation)
         validators = get_validators(task)

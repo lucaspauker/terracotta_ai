@@ -19622,3 +19622,12 @@ pre[class*="language-"] {
   }
 }
 
+.fade-in-stationary {
+  opacity: 0; /* Set initial opacity to 0 */
+  animation: fade-in-stationary 1.5s forwards; /* Use CSS animation to transition opacity */
+}
+
+@keyframes fade-in-stationary {
+  from { opacity: 0; } /* Set starting opacity to 0 */
+  to { opacity: 1; } /* Set ending opacity to 1 */
+}
