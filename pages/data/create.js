@@ -90,7 +90,9 @@ export default function CreateDataset() {
     const csvRows = [];
     csvRows.push(['Input', 'Output']); // Add header row
     rows.forEach((row) => {
-      csvRows.push([row.input, row.output]);
+      const input = row.input.replace(/"/g, '""'); // Escape double quotes
+      const output = row.output.replace(/"/g, '""'); // Escape double quotes
+      csvRows.push([`"${input}"`, `"${output}"`]); // Enclose fields in double quotes
     });
     const csvData = csvRows.map((row) => row.join(',')).join('\n'); // Convert rows to CSV format
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' }); // Create a blob containing the CSV data
