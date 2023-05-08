@@ -45,6 +45,7 @@ export default function Train() {
   const [modelArchitecture, setModelArchitecture] = useState('');
   const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
+  const [description, setDescription] = useState('');
   const [datasets, setDatasets] = useState([]);
   const [modelName, setModelName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
@@ -69,6 +70,7 @@ export default function Train() {
         provider: provider,
         modelArchitecture: modelArchitecture,
         modelName: modelName,
+        description: description,
         dataset: dataset,
         projectName: projectName,
         hyperParams: hyperParams,
@@ -137,7 +139,7 @@ export default function Train() {
 
   const isNextDisabled = (i) => {
     if (i === 0) {
-      return (modelName === '' || provider === '' || modelArchitecture === '' || dataset === '');
+      return (provider === '' || modelArchitecture === '' || dataset === '');
     }
     return false;
   }
@@ -174,15 +176,6 @@ export default function Train() {
             <Typography variant='h6'>
               Model and dataset
             </Typography>
-            <div className='small-space' />
-            <TextField
-              label="Model name"
-              variant="outlined"
-              className='text-label center'
-              value={modelName}
-              onChange={(e) => setModelName(e.target.value)}
-              required
-            />
             <div className='medium-space' />
               <Typography variant='body1'>
                 Base model
@@ -306,8 +299,26 @@ export default function Train() {
               Review and launch
             </Typography>
             <div className='small-space' />
+            <TextField
+              label="Model name"
+              variant="outlined"
+              className='text-label center'
+              value={modelName}
+              onChange={(e) => setModelName(e.target.value)}
+              required
+            />
+            <div className='small-space' />
+            <TextField
+              label="Description"
+              variant="outlined"
+              className='text-label'
+              multiline
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <div className='small-space' />
             <Box sx={{textAlign: 'left'}}>
-              <Typography>Name: {modelName}</Typography>
               <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
               <Typography>Architecture: {modelArchitecture}</Typography>
               <Typography>Dataset: {dataset}</Typography>

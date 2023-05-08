@@ -7,6 +7,7 @@ const client = new MongoClient(process.env.MONGODB_URI);
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
     response.status(400).json({ error: 'Use GET request' })
+    return;
   }
 
   const session = await getServerSession(request, response, authOptions);

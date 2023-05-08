@@ -19,6 +19,23 @@ const myBucket = new AWS.S3({
   region: REGION,
 });
 
+const { spawn } = require('child_process');
+
+function spawnMetricScript(completions, json_output) {
+  const p = spawn('python', ["scripts/evaluate/nlp_metrics.py", JSON.stringify(completions), JSON.stringify(json_output)]);
+  return new Promise((resolve) => {
+    let data = "";
+    p.stdout.on("data", (x) => {
+      data = JSON.parse(x);
+    });
+    p.stderr.on("data", (x) => {
+      process.stderr.write(x.toString());
+    });
+    p.on("exit", (code) => {
+      resolve(data);
+    });
+  });
+}
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -79,7 +96,12 @@ export default async function handler(request, response) {
     }
 
     // Next, call inference for every example
-    const fileName = dataset.valFileName;
+    let fileName;
+    if (dataset.valFileName) {
+      fileName = dataset.valFileName;
+    } else {
+      fileName = dataset.trainFileName;
+    }
     const params = {
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + fileName,
@@ -87,18 +109,18 @@ export default async function handler(request, response) {
     const stream = myBucket.getObject(params).createReadStream();
     const json_output = await csv().fromStream(stream);
 
-    let completions = []
+    let completions = [];
 
-    const requests = json_output.map((row) => 
+    const requests = json_output.map((row) =>
       openai.createCompletion({
         model: model.providerData.modelId,
         prompt: row.prompt + "\n\n###\n\n",
-        max_tokens: 1,
+        max_tokens: project.type === "classification" ? 1 : 100,
         temperature: 0,
         stop: '$$$',
       })
     );
-    
+
     const results = await Promise.all(requests);
 
     results.map((completion) => {
@@ -106,46 +128,61 @@ export default async function handler(request, response) {
     });
 
     let metricResults = {}
-    const total = completions.length;
-    let tp = 0, fp = 0, tn = 0, fn = 0;
-    const positiveClass = dataset.classes[0];
-    
-    for (let i = 0; i < total; i++) {
-      const prediction = completions[i];
-      const actual = json_output[i].completion;
-      if (actual === positiveClass) {
-        if (prediction === positiveClass) {
-          tp ++;
+    if (project.type === "classification") {
+      const total = completions.length;
+      let tp = 0, fp = 0, tn = 0, fn = 0;
+      const positiveClass = dataset.classes[0];
+
+      for (let i = 0; i < total; i++) {
+        const prediction = completions[i];
+        const actual = json_output[i].completion;
+        if (actual === positiveClass) {
+          if (prediction === positiveClass) {
+            tp ++;
+          } else {
+            fn ++;
+          }
         } else {
-          fn ++;
-        }
-      } else {
-        if (prediction === positiveClass) {
-          fp ++;
-        } else {
-          tn ++;
+          if (prediction === positiveClass) {
+            fp ++;
+          } else {
+            tn ++;
+          }
         }
       }
+
+      for (let i = 0; i < metrics.length; i++) {
+        if (metrics[i] === "accuracy") {
+          metricResults["accuracy"] = (tp + tn)/(total);
+        }
+        if (metrics[i] === "precision") {
+          metricResults["precision"] = (tp)/(tp + fp);
+        }
+        if (metrics[i] === "recall") {
+          metricResults["recall"] = (tp)/(tp + fn);
+        }
+        if (metrics[i] === "f1") {
+          const precision = (tp)/(tp + fp);
+          const recall = (tp)/(tp + fn);
+          metricResults["f1"] = (2*precision*recall)/(precision + recall);
+        }
+      }
+    } else if (project.type === "generative") {
+      const tempMetricResults = await spawnMetricScript(completions, json_output);
+      for (let i = 0; i < metrics.length; i++) {
+        if (metrics[i] in tempMetricResults) {
+          metricResults[metrics[i]] = tempMetricResults[metrics[i]];
+        } else {
+          response.status(400).json({ error: 'Metric type not supported' });
+          return;
+        }
+      }
+    } else {
+      response.status(400).json({ error: 'Project type not supported' });
+      return;
     }
 
-    for (let i = 0; i < metrics.length; i++) {
-      if (metrics[i] === "accuracy") {
-        metricResults["accuracy"] = (tp + tn)/(total);
-      }
-      if (metrics[i] === "precision") {
-        metricResults["precision"] = (tp)/(tp + fp);
-      }
-      if (metrics[i] === "recall") {
-        metricResults["recall"] = (tp)/(tp + fn);
-      }
-      if (metrics[i] === "f1") {
-        const precision = (tp)/(tp + fp);
-        const recall = (tp)/(tp + fn);
-        metricResults["f1"] = (2*precision*recall)/(precision + recall);
-      }
-    }
 
-    
     const ret = await db
       .collection("evaluations")
       .insertOne({
