@@ -24,7 +24,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import styles from '@/styles/Data.module.css'
+import {toTitleCase} from '/components/utils';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
 
@@ -202,151 +202,157 @@ export default function DoEvaluate() {
       </div>
       <div className='small-space' />
 
-      <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps = {};
-          const labelProps = {};
-          if (isStepOptional(index)) {
-            labelProps.optional = (
-              <Typography variant="caption">Optional</Typography>
+      <div className='main-content'>
+        <Stepper activeStep={activeStep}>
+          {steps.map((label, index) => {
+            const stepProps = {};
+            const labelProps = {};
+            if (isStepOptional(index)) {
+              labelProps.optional = (
+                <Typography variant="caption">Optional</Typography>
+              );
+            }
+            if (isStepSkipped(index)) {
+              stepProps.completed = false;
+            }
+            return (
+              <Step key={label} {...stepProps}>
+                <StepLabel {...labelProps}>{label}</StepLabel>
+              </Step>
             );
-          }
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
-      </Stepper>
-      <div className='small-space' />
+          })}
+        </Stepper>
+        <div className='small-space' />
 
-      <Paper className='card vertical-box' variant='outlined'>
-        {activeStep === 0 ?
-          <>
-            <Typography variant='h6'>
-              Specify dataset and model
-            </Typography>
-            <div className='small-space' />
-            <div className='vertical-box'>
-              <FormControl>
-                <InputLabel id="model-label">Model</InputLabel>
-                <Select
-                  labelId="model-label"
-                  className="wide-select"
-                  label="Model"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                >
-                  {models.map((m) => (
-                    <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <div className='small-space' />
-              <FormControl>
-                <InputLabel id="dataset-label">Dataset</InputLabel>
-                <Select
-                  labelId="dataset-label"
-                  className="wide-select"
-                  label="Dataset"
-                  value={dataset}
-                  onChange={(e) => setDataset(e.target.value)}
-                >
-                  {datasets.map((d) => (
-                    <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Typography variant='body2' color='textSecondary' sx={{width: '100%'}}>
-                Will use validation data from dataset if present. Else, will use
-                the entire dataset.
+        <Paper className='card vertical-box' variant='outlined'>
+          {activeStep === 0 ?
+            <>
+              <Typography variant='h6'>
+                Specify dataset and model
               </Typography>
-            </div>
-          </>
-          : null}
+              <div className='medium-space' />
+              <div className='vertical-box'>
+                <FormControl>
+                  <InputLabel id="model-label">Model</InputLabel>
+                  <Select
+                    labelId="model-label"
+                    className="wide-select"
+                    label="Model"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                  >
+                    {models.map((m) => (
+                      <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <div className='small-space' />
+                <FormControl>
+                  <InputLabel id="dataset-label">Dataset</InputLabel>
+                  <Select
+                    labelId="dataset-label"
+                    className="wide-select"
+                    label="Dataset"
+                    value={dataset}
+                    onChange={(e) => setDataset(e.target.value)}
+                  >
+                    {datasets.map((d) => (
+                      <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Typography variant='body2' color='textSecondary' sx={{width: '100%'}}>
+                  Will use validation data from dataset if present. Else, will use
+                  the entire dataset.
+                </Typography>
+              </div>
+            </>
+            : null}
 
-        {activeStep === 1 ?
-          <>
-            <Typography variant='h6'>
-              Metrics
-            </Typography>
-            <div className='small-space' />
-            <div className='vertical-box align-left'>
-              {metrics.map(m => (
-                <div key={m} className='horizontal-box'>
-                  <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
-                  <Typography>{m.charAt(0).toUpperCase() + m.slice(1)}</Typography>
-                </div>
-              ))}
-            </div>
-          </>
-          : null}
+          {activeStep === 1 ?
+            <>
+              <Typography variant='h6'>
+                Metrics
+              </Typography>
+              <div className='medium-space' />
+              <div className='vertical-box align-left'>
+                {metrics.map(m => (
+                  <div key={m} className='horizontal-box'>
+                    <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
+                    <Typography>{m === 'bleu' ?
+                      'BLEU' : m === 'rougel' ?
+                      'RougeL' :
+                      toTitleCase(m)}
+                    </Typography>
+                  </div>
+                ))}
+              </div>
+            </>
+            : null}
 
-        {activeStep === 2 ?
-          <>
-            <Typography variant='h6'>
-              Review your evaluation
-            </Typography>
-            <div className='small-space' />
-            <TextField
-              label="Evaluation name"
-              variant="outlined"
-              className='text-label center'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <div className='small-space' />
-            <TextField
-              label="Description"
-              variant="outlined"
-              className='text-label'
-              multiline
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <div className='small-space' />
-            <Box sx={{textAlign: 'left'}}>
-              <Typography>Dataset: {dataset}</Typography>
-              <Typography>Model: {model}</Typography>
-              <Typography>Metrics: {metrics.map((m, i) =>
-                                      (isChecked(m) ? m + ' ' : null)
-                                    )}</Typography>
-            </Box>
-            <div className='small-space' />
-            {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-            <div className='vertical-box'>
-              <Button variant='contained' color="primary" onClick={handleRunEvaluation}>Run evaluation</Button>
-            </div>
-          </>
-          : null}
+          {activeStep === 2 ?
+            <>
+              <Typography variant='h6'>
+                Review your evaluation
+              </Typography>
+              <div className='medium-space' />
+              <TextField
+                label="Evaluation name"
+                variant="outlined"
+                className='text-label center'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <div className='small-space' />
+              <TextField
+                label="Description"
+                variant="outlined"
+                className='text-label'
+                multiline
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <div className='medium-space' />
+              <Box sx={{textAlign: 'left'}}>
+                <Typography>Dataset: {dataset}</Typography>
+                <Typography>Model: {model}</Typography>
+                <Typography>Metrics: {metrics.map((m, i) =>
+                                        (isChecked(m) ? m + ' ' : null)
+                                      )}</Typography>
+              </Box>
+              <div className='medium-space' />
+              {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+              <div className='vertical-box'>
+                <Button size='large' variant='contained' color="primary" onClick={handleRunEvaluation}>Run evaluation</Button>
+              </div>
+            </>
+            : null}
 
-        <div className='medium-space' />
-        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-          <Button
-            color="inherit"
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            Back
-          </Button>
-          <Box sx={{ flex: '1 1 auto' }} />
-          {isStepOptional(activeStep) && (
-            <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-              Skip
+          <div className='medium-space' />
+          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+            <Button
+              color="inherit"
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              Back
             </Button>
-          )}
+            <Box sx={{ flex: '1 1 auto' }} />
+            {isStepOptional(activeStep) && (
+              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
+                Skip
+              </Button>
+            )}
 
-          {activeStep === steps.length - 1 ? null :
-            <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
-          }
-        </Box>
-      </Paper>
+            {activeStep === steps.length - 1 ? null :
+              <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
+            }
+          </Box>
+        </Paper>
+      </div>
     </div>
   )
 }

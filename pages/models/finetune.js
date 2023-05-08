@@ -156,197 +156,199 @@ export default function Train() {
       </div>
       <div className='small-space' />
 
-      <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps = {};
-          const labelProps = {};
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
-      </Stepper>
-      <div className='small-space' />
+      <div className='main-content'>
+        <Stepper activeStep={activeStep}>
+          {steps.map((label, index) => {
+            const stepProps = {};
+            const labelProps = {};
+            return (
+              <Step key={label} {...stepProps}>
+                <StepLabel {...labelProps}>{label}</StepLabel>
+              </Step>
+            );
+          })}
+        </Stepper>
+        <div className='small-space' />
 
-      <Paper className='card vertical-box' variant='outlined'>
+        <Paper className='card vertical-box' variant='outlined'>
 
-        {activeStep === 0 ?
-          <>
-            <Typography variant='h6'>
-              Model and dataset
-            </Typography>
-            <div className='medium-space' />
-              <Typography variant='body1'>
-                Base model
+          {activeStep === 0 ?
+            <>
+              <Typography variant='h6'>
+                Model and dataset
               </Typography>
-            <div className='tiny-space' />
-            <FormControl>
-              <InputLabel id="provider-label">Provider</InputLabel>
-              <Select
-                labelId="provider-label"
-                className="wide-select"
-                label="Provider"
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                required
-              >
-                <MenuItem value={'openai'}>OpenAI</MenuItem>
-                <MenuItem value={'cohere'}>Cohere</MenuItem>
-              </Select>
-              </FormControl>
-              <div className='small-space' />
-              <FormControl className='button-margin' disabled={provider !== 'openai'}>
-                <InputLabel id="model-label">Model architecture</InputLabel>
+              <div className='medium-space' />
+                <Typography variant='body1'>
+                  Base model
+                </Typography>
+              <div className='tiny-space' />
+              <FormControl>
+                <InputLabel id="provider-label">Provider</InputLabel>
                 <Select
-                  labelId="model-label"
+                  labelId="provider-label"
                   className="wide-select"
-                  value={modelArchitecture}
-                  label="Model architecture"
-                  onChange={(e) => setModelArchitecture(e.target.value)}
+                  label="Provider"
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value)}
                   required
                 >
-                  <MenuItem value={'ada'}>Ada</MenuItem>
-                  <MenuItem value={'babbage'}>Babbage</MenuItem>
-                  <MenuItem value={'curie'}>Curie</MenuItem>
-                  <MenuItem value={'davinci'}>Davinci</MenuItem>
+                  <MenuItem value={'openai'}>OpenAI</MenuItem>
+                  <MenuItem value={'cohere'}>Cohere</MenuItem>
                 </Select>
-              </FormControl>
-              <div className='medium-space' />
+                </FormControl>
+                <div className='small-space' />
+                <FormControl className='button-margin' disabled={provider !== 'openai'}>
+                  <InputLabel id="model-label">Model architecture</InputLabel>
+                  <Select
+                    labelId="model-label"
+                    className="wide-select"
+                    value={modelArchitecture}
+                    label="Model architecture"
+                    onChange={(e) => setModelArchitecture(e.target.value)}
+                    required
+                  >
+                    <MenuItem value={'ada'}>Ada</MenuItem>
+                    <MenuItem value={'babbage'}>Babbage</MenuItem>
+                    <MenuItem value={'curie'}>Curie</MenuItem>
+                    <MenuItem value={'davinci'}>Davinci</MenuItem>
+                  </Select>
+                </FormControl>
+                <div className='medium-space' />
 
-              <Typography variant='body1'>
-                Dataset
+                <Typography variant='body1'>
+                  Dataset
+                </Typography>
+                <div className='tiny-space' />
+                  {loading ?
+                    <CircularProgress /> :
+                      <FormControl>
+                        <InputLabel id="dataset-label">Dataset</InputLabel>
+                        <Select
+                          labelId="dataset-label"
+                          className="wide-select"
+                          value={dataset}
+                          label="Dataset"
+                          onChange={(e) => setDataset(e.target.value)}
+                          required
+                        >
+                          {datasets.map((d, i) => (
+                            <MenuItem value={d.name} key={i}>{d.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                  }
+            </>
+            : null}
+
+          {activeStep === 1 ?
+            <>
+              <Typography variant='h6'>
+                Hyperparameters
               </Typography>
-              <div className='tiny-space' />
-                {loading ?
-                  <CircularProgress /> :
-                    <FormControl>
-                      <InputLabel id="dataset-label">Dataset</InputLabel>
-                      <Select
-                        labelId="dataset-label"
-                        className="wide-select"
-                        value={dataset}
-                        label="Dataset"
-                        onChange={(e) => setDataset(e.target.value)}
-                        required
-                      >
-                        {datasets.map((d, i) => (
-                          <MenuItem value={d.name} key={i}>{d.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                }
-          </>
-          : null}
+              <div className='small-space' />
+              <TextField
+                label="Number of epochs"
+                variant="outlined"
+                className='text-label center'
+                value={hyperParams.n_epochs}
+                onChange={(e) => setHyperParams({...hyperParams, n_epochs: e.target.value})}
+              />
+              <Typography variant='body2' className='form-label'>
+                The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
+              </Typography>
+              <div className='medium-space' />
+              <TextField
+                label="Batch size"
+                variant="outlined"
+                className='text-label center'
+                value={hyperParams.batch_size ? hyperParams.batch_size : ''}
+                onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
+              />
+              <Typography variant='body2' className='form-label'>
+                The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
+              </Typography>
+              <div className='medium-space' />
+              <TextField
+                label="Learning rate multiplier"
+                variant="outlined"
+                className='text-label center'
+                value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
+                onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
+              />
+              <Typography variant='body2' className='form-label'>
+                By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
+              </Typography>
+              <div className='medium-space' />
+              <TextField
+                label="Prompt loss weight"
+                variant="outlined"
+                className='text-label center'
+                value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
+                onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
+              />
+              <Typography variant='body2' className='form-label'>
+              This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short. 
+              If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
+              </Typography>
 
-        {activeStep === 1 ?
-          <>
-            <Typography variant='h6'>
-              Hyperparameters
-            </Typography>
-            <div className='small-space' />
-            <TextField
-              label="Number of epochs"
-              variant="outlined"
-              className='text-label center'
-              value={hyperParams.n_epochs}
-              onChange={(e) => setHyperParams({...hyperParams, n_epochs: e.target.value})}
-            />
-            <Typography variant='body2' className='form-label'>
-              The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
-            </Typography>
-            <div className='medium-space' />
-            <TextField
-              label="Batch size"
-              variant="outlined"
-              className='text-label center'
-              value={hyperParams.batch_size ? hyperParams.batch_size : ''}
-              onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
-            />
-            <Typography variant='body2' className='form-label'>
-              The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
-            </Typography>
-            <div className='medium-space' />
-            <TextField
-              label="Learning rate multiplier"
-              variant="outlined"
-              className='text-label center'
-              value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
-              onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
-            />
-            <Typography variant='body2' className='form-label'>
-              By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
-            </Typography>
-            <div className='medium-space' />
-            <TextField
-              label="Prompt loss weight"
-              variant="outlined"
-              className='text-label center'
-              value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
-              onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
-            />
-            <Typography variant='body2' className='form-label'>
-            This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short. 
-            If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
-            </Typography>
+            </>
+            : null}
 
-          </>
-          : null}
+          {activeStep === 2 ?
+            <>
+              <Typography variant='h6'>
+                Review and launch
+              </Typography>
+              <div className='medium-space' />
+              <TextField
+                label="Model name"
+                variant="outlined"
+                className='text-label center'
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+                required
+              />
+              <div className='small-space' />
+              <TextField
+                label="Description"
+                variant="outlined"
+                className='text-label'
+                multiline
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <div className='medium-space' />
+              <Box sx={{textAlign: 'left'}}>
+                <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
+                <Typography>Architecture: {modelArchitecture}</Typography>
+                <Typography>Dataset: {dataset}</Typography>
+                <Typography>Estimated cost: $ {estimatedCost}</Typography>
+              </Box>
+              <div className='medium-space' />
+              {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+              <Button size='large' variant='contained' color="primary" onClick={handleFinetune}>Finetune</Button>
+            </>
+            : null}
 
-        {activeStep === 2 ?
-          <>
-            <Typography variant='h6'>
-              Review and launch
-            </Typography>
-            <div className='small-space' />
-            <TextField
-              label="Model name"
-              variant="outlined"
-              className='text-label center'
-              value={modelName}
-              onChange={(e) => setModelName(e.target.value)}
-              required
-            />
-            <div className='small-space' />
-            <TextField
-              label="Description"
-              variant="outlined"
-              className='text-label'
-              multiline
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <div className='small-space' />
-            <Box sx={{textAlign: 'left'}}>
-              <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
-              <Typography>Architecture: {modelArchitecture}</Typography>
-              <Typography>Dataset: {dataset}</Typography>
-              <Typography>Estimated cost: $ {estimatedCost}</Typography>
-            </Box>
-            <div className='medium-space' />
-            {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-            <Button variant='contained' color="primary" onClick={handleFinetune}>Finetune</Button>
-          </>
-          : null}
+          <div className='medium-space' />
+          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+            <Button
+              color="inherit"
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              Back
+            </Button>
+            <Box sx={{ flex: '1 1 auto' }} />
 
-        <div className='medium-space' />
-        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-          <Button
-            color="inherit"
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            Back
-          </Button>
-          <Box sx={{ flex: '1 1 auto' }} />
-
-          {activeStep === steps.length - 1 ? null :
-            <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
-          }
-        </Box>
-      </Paper>
+            {activeStep === steps.length - 1 ? null :
+              <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
+            }
+          </Box>
+        </Paper>
+      </div>
     </div>
   )
 }

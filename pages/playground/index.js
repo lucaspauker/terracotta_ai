@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { styled } from '@mui/material/styles';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -14,9 +16,12 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import axios from 'axios';
+import { BiCopy, BiInfoCircle } from 'react-icons/bi';
+import { AiOutlineCloseCircle } from 'react-icons/ai';
 
-import styles from '@/styles/Data.module.css'
+import {CustomTooltip} from '/components/CustomTooltip.js';
 
 const providers = ['openai', 'cohere'];
 const baseModelNamesDict = {
@@ -42,6 +47,7 @@ export default function Playground() {
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const [project, setProject] = useState('');
   const [checked, setChecked] = useState({'text-ada-001': true});
+  const [loadingDict, setLoadingDict] = useState({'text-ada-001': false});
   const [baseModelsList, setBaseModelsList] = useState([]);
   const [temperature, setTemperature] = useState(0.75);
   const [maxTokens, setMaxTokens] = useState(100);
@@ -49,6 +55,7 @@ export default function Playground() {
 
   const storeOutput = (id, text) => {
     setOutput({...output, [id]: text});
+    setLoadingDict(loadingDict => ({...loadingDict, [id]: false}));
   }
 
   const submit = () => {
@@ -57,6 +64,21 @@ export default function Playground() {
       "temperature": temperature,
       "maxTokens": maxTokens,
     }
+
+    let x = Object.assign({}, loadingDict);;
+    for (let i=0; i<baseModelsList.length; i++) {
+      let m = baseModelsList[i];
+      if (checked[m.completionName]) {
+        x[m.completionName] = true;
+      }
+    }
+    for (let i=0; i<finetunedModels.length; i++) {
+      let m = finetunedModels[i];
+      if (checked[m._id]) {
+        x[m._id] = true;
+      }
+    }
+    setLoadingDict(x);
     for (let i=0; i<baseModelsList.length; i++) {
       let m = baseModelsList[i];
       if (checked[m.completionName]) {
@@ -109,6 +131,10 @@ export default function Playground() {
     }
     setOutput(updatedOutput);
     promptRef.current.value = '';
+  }
+
+  const copyText = (t) => {
+    navigator.clipboard.writeText(t);
   }
 
   const groupByProviders = (models) => {
@@ -226,39 +252,73 @@ export default function Playground() {
             {baseModelsList.map((m, i) => (
               checked[m.completionName] ?
                 <div key={m._id} className="output-box">
-                  <Typography variant='body1'>
-                    {providerNameDict[m.provider]}&nbsp;
-                    {baseModelNamesDict[m.completionName]}
-                  </Typography>
-                  <div className='tiny-space' />
-                  <TextField
-                    multiline
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                    rows={8}
-                    className="output-text-box white"
-                    value={output[m.completionName]}
-                  />
+                  <div className='horizontal-box full-width'>
+                    <Typography variant='body1'>
+                      {providerNameDict[m.provider]}&nbsp;
+                      {baseModelNamesDict[m.completionName]}
+                    </Typography>
+                    <div className='horizontal-box'>
+                      <IconButton className='horizontal-box copy' onClick={() => copyText(output[m.completionName])}>
+                        <BiCopy size={20} />
+                      </IconButton>
+                      <IconButton className='copy' onClick={() => toggleCheckedById(m.completionName)}>
+                        <AiOutlineCloseCircle size={20} />
+                      </IconButton>
+                    </div>
+                  </div>
+                  {loadingDict[m.completionName] ?
+                    <TextField
+                      multiline
+                      InputProps={{ readOnly: true, }}
+                      rows={10}
+                      className="output-text-box white"
+                      value={'Loading...'}
+                    />
+                    :
+                    <TextField
+                      multiline
+                      InputProps={{ readOnly: true, }}
+                      rows={10}
+                      className="output-text-box white"
+                      value={output[m.completionName]}
+                    />
+                  }
                 </div>
               : null
             ))}
             {finetunedModels.map((m, i) => (
               checked[m._id] ?
                 <div key={m._id} className="output-box">
-                  <Typography variant='body1'>
-                    {m.name}
-                  </Typography>
-                  <div className='tiny-space' />
-                  <TextField
-                    multiline
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                    rows={8}
-                    className="output-text-box white"
-                    value={output[m._id]}
-                  />
+                  <div className='horizontal-box full-width'>
+                    <Typography variant='body1'>
+                      {m.name}
+                    </Typography>
+                    <div className='horizontal-box'>
+                      <IconButton className='horizontal-box copy' onClick={() => copyText(output[m._id])}>
+                        <BiCopy size={20} />
+                      </IconButton>
+                      <IconButton className='copy' onClick={() => toggleCheckedById(m._id)}>
+                        <AiOutlineCloseCircle size={20} />
+                      </IconButton>
+                    </div>
+                  </div>
+                  {loadingDict[m._id] ?
+                    <TextField
+                      multiline
+                      InputProps={{ readOnly: true, }}
+                      rows={10}
+                      className="output-text-box white"
+                      value={'Loading...'}
+                    />
+                    :
+                    <TextField
+                      multiline
+                      InputProps={{ readOnly: true, }}
+                      rows={10}
+                      className="output-text-box white"
+                      value={output[m._id]}
+                    />
+                  }
                 </div>
               : null
             ))}
@@ -270,7 +330,14 @@ export default function Playground() {
           <div className='tiny-space'/>
           <Paper variant='outlined' className='card horizontal-box'>
             <div className='vertical-box full-width'>
-              <Typography>Temperature: {temperature.toFixed(2)}</Typography>
+              <div className='horizontal-box'>
+                <Typography>Temperature: {temperature.toFixed(2)}</Typography>
+                <CustomTooltip title="💡 Higher temperature means more random output while lower temperature means more accurate output" className='tooltip'>
+                  <IconButton disableRipple={true}>
+                    <BiInfoCircle size={16} color='#9C2315'/>
+                  </IconButton>
+                </CustomTooltip>
+              </div>
               <div className='horizontal-box full-width'>
                 <Typography sx={{marginRight:2}}>0</Typography>
                 <Slider
@@ -284,7 +351,14 @@ export default function Playground() {
               </div>
               <div className='small-space' />
 
-              <Typography>Max tokens:</Typography>
+              <div className='horizontal-box'>
+                <Typography>Max tokens:</Typography>
+                <CustomTooltip title="💡 One word is 2-3 tokens" className='tooltip'>
+                  <IconButton disableRipple={true}>
+                    <BiInfoCircle size={16} color='#9C2315'/>
+                  </IconButton>
+                </CustomTooltip>
+              </div>
               <TextField
                 className='prompt'
                 type="number"

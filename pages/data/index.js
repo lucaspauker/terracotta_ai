@@ -154,7 +154,7 @@ export default function Data() {
         </Typography>
         <div>
           <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/data/create">
-            + Create dataset
+            + Create CSV
           </Button>
           <Button variant='contained' color="secondary" component={Link} href="/data/add">
             + Import dataset from file

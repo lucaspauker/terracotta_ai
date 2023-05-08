@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -11,11 +12,14 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import Select from 'react-select'
+import Select from '@mui/material/Select';
 import axios from 'axios';
 import AWS from 'aws-sdk';
 import Papa from 'papaparse';
@@ -24,7 +28,8 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import styles from '@/styles/Data.module.css'
+import { BiCopy, BiInfoCircle } from 'react-icons/bi';
+import {CustomTooltip} from '/components/CustomTooltip.js';
 
 const steps = ['Training data', 'Validation data', 'Review'];
 
@@ -49,7 +54,6 @@ export default function AddDataset() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
   const [error, setError] = useState();
-  const [type, setType] = useState('classification');
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileVal, setSelectedFileVal] = useState(null);
   const [realFileName, setRealFileName] = useState('');  // Filename in S3
@@ -67,8 +71,8 @@ export default function AddDataset() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [numValExamples, setNumValExamples] = useState(10);
-  const [inputColumn, setInputColumn] = useState(null);
-  const [outputColumn, setOutputColumn] = useState(null);
+  const [inputColumn, setInputColumn] = useState('');
+  const [outputColumn, setOutputColumn] = useState('');
   const [user, setUser] = useState(null);
   const { data: session } = useSession();
   const router = useRouter()
@@ -129,7 +133,6 @@ export default function AddDataset() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
-    formData.append('type', type);
     formData.append('trainFileName', realFileName);
     formData.append('initialTrainFileName', selectedFile.name);
     formData.append('valFileName', realFileNameVal);
@@ -227,210 +230,236 @@ export default function AddDataset() {
       </div>
       <div className='small-space' />
 
-      <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps = {};
-          const labelProps = {};
-          if (isStepOptional(index)) {
-            labelProps.optional = (
-              <Typography variant="caption">Optional</Typography>
+      <div className='main-content'>
+        <Stepper activeStep={activeStep}>
+          {steps.map((label, index) => {
+            const stepProps = {};
+            const labelProps = {};
+            if (isStepOptional(index)) {
+              labelProps.optional = (
+                <Typography variant="caption">Optional</Typography>
+              );
+            }
+            if (isStepSkipped(index)) {
+              stepProps.completed = false;
+            }
+            return (
+              <Step key={label} {...stepProps}>
+                <StepLabel {...labelProps}>{label}</StepLabel>
+              </Step>
             );
-          }
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
-      </Stepper>
-      <div className='small-space' />
+          })}
+        </Stepper>
+        <div className='small-space' />
 
-      <Paper className='card vertical-box' variant='outlined'>
-        {activeStep === 0 ?
-          <>
-            <Typography variant='h6'>
-              Training data
-            </Typography>
-            <div className='tiny-space' />
-            <div className="file-input">
-              <div className='vertical-box'>
-                <Button variant="outlined" color="primary" component="label">
-                  Upload training data
-                  <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
-                </Button>
-                <div className='tiny-space' />
-                <Typography variant='body2' className='form-label'>
-                  Data must be uploaded as a CSV. After uploading a file, you can specify which
-                  column is the input and which column is the output.
-                </Typography>
-              </div>
-            </div>
-            {selectedFile ?
-              <>
-                <div className='medium-space' />
-                <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
-                <div className='tiny-space' />
-                <div className='horizontal-box' className='headers-container'>
-                  <Typography>Headers:&nbsp; </Typography>
-                  {headers.map((h, i) =>
-                    <div className='data-header' key={h}>
-                      <Typography>{h}</Typography>
-                    </div>
-                  )}
-                </div>
-                <div className='medium-space' />
-
-                <Typography variant='h6'>Input</Typography>
-                <div className='tiny-space' />
-                <Select
-                  defaultValue={{label: inputColumn, value: inputColumn}}
-                  onChange={(e) => setInputColumn(e.value)}
-                  options={options}
-                  className="multi-select"
-                  placeholder="Select input column"
-                />
-                <div className='medium-space' />
-
-                <Typography variant='h6'>Output</Typography>
-                <div className='tiny-space' />
-                <Select
-                  defaultValue={{label: outputColumn, value: outputColumn}}
-                  onChange={(e) => setOutputColumn(e.value)}
-                  options={options}
-                  className="multi-select"
-                  placeholder="Select output column"
-                />
-              </>
-              : null}
-          </>
-          : null}
-
-        {activeStep === 1 ?
-          <>
-            <Typography variant='h6'>
-              Validation data (optional)
-            </Typography>
-            <div className='tiny-space' />
-            <div className="file-input">
-              <div className='vertical-box'>
-                <Button variant="outlined" color="primary" component="label" disabled={autoGenerateVal}>
-                  Upload validation data
-                  <input type="file" accept=".csv, .json" onChange={handleFileInputVal}  hidden/>
-                </Button>
-                {selectedFileVal ?
-                  <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFileVal.name}</Typography>
-                  : null}
-              </div>
-            </div>
-            <div className='tiny-space' />
-            <Typography variant='body2' className='form-label'>
-              The validation dataset must have the same column names as the training dataset.
-            </Typography>
-            <div className='medium-space' />
-
-            <FormGroup>
-              <FormControlLabel
-                  control={<Checkbox checked={autoGenerateVal} onChange={() => setAutoGenerateVal(!autoGenerateVal)}/>}
-                  label="Automatically generate validation data from training data" />
-            </FormGroup>
-
-            {autoGenerateVal && selectedFile ?
-              <>
-                <div className='medium-space' />
-                <Typography variant='body1'>
-                  Total number of examples: &nbsp;{numRows}
-                </Typography>
-                <div className='tiny-space' />
-                <div className='horizontal-box'>
-                  <Typography variant='body1'>
-                    Number of validation examples:&nbsp;&nbsp;
-                  </Typography>
-                  <div className='vertical-box'>
-                    <TextField
-                      label="#"
-                      type="number"
-                      variant="outlined"
-                      className='center'
-                      value={numValExamples}
-                      sx={{width: 100}}
-                      onChange={(e) => setNumValExamples(e.target.value)}
-                    />
-                    <Typography variant='body2'>
-                      {Math.round((numValExamples / numRows) * 100)}% of dataset
-                    </Typography>
+        <Paper className='card vertical-box' variant='outlined'>
+          {activeStep === 0 ?
+            <>
+              <Typography variant='h6'>
+                Training data
+                <CustomTooltip title="💡 Training data should be separated into two columns: input and output" className='tooltip'>
+                  <IconButton disableRipple={true}>
+                    <BiInfoCircle size={16} color='#9C2315'/>
+                  </IconButton>
+                </CustomTooltip>
+              </Typography>
+              <div className='medium-space' />
+              <div className="file-input">
+                <div className='vertical-box'>
+                  <div className='horizontal-box'>
+                    <Button variant="outlined" color="primary" component="label">
+                      Upload training data
+                      <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
+                    </Button>
+                    <Typography>&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;</Typography>
+                    <Button variant="outlined" color="primary" component={Link} href="/data/create">
+                      Create csv
+                    </Button>
                   </div>
+                  <div className='tiny-space' />
+                  <Typography variant='body2' className='form-label'>
+                    Data must be uploaded as a CSV. After uploading a file, you can specify which
+                    column is the input and which column is the output.
+                  </Typography>
                 </div>
-              </> : null }
-          </>
-          : null}
+              </div>
+              {selectedFile ?
+                <>
+                  <div className='medium-space' />
+                  <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
+                  <div className='tiny-space' />
+                  <div className='horizontal-box' className='headers-container'>
+                    <Typography>Headers:&nbsp; </Typography>
+                    {headers.map((h, i) =>
+                      <div className='data-header' key={h}>
+                        <Typography>{h}</Typography>
+                      </div>
+                    )}
+                  </div>
+                  <div className='medium-space' />
 
-        {activeStep === 2 ?
-          <>
-            <Typography variant='h6'>
-              Review your dataset
-            </Typography>
-            <div className='small-space' />
-            <div className='vertical-box'>
-              <TextField
-                label="Dataset name"
-                variant="outlined"
-                className='text-label center'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <div className='small-space' />
-              <TextField
-                label="Description"
-                variant="outlined"
-                className='text-label'
-                multiline
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <div className='small-space' />
-            <Box sx={{textAlign: 'left'}}>
-              <Typography>Type: {type}</Typography>
-              <Typography>Train file name: {selectedFile.name}</Typography>
-              <Typography>Number of rows: {numRows}</Typography>
-              <Typography>Input column: {inputColumn}</Typography>
-              <Typography>Output column: {outputColumn}</Typography>
-            </Box>
-            <div className='small-space' />
-            {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-            <div className='vertical-box'>
-              <Button variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
-            </div>
-          </>
-          : null}
+                  <Typography variant='h6'>Input</Typography>
+                  <div className='tiny-space' />
+                  <FormControl variant="filled">
+                    <InputLabel id="input-label">Input column</InputLabel>
+                    <Select
+                      labelId="project-label"
+                      className="wide-select project-select"
+                      label="Input"
+                      value={inputColumn}
+                      onChange={(e) => setInputColumn(e.target.value)}
+                    >
+                      {options.map((o) => (
+                        <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <div className='medium-space' />
 
-        <div className='medium-space' />
-        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-          <Button
-            color="inherit"
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            Back
-          </Button>
-          <Box sx={{ flex: '1 1 auto' }} />
-          {isStepOptional(activeStep) && (
-            <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-              Skip
+                  <Typography variant='h6'>Output column</Typography>
+                  <div className='tiny-space' />
+                  <FormControl variant="filled">
+                    <InputLabel id="output-label">Output</InputLabel>
+                    <Select
+                      labelId="project-label"
+                      className="wide-select project-select"
+                      label="Output"
+                      value={outputColumn}
+                      onChange={(e) => setOutputColumn(e.target.value)}
+                    >
+                      {options.map((o) => (
+                        <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
+                : null}
+            </>
+            : null}
+
+          {activeStep === 1 ?
+            <>
+              <Typography variant='h6'>
+                Validation data (optional)
+              </Typography>
+              <div className='medium-space' />
+              <div className="file-input">
+                <div className='vertical-box'>
+                  <Button variant="outlined" color="primary" component="label" disabled={autoGenerateVal}>
+                    Upload validation data
+                    <input type="file" accept=".csv, .json" onChange={handleFileInputVal}  hidden/>
+                  </Button>
+                  {selectedFileVal ?
+                    <Typography variant='body1' sx={{color:'grey'}}>&nbsp;{selectedFileVal.name}</Typography>
+                    : null}
+                </div>
+              </div>
+              <div className='tiny-space' />
+              <Typography variant='body2' className='form-label'>
+                The validation dataset must have the same column names as the training dataset.
+              </Typography>
+              <div className='medium-space' />
+
+              <FormGroup>
+                <FormControlLabel
+                    control={<Checkbox checked={autoGenerateVal} onChange={() => setAutoGenerateVal(!autoGenerateVal)}/>}
+                    label="Automatically generate validation data from training data" />
+              </FormGroup>
+
+              {autoGenerateVal && selectedFile ?
+                <>
+                  <div className='medium-space' />
+                  <Typography variant='body1'>
+                    Total number of examples: &nbsp;{numRows}
+                  </Typography>
+                  <div className='tiny-space' />
+                  <div className='horizontal-box'>
+                    <Typography variant='body1'>
+                      Number of validation examples:&nbsp;&nbsp;
+                    </Typography>
+                    <div className='vertical-box'>
+                      <TextField
+                        label="#"
+                        type="number"
+                        variant="outlined"
+                        className='center'
+                        value={numValExamples}
+                        sx={{width: 100}}
+                        onChange={(e) => setNumValExamples(e.target.value)}
+                      />
+                      <Typography variant='body2'>
+                        {Math.round((numValExamples / numRows) * 100)}% of dataset
+                      </Typography>
+                    </div>
+                  </div>
+                </> : null }
+            </>
+            : null}
+
+          {activeStep === 2 ?
+            <>
+              <Typography variant='h6'>
+                Review your dataset
+              </Typography>
+              <div className='medium-space' />
+              <div className='vertical-box'>
+                <TextField
+                  label="Dataset name"
+                  variant="outlined"
+                  className='text-label center'
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+                <div className='small-space' />
+                <TextField
+                  label="Description"
+                  variant="outlined"
+                  className='text-label'
+                  multiline
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div className='medium-space' />
+              <Box sx={{textAlign: 'left'}}>
+                <Typography>Train file name: {selectedFile.name}</Typography>
+                <Typography>Number of rows: {numRows}</Typography>
+                <Typography>Input column: {inputColumn}</Typography>
+                <Typography>Output column: {outputColumn}</Typography>
+              </Box>
+              <div className='medium-space' />
+              {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+              <div className='vertical-box'>
+                <Button size='large' variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
+              </div>
+            </>
+            : null}
+
+          <div className='medium-space' />
+          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+            <Button
+              color="inherit"
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              Back
             </Button>
-          )}
+            <Box sx={{ flex: '1 1 auto' }} />
+            {isStepOptional(activeStep) && (
+              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
+                Skip
+              </Button>
+            )}
 
-          {activeStep === steps.length - 1 ? null :
-            <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
-          }
-        </Box>
-      </Paper>
+            {activeStep === steps.length - 1 ? null :
+              <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>
+            }
+          </Box>
+        </Paper>
+      </div>
     </div>
   )
 }

@@ -68,6 +68,11 @@ a {
   margin-top: 2rem;
 }
 
+.main-content {
+  max-width: 800px;
+  margin: 0px auto;
+}
+
 .homepage {
   width: 100vw;
   height: 100vh;
@@ -233,7 +238,6 @@ a {
 
 .card {
   padding: 20px;
-  max-width: 800px;
   margin: 0px auto;
 }
 
@@ -348,6 +352,9 @@ a {
 .output-box {
   width: 48%;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .output-text-box {
@@ -442,3 +449,29 @@ a {
 .no-margin {
   margin: 0px;
 }
+
+.circular-progress-playground {
+  margin-top: 50px;
+}
+
+.hidden {
+  display: none;
+}
+
+.tooltip {
+}
+
+.metric-in-table {
+  display: inline-block;
+}
+
+.metric-in-table-text {
+  border-radius: 8px;
+  padding: 1px 4px;
+  margin: 4px;
+}
+
+.metric-cell {
+  color: red;
+}
+

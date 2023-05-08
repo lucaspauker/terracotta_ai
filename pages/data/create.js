@@ -111,37 +111,10 @@ export default function CreateDataset() {
         <div className='horizontal-box'>
           <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
           <Typography variant='h4' className='page-main-header'>
-            Create Dataset
+            Create CSV
           </Typography>
         </div>
       </div>
-      <div className='tiny-space' />
-      <Paper className='card vertical-box' variant='outlined'>
-        <Typography variant='h6'>
-          General information
-        </Typography>
-        <div className='tiny-space' />
-        <div>
-          <TextField
-            label="Dataset name"
-            variant="outlined"
-            className='text-label center'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <div className='small-space' />
-          <TextField
-            label="Description"
-            variant="outlined"
-            className='text-label'
-            multiline
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-      </Paper>
       <div className='tiny-space' />
       <Paper variant="outlined">
         <TableContainer>
@@ -180,9 +153,6 @@ export default function CreateDataset() {
         </Button>
         <Button className='button-margin' variant="contained" color="primary" onClick={handleClearAll}>
           Clear all
-        </Button>
-        <Button variant="contained" color="primary">
-          Create dataset
         </Button>
         <Button className='button-margin' variant="contained" color="primary" onClick={handleDownloadCsv}>
           Download as CSV

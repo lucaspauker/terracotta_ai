@@ -133,9 +133,9 @@ export default function Models() {
           Finetuned Models
         </Typography>
         <div>
-          <Button variant='text' color="secondary" onClick={refreshModels}>
+          <IconButton color="secondary" onClick={refreshModels}>
             <HiOutlineRefresh size={25} />
-          </Button>
+          </IconButton>
           <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
             + Import model
           </Button>

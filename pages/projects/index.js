@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
+import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
@@ -29,6 +30,7 @@ import Paper from '@mui/material/Paper';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import {timestampToDateTime, toTitleCase} from "../../components/utils";
+import {FaTrash} from "react-icons/fa";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -151,9 +153,14 @@ export default function Projects() {
               <Card variant="outlined" key={project._id}
                     className={project.name===currentProject ? 'project-card active-project-card' : 'project-card'}>
                 <CardContent>
-                  <Typography variant="h6">
-                    {project.name}
-                  </Typography>
+                  <div className='horizontal-box full-width' style={{alignItems: 'flex-start'}}>
+                    <Typography variant="h6">
+                      {project.name}
+                    </Typography>
+                    <IconButton variant='contained' onClick={() => handleClickOpen(project._id)}>
+                      <FaTrash size={16}/>
+                    </IconButton>
+                  </div>
                   <div className="tiny-space"/>
                   <Typography>
                     Created {timestampToDateTime(project.timeCreated)}
@@ -165,7 +172,6 @@ export default function Projects() {
                 <CardActions className='vertical-box'>
                   <Button onClick={() => handleProjectChange(project.name)} disabled={project.name===currentProject}>Switch to this project</Button>
                   <div className='tiny-space'/>
-                  <Button variant='contained' color='error' onClick={() => handleClickOpen(project._id)}>Delete project</Button>
                 </CardActions>
                 <div className='small-space'/>
               </Card>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -23,8 +24,7 @@ import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaCopy } from 'react-icons/fa';
-
-import styles from '@/styles/Data.module.css'
+import { BiCopy } from 'react-icons/bi';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
 
@@ -161,52 +161,53 @@ const response = await openai.createCompletion({
       </div>
       <div className='small-space' />
 
-      <Paper className='card vertical-box' variant='outlined'>
-        <div className='horizontal-box full-width'>
-          <FormControl>
-            <InputLabel id="model-label">Model</InputLabel>
-            <Select
-              labelId="model-label"
-              className="simple-select"
-              label="Model"
-              value={model}
-              onChange={(e) => handleModelChange(e.target.value)}
-            >
-              {models.map((m) => (
-                <MenuItem key={m._id} value={m.providerData.modelId}>{m.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl>
-            <InputLabel id="library-label">Library</InputLabel>
-            <Select
-              labelId="library-label"
-              className="simple-select"
-              label="Library"
-              value={library}
-              onChange={(e) => handleLibraryChange(e.target.value)}
-            >
-              {libraries.map((l) => (
-                <MenuItem key={l} value={l}>{l}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button className='horizontal-box copy' onClick={copyText}>
-            <FaCopy size={20} />
-            <Typography>&nbsp;Copy</Typography>
-          </Button>
-        </div>
-        <div className='tiny-space' />
-        <TextField
-          multiline
-          InputProps={{
-            readOnly: true,
-          }}
-          rows={11}
-          className="output-text-box output-code-box"
-          value={apiCode}
-        />
-      </Paper>
+      <div className='main-content'>
+        <Paper className='card vertical-box' variant='outlined'>
+          <div className='horizontal-box full-width'>
+            <FormControl>
+              <InputLabel id="model-label">Model</InputLabel>
+              <Select
+                labelId="model-label"
+                className="simple-select"
+                label="Model"
+                value={model}
+                onChange={(e) => handleModelChange(e.target.value)}
+              >
+                {models.map((m) => (
+                  <MenuItem key={m._id} value={m.providerData.modelId}>{m.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl>
+              <InputLabel id="library-label">Library</InputLabel>
+              <Select
+                labelId="library-label"
+                className="simple-select"
+                label="Library"
+                value={library}
+                onChange={(e) => handleLibraryChange(e.target.value)}
+              >
+                {libraries.map((l) => (
+                  <MenuItem key={l} value={l}>{l}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <IconButton className='horizontal-box copy' onClick={copyText}>
+              <BiCopy size={20} />
+            </IconButton>
+          </div>
+          <div className='tiny-space' />
+          <TextField
+            multiline
+            InputProps={{
+              readOnly: true,
+            }}
+            rows={11}
+            className="output-text-box output-code-box"
+            value={apiCode}
+          />
+        </Paper>
+      </div>
     </div>
   )
 }

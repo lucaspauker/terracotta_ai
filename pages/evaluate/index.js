@@ -30,7 +30,13 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
 
-import styles from '@/styles/Data.module.css'
+import { calculateColor } from '/components/utils';
+
+const metricMap = {
+  'f1': 'F1',
+  'bleu': 'BLEU',
+  'rougel': 'RougeL',
+}
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -180,7 +186,14 @@ export default function Evaluate() {
                       <TableCell>{e.description}</TableCell>
                       <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
                       <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
-                      <TableCell>{e.metrics}</TableCell>
+                      <TableCell>
+                        <div className='metrics-cell'>
+                          {e.metrics.map(m => <div className='metric-in-table'>
+                            <span key={m} className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
+                              {m in metricMap ? metricMap[m] : m}
+                          </span></div>)}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleOpen(e._id)}>
                           <FaTrash className='trash-icon'/>
