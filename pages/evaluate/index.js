@@ -176,9 +176,9 @@ export default function Evaluate() {
                       key={e._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
-                      <TableCell><Link className='link' href={"/evaluate/" + e._id}>{e.modelName}</Link></TableCell>
+                      <TableCell><Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></TableCell>
                       <TableCell>{e.description}</TableCell>
-                      <TableCell>{e.modelName}</TableCell>
+                      <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
                       <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
                       <TableCell>{e.metrics}</TableCell>
                       <TableCell>

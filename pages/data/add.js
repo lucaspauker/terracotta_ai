@@ -26,7 +26,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 import styles from '@/styles/Data.module.css'
 
-const steps = ['General information', 'Training data', 'Validation data', 'Review'];
+const steps = ['Training data', 'Validation data', 'Review'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -163,7 +163,7 @@ export default function AddDataset() {
 
   // Functions for the stepper
   const isStepOptional = (step) => {
-    return step === 2;
+    return step === 1;
   };
 
   const isStepSkipped = (step) => {
@@ -202,11 +202,11 @@ export default function AddDataset() {
 
   const isNextDisabled = (i) => {
     if (i === 0) {
-      return name === '';
-    } else if (i === 1) {
       return (!selectedFile || !inputColumn || !outputColumn);
-    } else if (i === 2) {
+    } else if (i === 1) {
       return false;
+    } else if (i === 2) {
+      return name === '';
     }
     return true;
   }
@@ -250,35 +250,6 @@ export default function AddDataset() {
 
       <Paper className='card vertical-box' variant='outlined'>
         {activeStep === 0 ?
-          <>
-            <Typography variant='h6'>
-              General information
-            </Typography>
-            <div className='small-space' />
-            <div className='vertical-box'>
-              <TextField
-                label="Dataset name"
-                variant="outlined"
-                className='text-label center'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <div className='small-space' />
-              <TextField
-                label="Description"
-                variant="outlined"
-                className='text-label'
-                multiline
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-          </>
-          : null}
-
-        {activeStep === 1 ?
           <>
             <Typography variant='h6'>
               Training data
@@ -337,7 +308,7 @@ export default function AddDataset() {
           </>
           : null}
 
-        {activeStep === 2 ?
+        {activeStep === 1 ?
           <>
             <Typography variant='h6'>
               Validation data (optional)
@@ -396,15 +367,34 @@ export default function AddDataset() {
           </>
           : null}
 
-        {activeStep === 3 ?
+        {activeStep === 2 ?
           <>
             <Typography variant='h6'>
               Review your dataset
             </Typography>
             <div className='small-space' />
+            <div className='vertical-box'>
+              <TextField
+                label="Dataset name"
+                variant="outlined"
+                className='text-label center'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <div className='small-space' />
+              <TextField
+                label="Description"
+                variant="outlined"
+                className='text-label'
+                multiline
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className='small-space' />
             <Box sx={{textAlign: 'left'}}>
-              <Typography>Name: {name}</Typography>
-              <Typography>Description: {description}</Typography>
               <Typography>Type: {type}</Typography>
               <Typography>Train file name: {selectedFile.name}</Typography>
               <Typography>Number of rows: {numRows}</Typography>

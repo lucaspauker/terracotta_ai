@@ -19,6 +19,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
+import { calculateColor } from '/components/utils';
 
 export default function ModelPage() {
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function ModelPage() {
         </Typography>
         <div className='tiny-space'/>
         <Paper className='small-card' variant='outlined'>
-          <Typography>Model: <Link className='link' href={'models/' + evaluation.modelId}>{evaluation.modelName}</Link></Typography>
+          <Typography>Model: <Link className='link' href={'/models/' + evaluation.modelId}>{evaluation.modelName}</Link></Typography>
           <Typography>Evaluation dataset: <Link className='link' href={'/data/' + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
         </Paper>
         <div className='medium-space' />
@@ -93,13 +94,17 @@ export default function ModelPage() {
           <Paper className='card' variant='outlined' className='vertical-box'>
             <div className='horizontal-box'>
               {evaluation.metrics.map(metric => (
-                <div className="metric-box" key={metric}>
-                  <Typography variant='h6'>
-                    {metric.charAt(0).toUpperCase() + metric.slice(1)}
+                <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
+                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                    {metric === 'bleu' ? 'BLEU' :
+                      metric === 'rougel' ? 'RougeL' :
+                      metric.charAt(0).toUpperCase() + metric.slice(1)}
                   </Typography>
                   <div className='small-space'/>
-                  <Typography>
-                    {parseFloat(evaluation.metricResults[metric] * 100).toFixed(2)} %
+                  <Typography variant='h6'>
+                    {metric === 'accuracy' ?
+                      parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
+                      parseFloat(evaluation.metricResults[metric]).toFixed(2)}
                   </Typography>
                 </div>
               ))}

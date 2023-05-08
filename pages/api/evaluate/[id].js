@@ -21,7 +21,6 @@ export default async function handler(request, response) {
     await client.connect();
     const db = client.db("sharpen");
 
-    // TODO: add datasetName and modelName to return
     const evaluation = await db.collection("evaluations")
       .aggregate([
         {
@@ -53,8 +52,9 @@ export default async function handler(request, response) {
           $project: {
             _id: "$_id",
             name: "$name",
-            datasetId: "$dataset._id",
+            datasetId: "$datasetId",
             datasetName: "$dataset.name",
+            modelId: "$modelId",
             modelName: "$model.name",
             description: "$description",
             metrics: "$metrics",

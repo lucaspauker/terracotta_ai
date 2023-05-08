@@ -54,6 +54,7 @@ export default async function handler(request, response) {
     const modelArchitecture = request.body.modelArchitecture;
     const datasetName = request.body.dataset;
     const modelName = request.body.modelName;
+    const description = request.body.description;
     const projectName = request.body.projectName;
     let hyperParams = request.body.hyperParams;
 
@@ -100,8 +101,7 @@ export default async function handler(request, response) {
 
       const trainFileName = dataset.trainFileName;
       const valFileName = dataset.valFileName;
-      valFilePresent = valFileName === undefined;
-      console.log(valFilePresent);
+      valFilePresent = valFileName && valFileName !== undefined;
 
       let fileNames;
       if (valFilePresent) {
@@ -122,7 +122,6 @@ export default async function handler(request, response) {
 
       // Use openai CLI tool to create train and validation jsonl files
       if (valFilePresent) {
-        console.log(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`);
         execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
           if (error) {
               console.log(`error: ${error.message}`);
@@ -228,6 +227,7 @@ export default async function handler(request, response) {
       .collection("models")
       .insertOne({
           name: modelName,
+          description: description,
           provider: provider,
           modelArchitecture: modelArchitecture,
           status: "training",

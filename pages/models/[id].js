@@ -19,6 +19,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
+import { calculateColor } from '/components/utils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -223,13 +224,17 @@ export default function ModelPage() {
             {graphData ? <Line options={options} plugins={plugins} data={graphData} className='chart'/> : null}
             <div className='horizontal-box'>
               {trainEval.metrics.map(metric => (
-                <div className="metric-box" key={metric}>
-                  <Typography variant='h6'>
-                    {metric.charAt(0).toUpperCase() + metric.slice(1)}
+                <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
+                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                    {metric === 'bleu' ? 'BLEU' :
+                      metric === 'rougel' ? 'RougeL' :
+                      metric.charAt(0).toUpperCase() + metric.slice(1)}
                   </Typography>
                   <div className='small-space'/>
-                  <Typography>
-                    {parseFloat(trainEval.metricResults[metric] * 100).toFixed(2)} %
+                  <Typography variant='h6'>
+                    {metric === 'accuracy' ?
+                      parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
+                      parseFloat(trainEval.metricResults[metric]).toFixed(2)}
                   </Typography>
                 </div>
               ))}
@@ -250,9 +255,25 @@ export default function ModelPage() {
             <div className='tiny-space'/>
             <Paper className='card' variant='outlined'>
               <Typography>Name: {e.name}</Typography>
-              <Typography>Description: {e.description}</Typography>
+              {e.description ? <Typography>Description: {e.description}</Typography> : null }
               <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
-              <Typography>Metrics: {e.metrics}</Typography>
+              <div className='horizontal-box'>
+                {e.metrics.map(metric => (
+                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
+                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                      {metric === 'bleu' ? 'BLEU' :
+                        metric === 'rougel' ? 'RougeL' :
+                        metric.charAt(0).toUpperCase() + metric.slice(1)}
+                    </Typography>
+                    <div className='small-space'/>
+                    <Typography variant='h6'>
+                      {metric === 'accuracy' ?
+                        parseFloat(e.metricResults[metric] * 100).toFixed(0) + " %" :
+                        parseFloat(e.metricResults[metric]).toFixed(2)}
+                    </Typography>
+                  </div>
+                ))}
+              </div>
             </Paper>
           </div>
         ))}

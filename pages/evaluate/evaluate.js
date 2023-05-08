@@ -45,8 +45,6 @@ export async function getServerSideProps(context) {
   }
 }
 
-const metrics = ['accuracy', 'f1', 'precision', 'recall'];
-
 export default function DoEvaluate() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
@@ -60,6 +58,7 @@ export default function DoEvaluate() {
   const [checked, setChecked] = useState({});
   const [models, setModels] = useState([]);
   const [model, setModel] = useState('');
+  const [metrics, setMetrics] = useState([]);
   const { data: session } = useSession();
   const router = useRouter()
 
@@ -95,7 +94,7 @@ export default function DoEvaluate() {
         projectName: p,
         modelName: model,
         datasetName: dataset,
-        metrics: metrics,
+        metrics: metrics.filter(x => checked[x]),
       }).then((res) => {
         console.log(res.data);
         setError();
@@ -112,6 +111,17 @@ export default function DoEvaluate() {
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
+
+    axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
+        console.log(res);
+        if (res.data.type === "classification") {
+          setMetrics(['accuracy', 'precision', 'recall', 'f1']);
+        } else {
+          setMetrics(['bleu', 'rougel']);
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
 
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       setModels(res.data);
@@ -167,9 +177,11 @@ export default function DoEvaluate() {
 
   const isNextDisabled = (i) => {
     if (i === 0) {
-      return name === '' || !dataset || !model;
+      return  !dataset || !model;
     } else if (i === 1) {
       return false;
+    } else if (i === 2) {
+      return name === '';
     }
     return true;
   }
@@ -215,28 +227,24 @@ export default function DoEvaluate() {
         {activeStep === 0 ?
           <>
             <Typography variant='h6'>
-              General information
+              Specify dataset and model
             </Typography>
             <div className='small-space' />
             <div className='vertical-box'>
-              <TextField
-                label="Evaluation name"
-                variant="outlined"
-                className='text-label center'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <div className='small-space' />
-              <TextField
-                label="Description"
-                variant="outlined"
-                className='text-label'
-                multiline
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+              <FormControl>
+                <InputLabel id="model-label">Model</InputLabel>
+                <Select
+                  labelId="model-label"
+                  className="wide-select"
+                  label="Model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                >
+                  {models.map((m) => (
+                    <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <div className='small-space' />
               <FormControl>
                 <InputLabel id="dataset-label">Dataset</InputLabel>
@@ -252,21 +260,10 @@ export default function DoEvaluate() {
                   ))}
                 </Select>
               </FormControl>
-              <div className='small-space' />
-              <FormControl>
-                <InputLabel id="model-label">Model</InputLabel>
-                <Select
-                  labelId="model-label"
-                  className="wide-select"
-                  label="Model"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                >
-                  {models.map((m) => (
-                    <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Typography variant='body2' color='textSecondary' sx={{width: '100%'}}>
+                Will use validation data from dataset if present. Else, will use
+                the entire dataset.
+              </Typography>
             </div>
           </>
           : null}
@@ -279,7 +276,7 @@ export default function DoEvaluate() {
             <div className='small-space' />
             <div className='vertical-box align-left'>
               {metrics.map(m => (
-                <div className='horizontal-box'>
+                <div key={m} className='horizontal-box'>
                   <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
                   <Typography>{m.charAt(0).toUpperCase() + m.slice(1)}</Typography>
                 </div>
@@ -294,8 +291,26 @@ export default function DoEvaluate() {
               Review your evaluation
             </Typography>
             <div className='small-space' />
+            <TextField
+              label="Evaluation name"
+              variant="outlined"
+              className='text-label center'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <div className='small-space' />
+            <TextField
+              label="Description"
+              variant="outlined"
+              className='text-label'
+              multiline
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <div className='small-space' />
             <Box sx={{textAlign: 'left'}}>
-              <Typography>Name: {name}</Typography>
               <Typography>Dataset: {dataset}</Typography>
               <Typography>Model: {model}</Typography>
               <Typography>Metrics: {metrics.map((m, i) =>
