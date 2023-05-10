@@ -17,6 +17,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import Grow from '@mui/material/Grow';
 import axios from 'axios';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
@@ -51,7 +52,12 @@ export default function Playground() {
   const [baseModelsList, setBaseModelsList] = useState([]);
   const [temperature, setTemperature] = useState(0.75);
   const [maxTokens, setMaxTokens] = useState(100);
+  const [baseModelsChecked, setBaseModelsChecked] = useState(1);
+  const [finetunedModelsChecked, setFinetunedModelsChecked] = useState(0);
+  const [differentPrompt, setDifferentPrompt] = useState(false);
+  const [stripWhitespace, setStripWhitespace] = useState(true);
   const promptRef = useRef();
+  const finetunedPromptRef = useRef();
 
   const storeOutput = (id, text) => {
     setOutput({...output, [id]: text});
@@ -78,6 +84,7 @@ export default function Playground() {
         x[m._id] = true;
       }
     }
+
     setLoadingDict(x);
     for (let i=0; i<baseModelsList.length; i++) {
       let m = baseModelsList[i];
@@ -91,8 +98,9 @@ export default function Playground() {
             hyperParams: hyperParams,
           }).then((res) => {
             if (res.data !== "No data found") {
-              console.log(res.data);
-              storeOutput(m.completionName, res.data);
+              let out = res.data;
+              if (stripWhitespace) out = out.trim();
+              storeOutput(m.completionName, out);
             }
           }).catch((error) => {
             console.log(error);
@@ -104,15 +112,19 @@ export default function Playground() {
       let m = finetunedModels[i];
       if (checked[m._id]) {
         console.log("Sending request for " + m.name);
+        let finetunePrompt = promptRef.current.value;
+        if (differentPrompt) finetunePrompt = finetunedPromptRef.current.value;
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
             providerData: m.providerData,
-            prompt: promptRef.current.value,
+            prompt: finetunePrompt,
             projectName: project,
             hyperParams: hyperParams,
           }).then((res) => {
             if (res.data !== "No data found") {
-              storeOutput(m._id, res.data);
+              let out = res.data;
+              if (stripWhitespace) out = out.trim();
+              storeOutput(m._id, out);
             }
           }).catch((error) => {
             console.log(error);
@@ -151,8 +163,21 @@ export default function Playground() {
     setChecked(updatedChecked);
   }
 
-  const handlePaperClick = (event, id) => {
+  const handlePaperClick = (event, id, baseOrFinetuned) => {
     event.stopPropagation();
+    if (!isCheckedById(id)) {  // This will become checked
+      if (baseOrFinetuned === "base") {
+        setBaseModelsChecked(baseModelsChecked + 1);
+      } else if (baseOrFinetuned === "finetuned") {
+        setFinetunedModelsChecked(finetunedModelsChecked + 1);
+      }
+    } else {
+      if (baseOrFinetuned === "base") {
+        setBaseModelsChecked(baseModelsChecked - 1);
+      } else if (baseOrFinetuned === "finetuned") {
+        setFinetunedModelsChecked(finetunedModelsChecked - 1);
+      }
+    }
     toggleCheckedById(id);
   };
 
@@ -244,9 +269,30 @@ export default function Playground() {
             inputRef={promptRef}
           />
           <div className='tiny-space' />
-          <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
-          <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
-          <div className='medium-space' />
+          {differentPrompt &&
+            <Grow in={differentPrompt}>
+              <TextField
+                label="Your finetuned models prompt here..."
+                multiline
+                rows={6}
+                className='prompt white'
+                inputRef={finetunedPromptRef}
+              />
+            </Grow>
+          }
+          <div className='tiny-space' />
+          <div className='horizontal-box full-width flex-start'>
+            <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
+            <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
+            {baseModelsChecked > 0 && finetunedModelsChecked > 0 ?
+              <div className='horizontal-box pointer' onClick={() => setDifferentPrompt(!differentPrompt)}>
+                <Checkbox className='small-checkbox' checked={differentPrompt} />
+                <Typography>
+                  Different prompt for finetuned models
+                </Typography>
+              </div> : null}
+          </div>
+          <div className='tiny-space' />
 
           <div className='model-output'>
             {baseModelsList.map((m, i) => (
@@ -365,6 +411,12 @@ export default function Playground() {
                 value={maxTokens}
                 onChange={e => setMaxTokens(e.target.value)}
               />
+
+              <div className='small-space' />
+              <div className='horizontal-box pointer' onClick={() => setStripWhitespace(!stripWhitespace)}>
+                <Checkbox checked={stripWhitespace} />
+                <Typography>Strip output whitespace</Typography>
+              </div>
             </div>
           </Paper>
           <div className='medium-space'/>
@@ -396,7 +448,7 @@ export default function Playground() {
               <Paper
                 variant='outlined'
                 className='card horizontal-box model-select-box'
-                onClick={(event) => handlePaperClick(event, m._id)}
+                onClick={(event) => handlePaperClick(event, m._id, "finetuned")}
                 key={m._id}
               >
                 <Checkbox checked={isCheckedById(m._id)} />
@@ -411,7 +463,7 @@ export default function Playground() {
                 <Paper
                   variant='outlined'
                   className='card horizontal-box model-select-box'
-                  onClick={(event) => handlePaperClick(event, m.completionName)}
+                  onClick={(event) => handlePaperClick(event, m.completionName, "base")}
                   key={m._id}
                 >
                   <Checkbox checked={isCheckedById(m.completionName)} />
