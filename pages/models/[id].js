@@ -254,7 +254,7 @@ export default function ModelPage() {
           <div key={e._id}>
             <div className='tiny-space'/>
             <Paper className='card' variant='outlined'>
-              <Typography>Name: {e.name}</Typography>
+              <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></Typography>
               {e.description ? <Typography>Description: {e.description}</Typography> : null }
               <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
               <div className='horizontal-box'>

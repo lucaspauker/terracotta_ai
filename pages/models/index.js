@@ -30,8 +30,26 @@ import axios from 'axios';
 import {FaTrash} from "react-icons/fa";
 import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
+import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-import styles from '@/styles/Data.module.css'
+import {timestampToDateTimeShort} from '/components/utils';
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 export default function Models() {
   const [loading, setLoading] = useState(true);
@@ -154,6 +172,7 @@ export default function Models() {
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
+                    <TableCell className='table-cell'>Date created</TableCell>
                     <TableCell className='table-cell'>Dataset name</TableCell>
                     <TableCell className='table-cell'>Provider</TableCell>
                     <TableCell className='table-cell'>Architecture</TableCell>
@@ -170,6 +189,7 @@ export default function Models() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
                       <TableCell><Link className='link' href={'models/' + model._id}>{model.name}</Link></TableCell>
+                      <TableCell>{timestampToDateTimeShort(model.timeCreated)}</TableCell>
                       <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
@@ -179,7 +199,7 @@ export default function Models() {
                                       {model.providerData.modelId}
                                   </Link>
                                   :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? (model.cost? ( model.cost === 0 ? "<$0.01" : "$" + model.cost): "unavailable") :"pending"}</TableCell>
+                      <TableCell>{"cost" in model ? (model.cost === null ? "unavailable" : model.cost === 0 ? "<$0.01" : "$" + model.cost): "pending"}</TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleOpen(model._id)}>
                           <FaTrash className='trash-icon'/>

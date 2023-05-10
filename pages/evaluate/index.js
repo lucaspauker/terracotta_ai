@@ -30,7 +30,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
 
-import { calculateColor } from '/components/utils';
+import { calculateColor, timestampToDateTimeShort } from '/components/utils';
 
 const metricMap = {
   'f1': 'F1',
@@ -169,7 +169,7 @@ export default function Evaluate() {
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
-                    <TableCell className='table-cell'>Description</TableCell>
+                    <TableCell className='table-cell'>Date created</TableCell>
                     <TableCell className='table-cell'>Model name</TableCell>
                     <TableCell className='table-cell'>Dataset name</TableCell>
                     <TableCell className='table-cell'>Metrics</TableCell>
@@ -183,7 +183,7 @@ export default function Evaluate() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
                       <TableCell><Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></TableCell>
-                      <TableCell>{e.description}</TableCell>
+                      <TableCell>{timestampToDateTimeShort(e.timeCreated)}</TableCell>
                       <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
                       <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
                       <TableCell>

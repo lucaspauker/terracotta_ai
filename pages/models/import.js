@@ -86,7 +86,7 @@ export default function Import() {
     }
 
 
-  
+
     return (
       <div className='main'>
         <div className='horizontal-box full-width'>
@@ -98,74 +98,75 @@ export default function Import() {
           </div>
         </div>
         <div className='small-space' />
-  
-        <Paper className='card vertical-box' variant='outlined'>
-          <div className='medium-space' />
-          <FormControl>
-            <InputLabel id="provider-label">Provider</InputLabel>
-            <Select
-                labelId="provider-label"
-                className="wide-select"
-                label="Provider"
-                value={provider}
-                onChange={(e) => handleProviderChange(e.target.value)}
-                required
-            >
-              <MenuItem value={'openai'}>OpenAI</MenuItem>
-              <MenuItem value={'cohere'}>Cohere</MenuItem>
-            </Select>
-          </FormControl>
-          <div className='tiny-space' />
-          {provider !== 'cohere' ? 
+
+        <div className='main-content'>
+          <Paper className='card vertical-box' variant='outlined'>
+            <div className='medium-space' />
             <FormControl>
-              <InputLabel id="model-label">Model</InputLabel>
+              <InputLabel id="provider-label">Provider</InputLabel>
               <Select
-                labelId="model-label"
-                className="wide-select"
-                label="Model"
+                  labelId="provider-label"
+                  className="wide-select"
+                  label="Provider"
+                  value={provider}
+                  onChange={(e) => handleProviderChange(e.target.value)}
+                  required
+              >
+                <MenuItem value={'openai'}>OpenAI</MenuItem>
+                <MenuItem value={'cohere'}>Cohere</MenuItem>
+              </Select>
+            </FormControl>
+            <div className='tiny-space' />
+            {provider !== 'cohere' ? 
+              <FormControl>
+                <InputLabel id="model-label">Model</InputLabel>
+                <Select
+                  labelId="model-label"
+                  className="wide-select"
+                  label="Model"
+                  value={importModel}
+                  onChange={(e) => setImportModel(e.target.value)}
+                  required
+                >
+                {importableModels.map((model) => (
+                  <MenuItem value={model} key={model.id}>{model.id}</MenuItem>
+                ))}
+                </Select>
+              </FormControl>
+            : <TextField
+                label="Model id"
+                variant="outlined"
+                className='text-label center'
                 value={importModel}
                 onChange={(e) => setImportModel(e.target.value)}
                 required
-              >
-              {importableModels.map((model) => (
-                <MenuItem value={model} key={model.id}>{model.id}</MenuItem>
-              ))}
-              </Select>
-            </FormControl>
-          : <TextField
-              label="Model id"
-              variant="outlined"
-              className='text-label center'
-              value={importModel}
-              onChange={(e) => setImportModel(e.target.value)}
-              required
-            />
-          }
-          
-          <div className='small-space' />
-            <TextField
-              label="Model name"
-              variant="outlined"
-              className='text-label center'
-              value={modelName}
-              onChange={(e) => setModelName(e.target.value)}
-              required
-            />
-          <div className='medium-space' />
-          {importModel !== {}? 
-            <div>
-                <Box sx={{textAlign: 'left'}}>
-                <Typography>Finetune ID: {importModel.id}</Typography>
-                <Typography>Architecture: {importModel.model}</Typography>
-                <Typography>Model name: {importModel.fine_tuned_model}</Typography>
-                </Box>
-                <div className='small-space' />
-            </div>
-          : null}
-          
-          {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-          <Button variant='contained' color="primary" onClick={handleImportModel}>Import Model</Button>
-        </Paper>
+              />
+            }
+
+            <div className='small-space' />
+              <TextField
+                label="Model name"
+                variant="outlined"
+                className='text-label center'
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+                required
+              />
+            <div className='medium-space' />
+            {importModel !== {}?
+              <div>
+                  <Box sx={{textAlign: 'left'}}>
+                  <Typography>Finetune ID: {importModel.id}</Typography>
+                  <Typography>Architecture: {importModel.model}</Typography>
+                  </Box>
+                  <div className='medium-space' />
+              </div>
+            : null}
+
+            {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+            <Button size='large' variant='contained' color="primary" onClick={handleImportModel}>Import Model</Button>
+          </Paper>
+        </div>
       </div>
     )
   }

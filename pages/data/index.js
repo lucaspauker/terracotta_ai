@@ -30,7 +30,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
 
-import styles from '@/styles/Data.module.css'
+import {timestampToDateTimeShort} from '/components/utils';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -171,7 +171,7 @@ export default function Data() {
                 <TableHead>
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
-                    <TableCell className='table-cell'>Description</TableCell>
+                    <TableCell className='table-cell'>Date created</TableCell>
                     <TableCell className='table-cell'># of train words</TableCell>
                     <TableCell className='table-cell'># training examples</TableCell>
                     <TableCell className='table-cell'># validation examples</TableCell>
@@ -186,7 +186,7 @@ export default function Data() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
                       <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
-                      <TableCell>{dataset.description}</TableCell>
+                      <TableCell>{timestampToDateTimeShort(dataset.timeCreated)}</TableCell>
                       <TableCell>{dataset.numTrainWords}</TableCell>
                       <TableCell>{dataset.numTrainExamples}</TableCell>
                       <TableCell>{dataset.numValExamples}</TableCell>

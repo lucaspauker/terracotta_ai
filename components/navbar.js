@@ -20,6 +20,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import Build from '@mui/icons-material/Build';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import EditIcon from '@mui/icons-material/Edit';
 import BrushIcon from '@mui/icons-material/Brush';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DiamondIcon from '@mui/icons-material/Diamond';
@@ -160,7 +161,7 @@ export default function Navbar() {
                 <ListItemIcon>
                   {text === 'Datasets' ? <TextSnippetIcon /> :
                    text === 'Models' ? <LightbulbIcon /> :
-                   text === 'Test' ? <ConstructionIcon /> :
+                   text === 'Test' ? <EditIcon /> :
                    text === 'Projects' ? <PaletteIcon /> :
                    text === 'Deploy' ? <RocketIcon /> :
                    text === 'Evaluate' ? <FunctionsIcon /> : null}

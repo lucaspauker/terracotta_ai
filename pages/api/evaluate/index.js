@@ -74,6 +74,7 @@ export default async function handler(request, response) {
             metrics: "$metrics",
             metricResults: "$metricResults",
             trainingEvaluation: "$trainingEvaluation",
+            timeCreated: "$timeCreated",
           }
         }
       ]).toArray();

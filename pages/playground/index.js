@@ -237,9 +237,9 @@ export default function Playground() {
           </Typography>
           <div className='tiny-space' />
           <TextField
-            label="Summarize the article..."
+            label="Your prompt here..."
             multiline
-            rows={4}
+            rows={6}
             className='prompt white'
             inputRef={promptRef}
           />

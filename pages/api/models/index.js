@@ -70,8 +70,10 @@ export default async function handler(request, response) {
       const dataset = await db
         .collection("datasets")
         .findOne({_id: model.datasetId});
-      models[i]["datasetName"] = dataset.name;
-      models[i]["datasetId"] = dataset._id;
+      if (dataset) {
+        models[i]["datasetName"] = dataset.name;
+        models[i]["datasetId"] = dataset._id;
+      }
 
       if (model.status !== "succeeded") {
         let finetuneResponse = await openai.retrieveFineTune(model.providerData.finetuneId);
