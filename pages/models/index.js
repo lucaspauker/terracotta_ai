@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -33,6 +34,7 @@ import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
 import {timestampToDateTimeShort} from '/components/utils';
+import MenuComponent from "components/MenuComponent";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -61,6 +63,11 @@ export default function Models() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const router = useRouter();
+
+  const handleEdit = (id) => {
+    router.push("/models/edit/" + id);
+  };
 
   const handleOpen = (id) => {
     setIdToDelete(id);
@@ -201,9 +208,10 @@ export default function Models() {
                                   :"pending"}</TableCell>
                       <TableCell>{"cost" in model ? (model.cost === null ? "unavailable" : model.cost === 0 ? "<$0.01" : "$" + model.cost): "pending"}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(model._id)}>
-                          <FaTrash className='trash-icon'/>
-                        </IconButton>
+                        <MenuComponent
+                          editFunction={() => handleEdit(model._id)}
+                          deleteFunction={() => handleOpen(model._id)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

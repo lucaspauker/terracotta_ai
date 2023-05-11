@@ -84,42 +84,44 @@ export default function Add() {
       </div>
       <div className='small-space' />
 
-      <Paper className='card vertical-box' variant='outlined'>
-        <TextField
-          id="outlined-basic"
-          label="Project name"
-          variant="outlined"
-          className='text-label'
-          inputRef={nameRef}
-        />
-        <div className='medium-space' />
+      <div className='main-content'>
+        <Paper className='card vertical-box' variant='outlined'>
+          <TextField
+            id="outlined-basic"
+            label="Project name"
+            variant="outlined"
+            className='text-label'
+            inputRef={nameRef}
+          />
+          <div className='medium-space' />
 
-        <div className="horizontal-box flex-start">
-          <Typography variant='body1'>
-            Type of data:&nbsp;&nbsp;
-          </Typography>
-          <ToggleButtonGroup
-            value={type}
-            exclusive
-            onChange={(e, val) => setType(val)}
-          >
-            <ToggleButton value="classification">
-              <Typography variant='body1'>
-                Classification
-              </Typography>
-            </ToggleButton>
-            <ToggleButton value="generative">
-              <Typography variant='body1'>
-                Generative
-              </Typography>
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </div>
-        <div className='medium-space' />
+          <div className="horizontal-box flex-start">
+            <Typography variant='body1'>
+              Type of data:&nbsp;&nbsp;
+            </Typography>
+            <ToggleButtonGroup
+              value={type}
+              exclusive
+              onChange={(e, val) => setType(val)}
+            >
+              <ToggleButton value="classification">
+                <Typography variant='body1'>
+                  Classification
+                </Typography>
+              </ToggleButton>
+              <ToggleButton value="generative">
+                <Typography variant='body1'>
+                  Generative
+                </Typography>
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </div>
+          <div className='medium-space' />
 
-        {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-        <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
-      </Paper>
+          {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+          <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
+        </Paper>
+      </div>
     </div>
   )
 }

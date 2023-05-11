@@ -56,7 +56,7 @@ export default function Header() {
       <Toolbar>
         <GiClayBrick size='40'/>
         <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30}} className='website-title'>
-          &nbsp;Terracotta.ai
+          &nbsp;Terracotta
         </Typography>
         <div className='horizontal-box'>
           {session ?

@@ -27,10 +27,13 @@ import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import {timestampToDateTime, toTitleCase} from "../../components/utils";
 import {FaTrash} from "react-icons/fa";
+
+import MenuComponent from "components/MenuComponent";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -61,11 +64,15 @@ export default function Projects() {
   const { data: session } = useSession();
   const router = useRouter();
 
+  const handleEdit = (id) => {
+    router.push("/projects/edit/" + id);
+  };
+
+  // For dialogue box
   const handleClickOpen = (id) => {
     setOpen(true);
     setProjectIdToDelete(id);
   };
-
   const handleClose = () => {
     setOpen(false);
   };
@@ -157,9 +164,7 @@ export default function Projects() {
                     <Typography variant="h6">
                       {project.name}
                     </Typography>
-                    <IconButton variant='contained' onClick={() => handleClickOpen(project._id)}>
-                      <FaTrash size={16}/>
-                    </IconButton>
+                    <MenuComponent editFunction={() => handleEdit(project._id)} deleteFunction={() => handleClickOpen(project._id)} />
                   </div>
                   <div className="tiny-space"/>
                   <Typography>

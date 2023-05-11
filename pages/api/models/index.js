@@ -22,6 +22,7 @@ const myBucket = new AWS.S3({
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })
+    return;
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -98,10 +99,12 @@ export default async function handler(request, response) {
           // Get the last row of the response and create an evaluation
           const splitData = response.data.split(',');
 
+          let makeEval = true;
           let metrics = [];
           let metricResults = [];
-          if (!dataset.classes) {
+          if (!dataset || !dataset.classes) {
             // Generative tasks, do something here
+            makeEval = false;
           } else if (dataset.classes.length === 2) {
             const accuracy = splitData[splitData.length - 6].replace(/\s+/g, '');
             const precision = splitData[splitData.length - 5].replace(/\s+/g, '');
@@ -126,17 +129,19 @@ export default async function handler(request, response) {
           }
 
           // Create evaluation with training results
-          await db
-            .collection("evaluations")
-            .insertOne({
-                name: model.name + " training evaluation",
-                projectId: project._id,
-                modelId: model._id,
-                userId: user._id,
-                metrics: metrics,
-                metricResults: metricResults,
-                trainingEvaluation: true,
-              });
+          if (makeEval) {
+            await db
+              .collection("evaluations")
+              .insertOne({
+                  name: model.name + " training evaluation",
+                  projectId: project._id,
+                  modelId: model._id,
+                  userId: user._id,
+                  metrics: metrics,
+                  metricResults: metricResults,
+                  trainingEvaluation: true,
+                });
+          }
 
           models[i]["status"] = "succeeded";
           models[i].providerData.modelId = finetuneResponse.fine_tuned_model;

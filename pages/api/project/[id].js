@@ -7,7 +7,6 @@ const client = new MongoClient(process.env.MONGODB_URI);
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
     response.status(400).json({ error: 'Use GET request' })
-    return;
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -22,16 +21,17 @@ export default async function handler(request, response) {
     await client.connect();
     const db = client.db("sharpen");
 
-    const d = await db
-      .collection("datasets")
+    const project = await db
+      .collection("projects")
       .findOne({_id: new ObjectId(id)});
 
-    if (!d) {
-      response.status(400).json({error:"Dataset not found!"});
+    if (!project) {
+      response.status(400).json({error:"Project not found!"});
       return;
     }
 
-    response.status(200).json(d);
+    response.status(200).send(project);
+    return;
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

@@ -31,6 +31,7 @@ import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
 
 import {timestampToDateTimeShort} from '/components/utils';
+import MenuComponent from "components/MenuComponent";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -63,6 +64,10 @@ export default function Data() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+
+  const handleEdit = (id) => {
+    router.push("/data/edit/" + id);
+  };
 
   const handleOpen = (id) => {
     setIdToDelete(id);
@@ -192,9 +197,10 @@ export default function Data() {
                       <TableCell>{dataset.numValExamples}</TableCell>
                       <TableCell>{dataset.classes ? dataset.classes.length : null}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(dataset._id)}>
-                          <FaTrash className='trash-icon'/>
-                        </IconButton>
+                        <MenuComponent
+                          editFunction={() => handleEdit(dataset._id)}
+                          deleteFunction={() => handleOpen(dataset._id)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

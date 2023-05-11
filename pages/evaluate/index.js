@@ -31,6 +31,7 @@ import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
 
 import { calculateColor, timestampToDateTimeShort } from '/components/utils';
+import MenuComponent from "components/MenuComponent";
 
 const metricMap = {
   'f1': 'F1',
@@ -66,6 +67,10 @@ export default function Evaluate() {
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const { data: session } = useSession();
+
+  const handleEdit = (id) => {
+    router.push("/evaluate/edit/" + id);
+  };
 
   const handleOpen = (id) => {
     setIdToDelete(id);
@@ -195,9 +200,10 @@ export default function Evaluate() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(e._id)}>
-                          <FaTrash className='trash-icon'/>
-                        </IconButton>
+                        <MenuComponent
+                          editFunction={() => handleEdit(e._id)}
+                          deleteFunction={() => handleOpen(e._id)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

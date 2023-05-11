@@ -21,7 +21,7 @@ import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FaArrowLeft } from 'react-icons/fa';
 
-import styles from '@/styles/Data.module.css'
+import { toTitleCase } from '/components/utils';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -127,8 +127,11 @@ export default function Train() {
   };
 
   const handleNext = () => {
+    if (activeStep === 0) {
+      setModelName(toTitleCase(modelArchitecture) + "_" + dataset);
+    }
     if (activeStep === 1) {
-      estimateCost()
+      estimateCost();
     }
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
