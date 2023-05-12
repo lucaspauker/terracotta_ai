@@ -43,25 +43,31 @@ export default function Playground() {
   const [finetunedModels, setFinetunedModels] = useState([]);
   const [baseModels, setBaseModels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState({});
-  const [selectedFile, setSelectedFile] = useState();
-	const [isFilePicked, setIsFilePicked] = useState(false);
   const [project, setProject] = useState('');
+  const [baseModelsList, setBaseModelsList] = useState([]);
+  const [output, setOutput] = useState({});
   const [checked, setChecked] = useState({'text-ada-001': true});
   const [loadingDict, setLoadingDict] = useState({'text-ada-001': false});
-  const [baseModelsList, setBaseModelsList] = useState([]);
   const [temperature, setTemperature] = useState(0.75);
   const [maxTokens, setMaxTokens] = useState(100);
   const [baseModelsChecked, setBaseModelsChecked] = useState(1);
   const [finetunedModelsChecked, setFinetunedModelsChecked] = useState(0);
   const [differentPrompt, setDifferentPrompt] = useState(false);
   const [stripWhitespace, setStripWhitespace] = useState(true);
-  const promptRef = useRef();
-  const finetunedPromptRef = useRef();
+  const [prompt, setPrompt] = useState('');
+  const [finetunedPrompt, setFinetunedPrompt] = useState('');
 
   const storeOutput = (id, text) => {
     setOutput({...output, [id]: text});
     setLoadingDict(loadingDict => ({...loadingDict, [id]: false}));
+  }
+
+  const handleToggleSeparatePrompt = () => {
+    if (!differentPrompt) {
+      setFinetunedPrompt(prompt);
+    }
+    setDifferentPrompt(!differentPrompt);
+    localStorage.setItem("differentPrompt", JSON.stringify(!differentPrompt));
   }
 
   const submit = () => {
@@ -93,7 +99,7 @@ export default function Playground() {
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
             completionName: m.completionName,
-            prompt: promptRef.current.value,
+            prompt: prompt,
             projectName: project,
             hyperParams: hyperParams,
           }).then((res) => {
@@ -112,12 +118,12 @@ export default function Playground() {
       let m = finetunedModels[i];
       if (checked[m._id]) {
         console.log("Sending request for " + m.name);
-        let finetunePrompt = promptRef.current.value;
-        if (differentPrompt) finetunePrompt = finetunedPromptRef.current.value;
+        let p = prompt;
+        if (differentPrompt) p = finetunedPrompt;
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             provider: m.provider.toLowerCase(),
             providerData: m.providerData,
-            prompt: finetunePrompt,
+            prompt: p,
             projectName: project,
             hyperParams: hyperParams,
           }).then((res) => {
@@ -134,15 +140,26 @@ export default function Playground() {
   }
 
   const clear = () => {
-    let updatedOutput = Object.assign({}, output);
-    for (let i=0; i<baseModelsList.length; i++) {
-      let m = baseModelsList[i];
-      if (checked[m.completionName]) {
-        updatedOutput[m.completionName] = '';
-      }
-    }
-    setOutput(updatedOutput);
-    promptRef.current.value = '';
+    localStorage.setItem("checked", JSON.stringify({'text-ada-001': true}));
+    localStorage.setItem("temperature", JSON.stringify(0.75));
+    localStorage.setItem("maxTokens", JSON.stringify(100));
+    localStorage.setItem("baseModelsChecked", JSON.stringify(1));
+    localStorage.setItem("finetunedModelsChecked", JSON.stringify(0));
+    localStorage.setItem("differentPrompt", JSON.stringify(false));
+    localStorage.setItem("stripWhitespace", JSON.stringify(true));
+    localStorage.setItem("prompt", JSON.stringify(''));
+    localStorage.setItem("finetunedPrompt", JSON.stringify(''));
+    setOutput({});
+    setChecked({'text-ada-001': true});
+    setLoadingDict({'text-ada-001': false});
+    setTemperature(0.75);
+    setMaxTokens(100);
+    setBaseModelsChecked(1);
+    setFinetunedModelsChecked(0);
+    setDifferentPrompt(false);
+    setStripWhitespace(true);
+    setPrompt('');
+    setFinetunedPrompt('');
   }
 
   const copyText = (t) => {
@@ -161,20 +178,25 @@ export default function Playground() {
     let updatedChecked = Object.assign({}, checked);
     updatedChecked[id] = !checked[id];
     setChecked(updatedChecked);
+    localStorage.setItem("checked", JSON.stringify(updatedChecked));
   }
 
   const handlePaperClick = (event, id, baseOrFinetuned) => {
     event.stopPropagation();
     if (!isCheckedById(id)) {  // This will become checked
       if (baseOrFinetuned === "base") {
+        localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked + 1));
         setBaseModelsChecked(baseModelsChecked + 1);
       } else if (baseOrFinetuned === "finetuned") {
+        localStorage.setItem("finetunedModelsChecked", JSON.stringify(finetunedModelsChecked + 1));
         setFinetunedModelsChecked(finetunedModelsChecked + 1);
       }
     } else {
       if (baseOrFinetuned === "base") {
+        localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked - 1));
         setBaseModelsChecked(baseModelsChecked - 1);
       } else if (baseOrFinetuned === "finetuned") {
+        localStorage.setItem("finetunedModelsChecked", JSON.stringify(finetunedModelsChecked - 1));
         setFinetunedModelsChecked(finetunedModelsChecked - 1);
       }
     }
@@ -240,6 +262,26 @@ export default function Playground() {
         console.log(error);
       });
     });
+
+    // Load data from localstorage
+    const checkedLocal = JSON.parse(localStorage.getItem("checked"));
+    if (checkedLocal !== null) setChecked(checkedLocal);
+    const tempLocal = JSON.parse(localStorage.getItem("temperature"));
+    if (tempLocal !== null) setTemperature(tempLocal);
+    const maxTokensLocal = JSON.parse(localStorage.getItem("maxTokens"));
+    if (maxTokensLocal !== null) setMaxTokens(maxTokensLocal);
+    const promptLocal = JSON.parse(localStorage.getItem("prompt"));
+    if (promptLocal !== null) setPrompt(promptLocal);
+    const finetunedPromptLocal = JSON.parse(localStorage.getItem("finetunedPrompt"));
+    if (finetunedPromptLocal !== null) setFinetunedPrompt(finetunedPromptLocal);
+    const differentPromptLocal = JSON.parse(localStorage.getItem("differentPrompt"));
+    if (differentPromptLocal !== null) setDifferentPrompt(differentPromptLocal);
+    const baseModelsCheckedLocal = JSON.parse(localStorage.getItem("baseModelsChecked"));
+    if (baseModelsCheckedLocal !== null) setBaseModelsChecked(baseModelsCheckedLocal);
+    const finetunedModelsCheckedLocal = JSON.parse(localStorage.getItem("finetunedModelsChecked"));
+    if (finetunedModelsCheckedLocal !== null) setFinetunedModelsChecked(finetunedModelsCheckedLocal);
+    const stripWhitespaceLocal = JSON.parse(localStorage.getItem("stripWhitespace"));
+    if (stripWhitespaceLocal !== null) setStripWhitespace(stripWhitespaceLocal);
   }, []);
 
   if (loading) {
@@ -266,7 +308,11 @@ export default function Playground() {
             multiline
             rows={6}
             className='prompt white'
-            inputRef={promptRef}
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+              localStorage.setItem("prompt", JSON.stringify(e.target.value));
+            }}
           />
           <div className='tiny-space' />
           {differentPrompt &&
@@ -276,7 +322,11 @@ export default function Playground() {
                 multiline
                 rows={6}
                 className='prompt white'
-                inputRef={finetunedPromptRef}
+                value={finetunedPrompt}
+                onChange={(e) => {
+                  setFinetunedPrompt(e.target.value);
+                  localStorage.setItem("finetunedPrompt", JSON.stringify(e.target.value));
+                }}
               />
             </Grow>
           }
@@ -285,7 +335,7 @@ export default function Playground() {
             <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
             <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
             {baseModelsChecked > 0 && finetunedModelsChecked > 0 ?
-              <div className='horizontal-box pointer' onClick={() => setDifferentPrompt(!differentPrompt)}>
+              <div className='horizontal-box pointer' onClick={() => handleToggleSeparatePrompt()}>
                 <Checkbox className='small-checkbox' checked={differentPrompt} />
                 <Typography>
                   Different prompt for finetuned models
@@ -391,7 +441,10 @@ export default function Playground() {
                     min={0}
                     max={1}
                     step={0.01}
-                    onChange={e => setTemperature(e.target.value)}
+                    onChange={e => {
+                      setTemperature(e.target.value);
+                      localStorage.setItem("temperature", JSON.stringify(e.target.value));
+                    }}
                   />
                 <Typography sx={{marginLeft:2}}>1</Typography>
               </div>
@@ -409,11 +462,17 @@ export default function Playground() {
                 className='prompt'
                 type="number"
                 value={maxTokens}
-                onChange={e => setMaxTokens(e.target.value)}
+                onChange={e => {
+                  setMaxTokens(e.target.value);
+                  localStorage.setItem("maxTokens", JSON.stringify(e.target.value));
+                }}
               />
 
               <div className='small-space' />
-              <div className='horizontal-box pointer' onClick={() => setStripWhitespace(!stripWhitespace)}>
+              <div className='horizontal-box pointer' onClick={() => {
+                localStorage.setItem("stripWhitespace", JSON.stringify(!stripWhitespace));
+                setStripWhitespace(!stripWhitespace)
+              }}>
                 <Checkbox checked={stripWhitespace} />
                 <Typography>Strip output whitespace</Typography>
               </div>
