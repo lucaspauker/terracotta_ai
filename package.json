@@ -30,7 +30,7 @@
     "formidable": "^2.1.1",
     "google-auth-library": "^8.7.0",
     "jsonexport": "^3.2.0",
-    "mongodb": "^5.2.0",
+    "mongodb": "^5.5.0",
     "mongoose": "^7.0.3",
     "multer": "^1.4.5-lts.1",
     "next": "13.2.4",

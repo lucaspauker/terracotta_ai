@@ -49,8 +49,12 @@ export default async function handler(request, response) {
     return;
   }
 
+  await mongoClient.connect();
+  const db = mongoClient.db("sharpen");
+
   // Don't return a status twice
   let didReturn = false;
+  let newModelId = null;
   try {
     const provider = request.body.provider;
     const modelArchitecture = request.body.modelArchitecture;
@@ -67,9 +71,6 @@ export default async function handler(request, response) {
         hyperParams[key] = Number(value);
       }
     }
-
-    await mongoClient.connect();
-    const db = mongoClient.db("sharpen");
 
     const user = await db
       .collection("users")
@@ -111,7 +112,6 @@ export default async function handler(request, response) {
     }
 
     // Create model in db, then we will fill in provider data later
-    let newModelId;
     await db
       .collection("models")
       .insertOne({
@@ -260,9 +260,13 @@ export default async function handler(request, response) {
             hyperParams: hyperParams,
           },
         }});
-    console.log(ret);
   } catch (e) {
     console.error(e);
+    if (newModelId) await db
+      .collection("models")
+      .updateOne({_id: newModelId}, {$set: {
+          status: "failed",
+        }});
     if (!didReturn) response.status(400).json({ error: e });
   }
 }

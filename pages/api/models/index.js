@@ -78,7 +78,7 @@ export default async function handler(request, response) {
 
       if (model.status === "preparing") {
         models[i]["status"] = "preparing data";
-      } else if (model.status !== "succeeded") {
+      } else if (model.status !== "succeeded" && model.status !== "failed") {
         let finetuneResponse = await openai.retrieveFineTune(model.providerData.finetuneId);
         finetuneResponse = finetuneResponse.data;
         const events = finetuneResponse.events;

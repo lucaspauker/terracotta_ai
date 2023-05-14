@@ -78,7 +78,7 @@ export default function Settings() {
               label="OpenAI API key"
               variant="outlined"
               className='text-label center'
-              value={openAiKey}
+              value={showOpenAiPassword ? openAiKey : openAiKey.substr(0, 24)}
               onChange={(e) => setOpenAiKey(e.target.value)}
               type={showOpenAiPassword ? "text" : "password"}
               InputProps={{
@@ -100,7 +100,7 @@ export default function Settings() {
               label="Cohere API key"
               variant="outlined"
               className='text-label center'
-              value={cohereKey}
+              value={showCoherePassword ? cohereKey: cohereKey.substr(0, 24)}
               onChange={(e) => setCohereKey(e.target.value)}
               type={showCoherePassword ? "text" : "password"}
               InputProps={{
