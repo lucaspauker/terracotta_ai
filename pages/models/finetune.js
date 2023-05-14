@@ -23,8 +23,8 @@ import { FaArrowLeft } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 
-import { toTitleCase } from '/components/utils';
-import {CustomTooltip} from '/components/CustomTooltip.js';
+import { toTitleCase } from '../../components/utils';
+import {CustomTooltip} from '../../components/CustomTooltip.js';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
