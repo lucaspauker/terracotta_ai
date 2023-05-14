@@ -21,7 +21,7 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       console.log("Signing " + profile.email + " in");
-      axios.post("http://localhost:3000/api/user/add", {
+      axios.post(process.env.BASE_URL + "/api/user/add", {
           first_name: profile.given_name,
           last_name: profile.family_name,
           email: profile.email,

@@ -36,7 +36,7 @@ export default async function handler(request, response) {
       Key: 'raw_data/' + request.body.fileName,
     };
 
-    console.log("Retreiving file: " + 'raw_finetune_data/' + request.body.filename);
+    console.log("Retreiving file: " + 'raw_finetune_data/' + request.body.fileName);
 
     console.log(params);
     const stream = myBucket.getObject(params).createReadStream();

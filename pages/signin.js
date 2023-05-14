@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -25,8 +26,10 @@ export async function getServerSideProps(context) {
 }
 
 export default function Home() {
-  signIn()
-  return (null)
+  useEffect(() => {
+    signIn();
+  }, []);
+  return (null);
 }
 
 Home.getLayout = function getLayout(page) {

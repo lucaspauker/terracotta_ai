@@ -36,7 +36,7 @@ export default function Header() {
   };
 
   const handleSignOut = () => {
-    axios.post("http://localhost:3000/admin/logout", {
+    axios.post(process.env.BASE_URL + "/admin/logout", {
       }).then((res) => {
         console.log('Logging out status: ' + res.status);
         router.push("/");
