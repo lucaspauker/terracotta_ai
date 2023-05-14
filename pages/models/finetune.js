@@ -20,8 +20,11 @@ import StepLabel from '@mui/material/StepLabel';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FaArrowLeft } from 'react-icons/fa';
+import IconButton from '@mui/material/IconButton';
+import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 
 import { toTitleCase } from '/components/utils';
+import {CustomTooltip} from '/components/CustomTooltip.js';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -192,31 +195,59 @@ export default function Train() {
                   className="wide-select"
                   label="Provider"
                   value={provider}
-                  onChange={(e) => setProvider(e.target.value)}
+                  onChange={(e) => {
+                    setProvider(e.target.value);
+                    setModelArchitecture('');
+                  }}
                   required
                 >
                   <MenuItem value={'openai'}>OpenAI</MenuItem>
                   <MenuItem value={'cohere'}>Cohere</MenuItem>
                 </Select>
-                </FormControl>
-                <div className='small-space' />
-                <FormControl className='button-margin' disabled={provider !== 'openai'}>
-                  <InputLabel id="model-label">Model architecture</InputLabel>
-                  <Select
+              </FormControl>
+              <div className='small-space' />
+                
+              <FormControl className='button-margin' disabled={provider !== 'openai'}>
+                <InputLabel id="model-label">Model architecture</InputLabel>
+                <Select
                     labelId="model-label"
                     className="wide-select"
                     value={modelArchitecture}
                     label="Model architecture"
                     onChange={(e) => setModelArchitecture(e.target.value)}
                     required
-                  >
-                    <MenuItem value={'ada'}>Ada</MenuItem>
-                    <MenuItem value={'babbage'}>Babbage</MenuItem>
-                    <MenuItem value={'curie'}>Curie</MenuItem>
-                    <MenuItem value={'davinci'}>Davinci</MenuItem>
-                  </Select>
-                </FormControl>
-                <div className='medium-space' />
+                >
+                    <MenuItem value={'ada'}>Ada {
+                      <CustomTooltip title="💡 Capable of very simple tasks, usually the fastest model in the GPT-3 series, and lowest cost." className='tooltip'>
+                        <IconButton disableRipple={true}>
+                          <BiInfoCircle size={16} color='#9C2315'/>
+                        </IconButton>
+                      </CustomTooltip>}
+                    </MenuItem>
+                    <MenuItem value={'babbage'}>Babbage {
+                      <CustomTooltip title="💡 Capable of straightforward tasks, very fast, and lower cost." className='tooltip'>
+                        <IconButton disableRipple={true}>
+                          <BiInfoCircle size={16} color='#9C2315'/>
+                        </IconButton>
+                      </CustomTooltip>}
+                    </MenuItem>
+                    <MenuItem value={'curie'}>Curie {
+                      <CustomTooltip title="💡 Very capable, but faster and lower cost than Davinci." className='tooltip'>
+                        <IconButton disableRipple={true}>
+                          <BiInfoCircle size={16} color='#9C2315'/>
+                        </IconButton>
+                      </CustomTooltip>}
+                    </MenuItem>
+                    <MenuItem value={'davinci'}>Davinci {
+                      <CustomTooltip title="💡 Most capable GPT-3 model. Can do any task the other models can do, often with higher quality." className='tooltip'>
+                        <IconButton disableRipple={true}>
+                          <BiInfoCircle size={16} color='#9C2315'/>
+                        </IconButton>
+                      </CustomTooltip>}
+                    </MenuItem>
+                </Select>
+              </FormControl>
+              <div className='medium-space' />
 
                 <Typography variant='body1'>
                   Dataset

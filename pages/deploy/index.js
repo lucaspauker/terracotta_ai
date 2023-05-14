@@ -25,6 +25,8 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaCopy } from 'react-icons/fa';
 import { BiCopy } from 'react-icons/bi';
+import {CustomTooltip} from '/components/CustomTooltip.js';
+import { BiInfoCircle } from 'react-icons/bi';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
 
@@ -52,25 +54,26 @@ export default function Deploy() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState('');
   const [library, setLibrary] = useState('curl');
+  const [prompt, setPrompt] = useState('input your prompt here');
   const router = useRouter()
 
   const copyText = () => {
     navigator.clipboard.writeText(apiCode);
   }
 
-  const pythonApiCode = (modelName) => {
+  const pythonApiCode = (modelName, inputPrompt) => {
     return `import os
 import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.Completion.create(
     model="${modelName}",
-    prompt="Say this is a test",
+    prompt="${inputPrompt}" + "###",
     max_tokens=7,
     temperature=0
 )`;
   }
 
-  const nodeApiCode = (modelName) => {
+  const nodeApiCode = (modelName, inputPrompt) => {
     return `const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -78,19 +81,19 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const response = await openai.createCompletion({
   model: "${modelName}",
-  prompt: "Say this is a test",
+  prompt: "${inputPrompt}" + "###",
   max_tokens: 7,
   temperature: 0,
 });`
   }
 
-  const curlApiCode = (modelName) => {
+  const curlApiCode = (modelName, inputPrompt) => {
     return `curl https://api.openai.com/v1/completions \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer $OPENAI_API_KEY" \\
   -d '{
     "model": "${modelName}",
-    "prompt": "Say this is a test",
+    "prompt": "${inputPrompt}" + "###",
     "max_tokens": 7,
     "temperature": 0
   }'`
@@ -98,25 +101,32 @@ const response = await openai.createCompletion({
 
   const [apiCode, setApiCode] = useState(curlApiCode(''));
 
-  const getApiCode = (m, l) => {
+  const getApiCode = (m, l, p) => {
     if (l === 'python') {
-      return pythonApiCode(m);
+      return pythonApiCode(m, p);
     } else if (l === 'node.js') {
-      return nodeApiCode(m);
+      return nodeApiCode(m, p);
     } else if (l === 'curl') {
-      return curlApiCode(m);
+      return curlApiCode(m, p);
     }
   }
 
   const handleModelChange = (newModelName) => {
     setModel(newModelName);
-    setApiCode(getApiCode(newModelName, library));
+    setApiCode(getApiCode(newModelName, library, prompt));
   }
 
   const handleLibraryChange = (newLibraryName) => {
     setLibrary(newLibraryName);
-    setApiCode(getApiCode(model, newLibraryName));
+    setApiCode(getApiCode(model, newLibraryName, prompt));
   }
+
+  const handlePromptChange = (newPrompt) => {
+    setPrompt(newPrompt);
+    setApiCode(getApiCode(model, library, newPrompt));
+  }
+
+  
 
   useEffect(() => {
     let projectName = '';
@@ -192,6 +202,19 @@ const response = await openai.createCompletion({
                 ))}
               </Select>
             </FormControl>
+            <div>
+            <TextField
+                label="Input prompt"
+                variant="outlined"
+                value={prompt}
+                onChange={(e) => handlePromptChange(e.target.value)}
+            />
+            <CustomTooltip title="Any additional characters visible in the prompt field in the code block are required for proper model response." className='tooltip'>
+              <IconButton disableRipple={true}>
+                <BiInfoCircle size={16} color='#9C2315'/>
+              </IconButton>
+            </CustomTooltip>
+            </div>
             <IconButton className='horizontal-box copy' onClick={copyText}>
               <BiCopy size={20} />
             </IconButton>
