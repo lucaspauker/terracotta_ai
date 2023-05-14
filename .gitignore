@@ -1,19 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
-.pnp.js
+nextjs_app/node_modules
+nextjs_app/.pnp
+nextjs_app/.pnp.js
 
 # testing
-/coverage
+nextjs_app/coverage
 
 # next.js
-/.next/
-/out/
+nextjs_app/.next
+/.next
+nextjs_app/out
 
 # production
-/build
+nextjs_app/build
 
 # misc
 .DS_Store
@@ -33,6 +34,8 @@ yarn-error.log*
 
 *.swp
 
-/jsonl_data
+nextjs_app/jsonl_data
 
 *__pycache__
+
+flask_app/.venv
