@@ -5,14 +5,14 @@ import AWS from 'aws-sdk'
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 const csv = require('csvtojson');
-const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
-const REGION = process.env.NEXT_PUBLIC_S3_REGION;
+const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
+const REGION = process.env.PUBLIC_S3_REGION;
 
 const { Configuration, OpenAIApi } = require("openai");
 
 AWS.config.update({
-  accessKeyId: process.env.NEXT_PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY
+  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
+  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
 });
 const myBucket = new AWS.S3({
   params: { Bucket: S3_BUCKET },
