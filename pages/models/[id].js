@@ -220,7 +220,7 @@ export default function ModelPage() {
         </Typography>
         <div>
           <div className='tiny-space'/>
-          <Paper className='card' variant='outlined' className='vertical-box'>
+          <Paper className='card vertical-box' variant='outlined'>
             {graphData ? <Line options={options} plugins={plugins} data={graphData} className='chart'/> : null}
             <div className='horizontal-box'>
               {trainEval.metrics.map(metric => (

@@ -91,7 +91,7 @@ export default function ModelPage() {
 
       <div>
           <div className='tiny-space'/>
-          <Paper className='card' variant='outlined' className='vertical-box'>
+          <Paper className='card vertical-box' variant='outlined'>
             <div className='horizontal-box'>
               {evaluation.metrics.map(metric => (
                 <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>

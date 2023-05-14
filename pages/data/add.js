@@ -288,7 +288,7 @@ export default function AddDataset() {
                   <div className='medium-space' />
                   <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
                   <div className='tiny-space' />
-                  <div className='horizontal-box' className='headers-container'>
+                  <div className='horizontal-box headers-container'>
                     <Typography>Headers:&nbsp; </Typography>
                     {headers.map((h, i) =>
                       <div className='data-header' key={h}>

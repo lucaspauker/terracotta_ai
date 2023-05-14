@@ -210,15 +210,15 @@ export default function Evaluate() {
                       <TableCell>
                         {e.metricResults ?
                           <div className='metrics-cell'>
-                            {e.metrics.map(m => <div className='metric-in-table'>
-                              <span key={m} className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
+                            {e.metrics.map(m => <div key={m} className='metric-in-table'>
+                              <span className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
                                 {m in metricMap ? metricMap[m] : m}
                             </span></div>)}
                           </div>
                           :
                           <div className='metrics-cell'>
-                            {e.metrics.map(m => <div className='metric-in-table'>
-                              <span key={m} className='metric-in-table-text'>
+                            {e.metrics.map(m => <div key={m} className='metric-in-table'>
+                              <span className='metric-in-table-text'>
                                 {m in metricMap ? metricMap[m] : m}
                             </span></div>)}
                           </div>
@@ -264,10 +264,10 @@ export default function Evaluate() {
             </Typography>
             <Typography variant='body1'>
               To create a dataset, you need a CSV file of your data. Then, click the
-              "new dataset" button to build a dataset. This will take you to the
+              &quot;new dataset&quot; button to build a dataset. This will take you to the
               new dataset page, which will let you upload a CSV file and
               choose which columns of your CSV
-              data are input and output. Or, if you don't have data, check out some of
+              data are input and output. Or, if you don&apos;t have data, check out some of
               these links to get started:
             </Typography>
             <List sx={{ listStyleType: 'disc' }}>

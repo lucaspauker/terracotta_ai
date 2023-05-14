@@ -236,10 +236,10 @@ export default function Data() {
             </Typography>
             <Typography variant='body1'>
               To create a dataset, you need a CSV file of your data. Then, click the
-              "new dataset" button to build a dataset. This will take you to the
+              &quot;new dataset&quot; button to build a dataset. This will take you to the
               new dataset page, which will let you upload a CSV file and
               choose which columns of your CSV
-              data are input and output. Or, if you don't have data, check out some of
+              data are input and output. Or, if you don&apos;t have data, check out some of
               these links to get started:
             </Typography>
             <List sx={{ listStyleType: 'disc' }}>
