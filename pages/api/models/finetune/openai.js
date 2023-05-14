@@ -49,6 +49,8 @@ export default async function handler(request, response) {
     return;
   }
 
+  // Don't return a status twice
+  let didReturn = false;
   try {
     const provider = request.body.provider;
     const modelArchitecture = request.body.modelArchitecture;
@@ -65,8 +67,6 @@ export default async function handler(request, response) {
         hyperParams[key] = Number(value);
       }
     }
-
-    console.log(request.body);
 
     await mongoClient.connect();
     const db = mongoClient.db("sharpen");
@@ -88,14 +88,50 @@ export default async function handler(request, response) {
     if (!project) {
       response.status(400).json({ error: 'Project not found' });
       return;
+    } else if (project.type !== "generative" && project.type !== "classification") {
+      response.status(400).json({ error: 'Only classification and generation are supported' });
+      return;
     }
 
     const dataset = await db
       .collection("datasets")
       .findOne({userId: userId, name: datasetName});
+    if (!dataset) {
+      response.status(400).json({ error: 'Dataset not found' });
+      return;
+    }
+
+    // Check if model already exists
+    const prevModel = await db
+      .collection("models")
+      .findOne({name: modelName, projectId: project._id});
+    if (prevModel) {
+      response.status(400).json({error:"Model name already exists, pick a unique name."});
+      return;
+    }
+
+    // Create model in db, then we will fill in provider data later
+    let newModelId;
+    await db
+      .collection("models")
+      .insertOne({
+          name: modelName,
+          description: description,
+          provider: provider,
+          modelArchitecture: modelArchitecture,
+          status: "preparing",
+          datasetId: dataset._id,
+          projectId: project._id,
+          userId: userId,
+          providerData: {},
+          timeCreated: Date.now(),
+        }).then(res => {
+          newModelId = res.insertedId;
+        });
+    response.status(200).send();
+    didReturn = true;
 
     // Only download from S3 and upload to openai once
-
     let valFilePresent = false;
     if (!dataset.openaiData) {
 
@@ -153,12 +189,10 @@ export default async function handler(request, response) {
 
       // Upload files to openAI, need to modify this later and save into a new collection
       const preparedTrainFile = 'jsonl_data/' + path.parse(trainFileName).name + "_prepared.jsonl";
-      console.log(preparedTrainFile)
       const trainResponse = await openai.createFile(
         fs.createReadStream(preparedTrainFile),
         "fine-tune"
       );
-      console.log(trainResponse.data);
 
       if (valFilePresent) {
         const preparedValFile = 'jsonl_data/' + path.parse(valFileName).name + "_prepared.jsonl";
@@ -166,7 +200,6 @@ export default async function handler(request, response) {
           fs.createReadStream(preparedValFile),
           "fine-tune"
         );
-        console.log(valResponse.data);
         await db
           .collection("datasets")
           .updateOne({"_id":dataset._id},
@@ -212,41 +245,25 @@ export default async function handler(request, response) {
         model: modelArchitecture,
       };
       if (valFilePresent) finetuneRequest.validation_file = uploadInfo.openaiData.valFile;
-    } else {
-      response.status(400).json({ error: 'Only classification and generation are supported' });
-      return;
     }
 
     // Create finetune
     finetuneRequest = {...finetuneRequest,...hyperParams};
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
 
-    console.log(finetuneResponse.data)
-
-    const d = await db
+    const ret = await db
       .collection("models")
-      .insertOne({
-          name: modelName,
-          description: description,
-          provider: provider,
-          modelArchitecture: modelArchitecture,
+      .updateOne({_id: newModelId}, {$set: {
           status: "training",
-          datasetId: dataset._id,
-          projectId: project._id,
-          userId: userId,
           providerData: {
             finetuneId: finetuneResponse.data.id,
             hyperParams: hyperParams,
           },
-          timeCreated: Date.now(),
-        });
-    console.log(d);
-
-    response.status(200).send();
-
+        }});
+    console.log(ret);
   } catch (e) {
     console.error(e);
-    response.status(400).json({ error: e })
+    if (!didReturn) response.status(400).json({ error: e });
   }
 }
 

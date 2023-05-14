@@ -78,7 +78,6 @@ export default async function handler(request, response) {
           }
         }
       ]).toArray();
-    console.log(evals);
 
     response.status(200).json(evals);
   } catch (e) {
