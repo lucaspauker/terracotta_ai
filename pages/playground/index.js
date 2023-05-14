@@ -22,7 +22,7 @@ import axios from 'axios';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 
-import {CustomTooltip} from '../../components/CustomTooltip.js';
+import {CustomTooltip} from '../../components/CustomToolTip.js';
 
 const providers = ['openai', 'cohere'];
 const baseModelNamesDict = {

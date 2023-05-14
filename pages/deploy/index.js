@@ -25,7 +25,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaCopy } from 'react-icons/fa';
 import { BiCopy } from 'react-icons/bi';
-import {CustomTooltip} from '../../components/CustomTooltip.js';
+import {CustomTooltip} from '../../components/CustomToolTip.js';
 import { BiInfoCircle } from 'react-icons/bi';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
