@@ -29,6 +29,7 @@ import { useRouter } from 'next/router'
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
+import {HiOutlineRefresh} from "react-icons/hi";
 
 import { calculateColor, timestampToDateTimeShort } from '/components/utils';
 import MenuComponent from "components/MenuComponent";
@@ -87,6 +88,7 @@ export default function Evaluate() {
   }
 
   const refreshData = () => {
+    setLoading(true);
     let p = project;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");
@@ -160,9 +162,14 @@ export default function Evaluate() {
         <Typography variant='h4' className='page-main-header'>
           Evaluations
         </Typography>
-        <Button variant='contained' color="secondary" component={Link} href="/evaluate/evaluate">
-          + New evaluation
-        </Button>
+        <div>
+          <IconButton color="secondary" className='button-margin' onClick={refreshData}>
+            <HiOutlineRefresh size={25} />
+          </IconButton>
+          <Button variant='contained' color="secondary" component={Link} href="/evaluate/evaluate">
+            + New evaluation
+          </Button>
+        </div>
       </div>
       <div className='tiny-space' />
 
@@ -187,17 +194,35 @@ export default function Evaluate() {
                       key={e._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
-                      <TableCell><Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></TableCell>
+                      <TableCell>
+                        {e.metricResults ?
+                          <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link>
+                          :
+                          <div className='horizontal-box flex-start'>
+                            <div>{e.name} &nbsp;&nbsp;&nbsp;</div>
+                            <CircularProgress size={16}/>
+                          </div>
+                        }
+                      </TableCell>
                       <TableCell>{timestampToDateTimeShort(e.timeCreated)}</TableCell>
                       <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
                       <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
                       <TableCell>
-                        <div className='metrics-cell'>
-                          {e.metrics.map(m => <div className='metric-in-table'>
-                            <span key={m} className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
-                              {m in metricMap ? metricMap[m] : m}
-                          </span></div>)}
-                        </div>
+                        {e.metricResults ?
+                          <div className='metrics-cell'>
+                            {e.metrics.map(m => <div className='metric-in-table'>
+                              <span key={m} className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
+                                {m in metricMap ? metricMap[m] : m}
+                            </span></div>)}
+                          </div>
+                          :
+                          <div className='metrics-cell'>
+                            {e.metrics.map(m => <div className='metric-in-table'>
+                              <span key={m} className='metric-in-table-text'>
+                                {m in metricMap ? metricMap[m] : m}
+                            </span></div>)}
+                          </div>
+                        }
                       </TableCell>
                       <TableCell>
                         <MenuComponent

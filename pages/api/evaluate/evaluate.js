@@ -49,6 +49,7 @@ export default async function handler(request, response) {
     return;
   }
 
+  let didReturn = false;
   try {
     const name = request.body.name;
     const description = request.body.description;
@@ -94,6 +95,35 @@ export default async function handler(request, response) {
       response.status(400).json({ error: 'Model not found' });
       return;
     }
+
+    // Check if name already exists
+    const prev = await db
+      .collection("evaluations")
+      .findOne({name: name, projectId: project._id});
+    if (prev) {
+      response.status(400).json({error:"Evaluation name already exists, pick a unique name."});
+      return;
+    }
+
+    let newEvaluationId;
+    await db
+      .collection("evaluations")
+      .insertOne({
+          name: name,
+          description: description,
+          datasetId: dataset._id,
+          projectId: project._id,
+          modelId: model._id,
+          userId: user._id,
+          metrics: metrics,
+          metricResults: null,
+          trainingEvaluation: false,
+          timeCreated: Date.now(),
+        }).then(res => {
+          newEvaluationId = res.insertedId;
+        });
+    response.status(200).send();
+    didReturn = true;
 
     // Next, call inference for every example
     let fileName;
@@ -183,28 +213,14 @@ export default async function handler(request, response) {
     }
 
 
-    const ret = await db
+    await db
       .collection("evaluations")
-      .insertOne({
-          name: name,
-          description: description,
-          datasetId: dataset._id,
-          projectId: project._id,
-          modelId: model._id,
-          userId: user._id,
-          metrics: metrics,
+      .updateOne({_id: newEvaluationId}, {$set: {
           metricResults: metricResults,
-          trainingEvaluation: false,
-          timeCreated: Date.now(),
-        });
-
-    console.log(ret);
-
-    response.status(200).send(ret._id);
-
+        }});
   } catch (e) {
     console.error(e);
-    response.status(400).json({ error: e })
+    if (!didReturn) response.status(400).json({ error: e });
   }
 }
 
