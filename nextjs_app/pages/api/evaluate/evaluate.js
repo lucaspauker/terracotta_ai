@@ -50,6 +50,9 @@ export default async function handler(request, response) {
   }
 
   let didReturn = false;
+  let newEvaluationId;
+  await mongoClient.connect();
+  const db = mongoClient.db("sharpen");
   try {
     const name = request.body.name;
     const description = request.body.description;
@@ -57,9 +60,6 @@ export default async function handler(request, response) {
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;
     const metrics = request.body.metrics;
-
-    await mongoClient.connect();
-    const db = mongoClient.db("sharpen");
 
     const user = await db
       .collection("users")
@@ -105,7 +105,6 @@ export default async function handler(request, response) {
       return;
     }
 
-    let newEvaluationId;
     await db
       .collection("evaluations")
       .insertOne({
@@ -118,6 +117,7 @@ export default async function handler(request, response) {
           metrics: metrics,
           metricResults: null,
           trainingEvaluation: false,
+          status: "evaluating",
           timeCreated: Date.now(),
         }).then(res => {
           newEvaluationId = res.insertedId;
@@ -141,17 +141,19 @@ export default async function handler(request, response) {
 
     let completions = [];
 
+    console.log("Starting to query OpenAI");
     const requests = json_output.map((row) =>
       openai.createCompletion({
         model: model.providerData.modelId,
         prompt: row.prompt + "\n\n###\n\n",
-        max_tokens: project.type === "classification" ? 1 : 100,
+        max_tokens: project.type === "classification" ? 10 : 100,
         temperature: 0,
         stop: '$$$',
       })
     );
 
     const results = await Promise.all(requests);
+    console.log("Retrieved results from OpenAI");
 
     results.map((completion) => {
       completions.push(completion.data.choices[0].text.trim());
@@ -198,7 +200,20 @@ export default async function handler(request, response) {
         }
       }
     } else if (project.type === "generative") {
-      const tempMetricResults = await spawnMetricScript(completions, json_output);
+      // Call flask app
+      let url = "http://127.0.0.1:5000/evaluate_nlp";
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "completions": completions,
+          "reference": json_output,
+        }),
+      });
+      const responseData = await response.json();
+      const tempMetricResults = responseData.metric_results;
       for (let i = 0; i < metrics.length; i++) {
         if (metrics[i] in tempMetricResults) {
           metricResults[metrics[i]] = tempMetricResults[metrics[i]];
@@ -217,9 +232,15 @@ export default async function handler(request, response) {
       .collection("evaluations")
       .updateOne({_id: newEvaluationId}, {$set: {
           metricResults: metricResults,
+          status: "succeeded",
         }});
   } catch (e) {
     console.error(e);
+    await db
+      .collection("evaluations")
+      .updateOne({_id: newEvaluationId}, {$set: {
+        status: "failed",
+        }});
     if (!didReturn) response.status(400).json({ error: e });
   }
 }

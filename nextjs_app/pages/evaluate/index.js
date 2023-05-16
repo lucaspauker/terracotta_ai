@@ -24,6 +24,8 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import ErrorIcon from '@mui/icons-material/Error';
 import axios from 'axios';
 import { useRouter } from 'next/router'
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -195,7 +197,14 @@ export default function Evaluate() {
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
                       <TableCell>
-                        {e.metricResults ?
+                        {e.status === "failed" ?
+                          <div className='horizontal-box flex-start'>
+                            <div>{e.name} &nbsp;&nbsp;&nbsp;</div>
+                            <Tooltip title="Error running evaluation">
+                              <ErrorIcon sx={{color:'red', fontSize:16}}/>
+                            </Tooltip>
+                          </div>
+                          : e.metricResults ?
                           <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link>
                           :
                           <div className='horizontal-box flex-start'>
@@ -220,7 +229,7 @@ export default function Evaluate() {
                             {e.metrics.map(m => <div key={m} className='metric-in-table'>
                               <span className='metric-in-table-text'>
                                 {m in metricMap ? metricMap[m] : m}
-                            </span></div>)}
+                              </span></div>)}
                           </div>
                         }
                       </TableCell>
