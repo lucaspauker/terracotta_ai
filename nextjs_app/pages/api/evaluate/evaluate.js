@@ -19,24 +19,6 @@ const myBucket = new AWS.S3({
   region: REGION,
 });
 
-const { spawn } = require('child_process');
-
-function spawnMetricScript(completions, json_output) {
-  const p = spawn('python', ["scripts/evaluate/nlp_metrics.py", JSON.stringify(completions), JSON.stringify(json_output)]);
-  return new Promise((resolve) => {
-    let data = "";
-    p.stdout.on("data", (x) => {
-      data = JSON.parse(x);
-    });
-    p.stderr.on("data", (x) => {
-      process.stderr.write(x.toString());
-    });
-    p.on("exit", (code) => {
-      resolve(data);
-    });
-  });
-}
-
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })

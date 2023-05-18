@@ -33,7 +33,10 @@ export default async function handler(request, response) {
     const dataset = await db
       .collection("datasets")
       .findOne({_id: m.datasetId});
-    console.log(dataset);
+
+    const template = await db
+      .collection("templates")
+      .findOne({_id: m.templateId});
 
     const modelWithDataset = {
       _id: m._id,
@@ -45,6 +48,9 @@ export default async function handler(request, response) {
       cost: m.cost,
       datasetId: m.datasetId,
       datasetName: dataset ? dataset.name : null,
+      templateId: m.templateId,
+      templateString: template.templateString,
+      stopSequence: template.stopSequence,
     };
 
     response.status(200).json(modelWithDataset);

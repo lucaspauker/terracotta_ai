@@ -172,7 +172,7 @@ export default function Train() {
         projectName: projectName,
         hyperParams: hyperParams,
         templateString: templateString,
-        templateData: templateData, 
+        templateData: templateData,
         outputColumn: outputColumn,
         stopSequence: stopSequence,
       }).then((res) => {
@@ -188,7 +188,7 @@ export default function Train() {
   }
 
   const estimateCost = (tempTemplateData) => {
-    
+
     axios.post("/api/models/finetune/cost", {
         provider: provider,
         modelArchitecture: modelArchitecture,
@@ -232,7 +232,11 @@ export default function Train() {
       }).then((json_data) => {
         setTrainData(json_data.data);
         const rowsOnMount = json_data.data.slice(0, rowsPerPage);
-        setHeaders(Object.keys(json_data.data[0]));
+        const inputHeaders = Object.keys(json_data.data[0]);
+        setHeaders(inputHeaders);
+        setOutputColumn(inputHeaders[1]);
+        setTemplateString("{{" + inputHeaders[0] + "}}\n\n###\n\n");
+        setStopSequence("$$$");
         setVisibleRows(rowsOnMount);
         setDatasetLoading(false);
       }).catch((error) => {
@@ -338,7 +342,7 @@ export default function Train() {
                 </Select>
               </FormControl>
               <div className='small-space' />
-                
+
               <FormControl className='button-margin' disabled={provider !== 'openai'}>
                 <InputLabel id="model-label">Model architecture</InputLabel>
                 <Select
@@ -467,7 +471,7 @@ export default function Train() {
                           </Typography>
                         )}
                       </div >
-                  </div> 
+                  </div>
                 </div>
               </div>
                 {
@@ -496,7 +500,8 @@ export default function Train() {
                               </TableCell>
                               <TableCell className = "half-table-cell">
                                 <Typography>
-                                {outputColumn? row[outputColumn]: ""} 
+                                {outputColumn? row[outputColumn] : ""}
+                                {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
                                 </Typography>
                               </TableCell>
                             </TableRow>

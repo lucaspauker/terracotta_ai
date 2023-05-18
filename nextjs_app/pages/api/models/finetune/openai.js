@@ -149,6 +149,7 @@ export default async function handler(request, response) {
     const openaiUploaded = false;
     const regex = /{{.*}}/g;
     const matches = templateString.match(regex);
+    const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
     let classes = [];
 
     const templateTransform = (row) => {
@@ -187,10 +188,9 @@ export default async function handler(request, response) {
           Bucket: S3_BUCKET,
           Key: 'raw_data/' + valFileName,
         }
-  
+
         const stream = myBucket.getObject(params).createReadStream();
         valJson = await csv().fromStream(stream);
-  
       }
 
       const trainData = trainJson.map((row) => {
@@ -214,13 +214,13 @@ export default async function handler(request, response) {
         datasetId: dataset._id,
         classes: classes.length > 1? classes : null,
         stopSequence: stopSequence,
+        fields: matchesStrings,
       }
 
       await db
       .collection("templates")
       .insertOne(template);
-      
-      
+
       const trainFileJsonl = trainFileName.split('.')[0] + '.jsonl'
       const valFileJsonl = valFileName.split('.')[0] + '.jsonl'
       await downloadFile(trainData, trainFileJsonl);
@@ -299,8 +299,6 @@ export default async function handler(request, response) {
           templateId: template._id,
           timeCreated: Date.now(),
         }});
-    
-    console.log(d);
 
     response.status(200).send();
 

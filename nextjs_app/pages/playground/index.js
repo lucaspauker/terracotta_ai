@@ -18,8 +18,10 @@ import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Grow from '@mui/material/Grow';
+import Modal from '@mui/material/Modal';
+import Backdrop from '@mui/material/Backdrop';
 import axios from 'axios';
-import { BiCopy, BiInfoCircle } from 'react-icons/bi';
+import { BiDetail, BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 import {CustomTooltip} from '../../components/CustomToolTip.js';
@@ -51,23 +53,29 @@ export default function Playground() {
   const [temperature, setTemperature] = useState(0.75);
   const [maxTokens, setMaxTokens] = useState(100);
   const [baseModelsChecked, setBaseModelsChecked] = useState(1);
-  const [finetunedModelsChecked, setFinetunedModelsChecked] = useState(0);
-  const [differentPrompt, setDifferentPrompt] = useState(false);
+  const [finetunedModelsFields, setFinetunedModelsFields] = useState([]);
+  const [finetuneData, setFinetuneData] = useState({});
   const [stripWhitespace, setStripWhitespace] = useState(true);
   const [prompt, setPrompt] = useState('');
-  const [finetunedPrompt, setFinetunedPrompt] = useState('');
+  const [popupText, setPopupText] = useState('');
+  const [popupTextTitle, setPopupTextTitle] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleTemplateButtonClick = (text, title) => {
+    setIsOpen(true);
+    setPopupText(text);
+    setPopupTextTitle(title);
+  };
+
+  const handleTemplateClose = () => {
+    setIsOpen(false);
+    setPopupText('');
+    setPopupTextTitle('');
+  };
 
   const storeOutput = (id, text) => {
     setOutput({...output, [id]: text});
     setLoadingDict(loadingDict => ({...loadingDict, [id]: false}));
-  }
-
-  const handleToggleSeparatePrompt = () => {
-    if (!differentPrompt) {
-      setFinetunedPrompt(prompt);
-    }
-    setDifferentPrompt(!differentPrompt);
-    localStorage.setItem("differentPrompt", JSON.stringify(!differentPrompt));
   }
 
   const submit = () => {
@@ -119,12 +127,12 @@ export default function Playground() {
       if (checked[m._id]) {
         console.log("Sending request for " + m.name);
         let p = prompt;
-        if (differentPrompt) p = finetunedPrompt;
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
             model: m,
             prompt: p,
             projectName: project,
             hyperParams: hyperParams,
+            finetuneInputData: finetuneData,
           }).then((res) => {
             if (res.data !== "No data found") {
               let out = res.data;
@@ -143,22 +151,20 @@ export default function Playground() {
     localStorage.setItem("temperature", JSON.stringify(0.75));
     localStorage.setItem("maxTokens", JSON.stringify(100));
     localStorage.setItem("baseModelsChecked", JSON.stringify(1));
-    localStorage.setItem("finetunedModelsChecked", JSON.stringify(0));
-    localStorage.setItem("differentPrompt", JSON.stringify(false));
+    localStorage.setItem("finetuneData", JSON.stringify({}));
+    localStorage.setItem("finetunedModelsFields", JSON.stringify([]));
     localStorage.setItem("stripWhitespace", JSON.stringify(true));
     localStorage.setItem("prompt", JSON.stringify(''));
-    localStorage.setItem("finetunedPrompt", JSON.stringify(''));
     setOutput({});
     setChecked({'text-ada-001': true});
     setLoadingDict({'text-ada-001': false});
     setTemperature(0.75);
     setMaxTokens(100);
-    setBaseModelsChecked(1);
-    setFinetunedModelsChecked(0);
-    setDifferentPrompt(false);
     setStripWhitespace(true);
     setPrompt('');
-    setFinetunedPrompt('');
+    setBaseModelsChecked(1);
+    setFinetuneData({});
+    setFinetunedModelsFields([]);
   }
 
   const copyText = (t) => {
@@ -174,32 +180,60 @@ export default function Playground() {
   }
 
   const toggleCheckedById = (id) => {
-    let updatedChecked = Object.assign({}, checked);
-    updatedChecked[id] = !checked[id];
-    setChecked(updatedChecked);
-    localStorage.setItem("checked", JSON.stringify(updatedChecked));
+    setChecked(prevChecked => {
+      const updatedChecked = { ...prevChecked, [id]: !prevChecked[id] };
+      localStorage.setItem("checked", JSON.stringify(updatedChecked));
+      return updatedChecked;
+    });
   }
 
-  const handlePaperClick = (event, id, baseOrFinetuned) => {
+  const handlePaperClick = (event, m, baseOrFinetuned) => {
     event.stopPropagation();
+    let id;
+    if (baseOrFinetuned === "base") {
+      id = m.completionName;
+    } else if (baseOrFinetuned === "finetuned") {
+      id = m._id;
+    }
     if (!isCheckedById(id)) {  // This will become checked
-      if (baseOrFinetuned === "base") {
+      if (baseOrFinetuned === "finetuned") {
+        const updatedFields = [...new Set([...finetunedModelsFields, ...m.templateFields])];
+        setFinetunedModelsFields(updatedFields);
+        localStorage.setItem("finetunedModelsFields", JSON.stringify(updatedFields));
+      } else {
         localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked + 1));
         setBaseModelsChecked(baseModelsChecked + 1);
-      } else if (baseOrFinetuned === "finetuned") {
-        localStorage.setItem("finetunedModelsChecked", JSON.stringify(finetunedModelsChecked + 1));
-        setFinetunedModelsChecked(finetunedModelsChecked + 1);
       }
-    } else {
-      if (baseOrFinetuned === "base") {
+    } else {  // Will become unchecked
+      if (baseOrFinetuned === "finetuned") {
+        // We have to iterate through all the models and construct the set
+        let array = [];
+        for (let i=0; i<finetunedModels.length; i++) {
+          let mFinetuned = finetunedModels[i];
+          if (checked[mFinetuned._id] && m._id !== mFinetuned._id) {
+            array = [...array, ...mFinetuned.templateFields];
+          }
+        }
+        const updatedFields = [...new Set(array)];
+        setFinetunedModelsFields(updatedFields);
+        localStorage.setItem("finetunedModelsFields", JSON.stringify(updatedFields));
+      } else {
         localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked - 1));
         setBaseModelsChecked(baseModelsChecked - 1);
-      } else if (baseOrFinetuned === "finetuned") {
-        localStorage.setItem("finetunedModelsChecked", JSON.stringify(finetunedModelsChecked - 1));
-        setFinetunedModelsChecked(finetunedModelsChecked - 1);
       }
     }
     toggleCheckedById(id);
+  };
+
+  const handleFieldChange = (field, value) => {
+    setFinetuneData(prevData => {
+      const updatedData = {
+        ...prevData,
+        [field]: value
+      };
+      localStorage.setItem('finetuneData', JSON.stringify(updatedData));
+      return updatedData;
+    });
   };
 
   const isCheckedById = (id) => {
@@ -271,16 +305,15 @@ export default function Playground() {
     if (maxTokensLocal !== null) setMaxTokens(maxTokensLocal);
     const promptLocal = JSON.parse(localStorage.getItem("prompt"));
     if (promptLocal !== null) setPrompt(promptLocal);
-    const finetunedPromptLocal = JSON.parse(localStorage.getItem("finetunedPrompt"));
-    if (finetunedPromptLocal !== null) setFinetunedPrompt(finetunedPromptLocal);
-    const differentPromptLocal = JSON.parse(localStorage.getItem("differentPrompt"));
-    if (differentPromptLocal !== null) setDifferentPrompt(differentPromptLocal);
-    const baseModelsCheckedLocal = JSON.parse(localStorage.getItem("baseModelsChecked"));
-    if (baseModelsCheckedLocal !== null) setBaseModelsChecked(baseModelsCheckedLocal);
-    const finetunedModelsCheckedLocal = JSON.parse(localStorage.getItem("finetunedModelsChecked"));
-    if (finetunedModelsCheckedLocal !== null) setFinetunedModelsChecked(finetunedModelsCheckedLocal);
     const stripWhitespaceLocal = JSON.parse(localStorage.getItem("stripWhitespace"));
     if (stripWhitespaceLocal !== null) setStripWhitespace(stripWhitespaceLocal);
+    const baseModelsCheckedLocal = JSON.parse(localStorage.getItem("baseModelsChecked"));
+    if (baseModelsCheckedLocal !== null) setBaseModelsChecked(baseModelsCheckedLocal);
+    const finetuneDataLocal = JSON.parse(localStorage.getItem("finetuneData"));
+    if (finetuneDataLocal !== null) setFinetuneData(finetuneDataLocal);
+    const finetunedModelsFieldsLocal = JSON.parse(localStorage.getItem("finetunedModelsFields"));
+    if (finetunedModelsFieldsLocal !== null) setFinetunedModelsFields(finetunedModelsFieldsLocal);
+    console.log(finetunedModelsFieldsLocal);
   }, []);
 
   if (loading) {
@@ -298,50 +331,57 @@ export default function Playground() {
 
       <div className='leftright'>
         <div className='left'>
-          <Typography variant='body1'>
-            Prompt
-          </Typography>
-          <div className='tiny-space' />
-          <TextField
-            label="Your prompt here..."
-            multiline
-            rows={6}
-            className='prompt white'
-            value={prompt}
-            onChange={(e) => {
-              setPrompt(e.target.value);
-              localStorage.setItem("prompt", JSON.stringify(e.target.value));
-            }}
-          />
-          <div className='tiny-space' />
-          {differentPrompt &&
-            <Grow in={differentPrompt}>
+          {baseModelsChecked ?
+            <>
+              <Typography variant='body1'>
+                Base model prompt
+              </Typography>
+              <div className='tiny-space' />
               <TextField
-                label="Your finetuned models prompt here..."
+                label="Your prompt here..."
                 multiline
                 rows={6}
                 className='prompt white'
-                value={finetunedPrompt}
+                value={prompt}
                 onChange={(e) => {
-                  setFinetunedPrompt(e.target.value);
-                  localStorage.setItem("finetunedPrompt", JSON.stringify(e.target.value));
+                  setPrompt(e.target.value);
+                  localStorage.setItem("prompt", JSON.stringify(e.target.value));
                 }}
               />
-            </Grow>
+              <div className='small-space' />
+            </> : null}
+          {finetunedModelsFields.length > 0 &&
+            <>
+            <Typography>Finetuned prompt inputs</Typography>
+            </>}
+          {finetunedModelsFields.map((f) => (
+            <div key={f}>
+              <div className='tiny-space' />
+              <div className="horizontal-box flex-start">
+                <Typography>{f}:&nbsp;&nbsp;</Typography>
+                <TextField
+                  sx={{width: '100%'}}
+                  className='white'
+                  label=""
+                  value={finetuneData[f] || ''}
+                  onChange={e => handleFieldChange(f, e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+
+          {baseModelsChecked || finetunedModelsFields.length ?
+            <>
+              <div className='small-space' />
+              <div className='horizontal-box full-width flex-start'>
+                <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
+                <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
+              </div>
+              <div className='tiny-space' />
+            </>
+            :
+            <Typography>Select a model to get started!</Typography>
           }
-          <div className='tiny-space' />
-          <div className='horizontal-box full-width flex-start'>
-            <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
-            <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
-            {baseModelsChecked > 0 && finetunedModelsChecked > 0 ?
-              <div className='horizontal-box pointer' onClick={() => handleToggleSeparatePrompt()}>
-                <Checkbox className='small-checkbox' checked={differentPrompt} />
-                <Typography>
-                  Different prompt for finetuned models
-                </Typography>
-              </div> : null}
-          </div>
-          <div className='tiny-space' />
 
           <div className='model-output'>
             {baseModelsList.map((m, i) => (
@@ -353,9 +393,11 @@ export default function Playground() {
                       {baseModelNamesDict[m.completionName]}
                     </Typography>
                     <div className='horizontal-box'>
-                      <IconButton className='horizontal-box copy' onClick={() => copyText(output[m.completionName])}>
-                        <BiCopy size={20} />
-                      </IconButton>
+                      <Tooltip title="Copy output">
+                        <IconButton className='horizontal-box copy' onClick={() => copyText(output[m.completionName])}>
+                          <BiCopy size={20} />
+                        </IconButton>
+                      </Tooltip>
                       <IconButton className='copy' onClick={() => toggleCheckedById(m.completionName)}>
                         <AiOutlineCloseCircle size={20} />
                       </IconButton>
@@ -389,9 +431,16 @@ export default function Playground() {
                       {m.name}
                     </Typography>
                     <div className='horizontal-box'>
-                      <IconButton className='horizontal-box copy' onClick={() => copyText(output[m._id])}>
-                        <BiCopy size={20} />
-                      </IconButton>
+                      <Tooltip title="Show template">
+                        <IconButton className='copy' onClick={() => handleTemplateButtonClick(m.templateString, m.name)}>
+                          <BiDetail size={20} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Copy output">
+                        <IconButton className='horizontal-box copy' onClick={() => copyText(output[m._id])}>
+                          <BiCopy size={20} />
+                        </IconButton>
+                      </Tooltip>
                       <IconButton className='copy' onClick={() => toggleCheckedById(m._id)}>
                         <AiOutlineCloseCircle size={20} />
                       </IconButton>
@@ -417,6 +466,29 @@ export default function Playground() {
                 </div>
               : null
             ))}
+            <Modal open={isOpen} onClose={handleTemplateClose} closeAfterTransition BackdropComponent={Backdrop}>
+              <div className="modal">
+                <Paper className="popup">
+                  <IconButton className="closeButton copy" onClick={handleTemplateClose}>
+                    <AiOutlineCloseCircle size={20} />
+                  </IconButton>
+                  <div className="content">
+                    <Typography sx={{fontWeight: 'bold', marginBottom: 2}}>
+                      <i>{popupTextTitle}</i>&nbsp;&nbsp;template
+                    </Typography>
+                    <Typography>
+                      {popupText.split('\n').map((line, index) => {
+                        if (line === '') {
+                          return <br key={index} />;
+                        } else {
+                          return <p key={index}>{line}</p>;
+                        }
+                      })}
+                    </Typography>
+                  </div>
+                </Paper>
+              </div>
+            </Modal>
           </div>
         </div>
 
@@ -479,7 +551,7 @@ export default function Playground() {
           </Paper>
           <div className='medium-space'/>
 
-          <Typography>Add models here</Typography>
+          <Typography>Add models</Typography>
           <div className='tiny-space'/>
 
           <div className='tiny-space' />
@@ -506,7 +578,7 @@ export default function Playground() {
               <Paper
                 variant='outlined'
                 className='card horizontal-box model-select-box'
-                onClick={(event) => handlePaperClick(event, m._id, "finetuned")}
+                onClick={(event) => handlePaperClick(event, m, "finetuned")}
                 key={m._id}
               >
                 <Checkbox checked={isCheckedById(m._id)} />
@@ -521,7 +593,7 @@ export default function Playground() {
                 <Paper
                   variant='outlined'
                   className='card horizontal-box model-select-box'
-                  onClick={(event) => handlePaperClick(event, m.completionName, "base")}
+                  onClick={(event) => handlePaperClick(event, m, "base")}
                   key={m._id}
                 >
                   <Checkbox checked={isCheckedById(m.completionName)} />
