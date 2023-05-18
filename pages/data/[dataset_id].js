@@ -45,6 +45,7 @@ export default function DataPage() {
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [headers, setHeaders] = useState([]);
   const router = useRouter();
   const { dataset_id } = router.query;
 
@@ -131,6 +132,7 @@ export default function DataPage() {
           }).then((json_data) => {
             setRawData(json_data.data);
             const rowsOnMount = json_data.data.slice(0, rowsPerPage);
+            setHeaders(Object.keys(json_data.data[0]));
             setVisibleRows(rowsOnMount);
             setLoading(false);
           }).catch((error) => {
@@ -224,8 +226,8 @@ export default function DataPage() {
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
-                <TableCell className='table-cell'>Input</TableCell>
-                <TableCell className='table-cell'>Output</TableCell>
+                {headers.map((header, i) => 
+                ( <TableCell key={i} className='table-cell'>{header}</TableCell>))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -233,9 +235,8 @@ export default function DataPage() {
                 <TableRow
                   key={i}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell>{row.prompt}</TableCell>
-                  <TableCell>{row.completion}</TableCell>
+                > 
+                  {headers.map((header, j) => (<TableCell key = {j}>{row[header]}</TableCell>))}
                 </TableRow>
               ))}
             </TableBody>

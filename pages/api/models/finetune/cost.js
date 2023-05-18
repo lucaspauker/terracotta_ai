@@ -20,7 +20,7 @@ export default async function handler(request, response) {
       const provider = request.body.provider;
       const modelArchitecture = request.body.modelArchitecture;
       const epochs = request.body.epochs;
-      const datasetName = request.body.dataset;
+      const templateData = request.body.templateData;
 
       console.log(request.body);
 
@@ -31,17 +31,7 @@ export default async function handler(request, response) {
         .collection("providerModels")
         .findOne({provider: provider, finetuneName: modelArchitecture});
 
-      const user = await db
-        .collection("users")
-        .findOne({email: session.user.email});
-
-      const userId = user._id;
-
-      const dataset = await db
-        .collection("datasets")
-        .findOne({userId: userId, name: datasetName});
-
-      const estimatedCost = (dataset.numTrainWords + dataset.numValWords)*4/3*epochs/1000*providerModel.trainingCost;
+      const estimatedCost = (templateData.numTrainWords + templateData.numValWords)*4/3*epochs/1000*providerModel.trainingCost;
 
       response.status(200).json({"estimatedCost":estimatedCost.toFixed(2)});
 

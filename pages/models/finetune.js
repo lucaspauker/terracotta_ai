@@ -22,6 +22,15 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FaArrowLeft } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
+import { useCallback } from 'react';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 import { toTitleCase } from '/components/utils';
 import {CustomTooltip} from '/components/CustomTooltip.js';
@@ -46,22 +55,107 @@ export async function getServerSideProps(context) {
 export default function Train() {
   const [provider, setProvider] = useState('');
   const [modelArchitecture, setModelArchitecture] = useState('');
-  const [dataset, setDataset] = useState('');
   const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState('');
   const [datasets, setDatasets] = useState([]);
+  const [dataset, setDataset]= useState('');
+  const [headers, setHeaders] = useState([]);
+  const [trainData, setTrainData] = useState({});
+  const [valData, setValData] = useState({});
+  const [templateData, setTemplateData] = useState({});
   const [modelName, setModelName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
   const [estimatedCost, setEstimatedCost] = useState('')
   const [hyperParams, setHyperParams] = useState({"n_epochs": 4, "batch_size": null, "learning_rate_multiplier": null, "prompt_loss_weight":null});
+  const [templateString, setTemplateString] = useState('');
+  const [outputColumn, setOutputColumn] = useState('');
+  const [stopSequence, setStopSequence] = useState('');
+  const [page, setPage] = useState(0);
+  const [visibleRows, setVisibleRows] = useState(null);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [datasetLoading, setDatasetLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
   // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
   // dataset size in the datasets collection when it is uploaded.
 
   const router = useRouter();
 
-  const steps = ['Model and dataset', 'Hyperparameter selection', 'Review'];
+  const steps = ['Choose a Model and Dataset', 'Create a Template', 'Select Hyperparameters', 'Review'];
+
+  const handleChangePage = useCallback(
+    (event, newPage) => {
+      setPage(newPage);
+      const updatedRows = trainData.slice(
+        newPage * rowsPerPage,
+        newPage * rowsPerPage + rowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
+
+  const handleChangeRowsPerPage = useCallback(
+    (event) => {
+      const updatedRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(updatedRowsPerPage);
+      setPage(0);
+
+      const updatedRows = trainData.slice(
+        0 * updatedRowsPerPage,
+        0 * updatedRowsPerPage + updatedRowsPerPage,
+      );
+      setVisibleRows(updatedRows);
+    },
+  );
+
+  const handleTemplateChange = (newTemplateString) => {
+    if (newTemplateString !== '') {
+      const regex = /{{[^{}]*}}/g;
+      let matches = newTemplateString.match(regex);
+      if (matches === null) {
+        setErrorMessage('Template must contain at least one variable e.g. {{input}}');
+      } else {
+        const matchStrings = matches.map((match) => match.replace('{{','').replace('}}',''));
+        let templateStringCopy = newTemplateString;
+        for (let i = 0; i < matchStrings.length; i++){
+          if (!headers.includes(matchStrings[i])) {
+            setErrorMessage(`{{${matchStrings[i]}}} does not match any column in the dataset`);
+            setTemplateString(newTemplateString);
+            return;
+          } else {
+            templateStringCopy = templateStringCopy.replace(matches[i], '');
+          }
+        }
+        if (templateStringCopy.indexOf('{{') !== -1) {
+          setErrorMessage("Template contains unclosed variable tag {{")
+        } else if (templateStringCopy.indexOf('}}') !== -1) {
+          setErrorMessage("Template contains unclosed variable tag }}")
+        } else {
+          setErrorMessage('');
+        }
+      }
+    } else {
+      setErrorMessage('');
+    }
+    setTemplateString(newTemplateString);
+  }
+
+  const templateTransform = (row) => {
+    if (templateString !== '' && errorMessage === '') {
+      const regex = /{{.*}}/g;
+      const matches = templateString.match(regex);
+      let result = templateString;
+      matches.forEach((match) => {
+        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return result;
+    } else {
+      return "";
+    }
+  }
 
   const handleFinetune = () => {
     let projectName = '';
@@ -74,9 +168,13 @@ export default function Train() {
         modelArchitecture: modelArchitecture,
         modelName: modelName,
         description: description,
-        dataset: dataset,
+        dataset: dataset.name,
         projectName: projectName,
         hyperParams: hyperParams,
+        templateString: templateString,
+        templateData: templateData, 
+        outputColumn: outputColumn,
+        stopSequence: stopSequence,
       }).then((res) => {
         console.log(res.data);
         setError();
@@ -89,12 +187,13 @@ export default function Train() {
     }
   }
 
-  const estimateCost = () => {
+  const estimateCost = (tempTemplateData) => {
+    
     axios.post("/api/models/finetune/cost", {
         provider: provider,
         modelArchitecture: modelArchitecture,
         epochs: hyperParams["n_epochs"],
-        dataset: dataset,
+        templateData: tempTemplateData,
       }).then((res) => {
         setEstimatedCost(res.data.estimatedCost);
         console.log("response data")
@@ -125,16 +224,45 @@ export default function Train() {
 
   // Functions for the stepper
 
-  const isStepOptional = (step) => {
-    return step === 1;
-  };
-
   const handleNext = () => {
     if (activeStep === 0) {
-      setModelName(toTitleCase(modelArchitecture) + "_" + dataset);
+      setModelName(toTitleCase(modelArchitecture) + "_" + dataset.name);
+      axios.post("/api/data/file", {
+        fileName: dataset.trainFileName,
+      }).then((json_data) => {
+        setTrainData(json_data.data);
+        const rowsOnMount = json_data.data.slice(0, rowsPerPage);
+        setHeaders(Object.keys(json_data.data[0]));
+        setVisibleRows(rowsOnMount);
+        setDatasetLoading(false);
+      }).catch((error) => {
+        console.log(error);
+      });
+      axios.post("/api/data/file", {
+        fileName: dataset.valFileName,
+      }).then((json_data) => {
+        console.log("Got amazon file");
+        setValData(json_data.data);
+      }).catch((error) => {
+        console.log(error);
+      });
     }
-    if (activeStep === 1) {
-      estimateCost();
+    if (activeStep === 2) {
+      let numTrainWords = 0;
+      let numTrainChars = 0;
+      let numValWords = 0;
+      let numValChars = 0;
+      trainData.forEach((row) => {
+        numTrainWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
+        numTrainChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
+      });
+      valData.forEach((row) => {
+        numValWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
+        numValChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
+      });
+      const tempTemplateData = {numTrainWords: numTrainWords, numTrainChars: numTrainChars, numValWords: numValWords, numValChars: numValChars};
+      setTemplateData(tempTemplateData);
+      estimateCost(tempTemplateData);
     }
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -145,7 +273,11 @@ export default function Train() {
 
   const isNextDisabled = (i) => {
     if (i === 0) {
-      return (provider === '' || modelArchitecture === '' || dataset === '');
+      return (provider === '' || modelArchitecture === '' || dataset === {});
+    }
+
+    if (i === 1) {
+      return(datasetLoading || errorMessage !== "");
     }
     return false;
   }
@@ -266,7 +398,7 @@ export default function Train() {
                           required
                         >
                           {datasets.map((d, i) => (
-                            <MenuItem value={d.name} key={i}>{d.name}</MenuItem>
+                            <MenuItem value={d} key={i}>{d.name}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
@@ -275,6 +407,120 @@ export default function Train() {
             : null}
 
           {activeStep === 1 ?
+            <>
+              <Typography variant='h6'>
+                Finetuning Template
+              </Typography>
+              <div className='small-space' />
+              <div className= "left-message">
+                {errorMessage === "" ? <Box sx = {{height: "25px"}}/>:  <Typography className = "prompt-error"> <ErrorOutlineIcon/> {errorMessage}</Typography>}
+              </div>
+              <div className='tiny-space' />
+              <div className='full-width template-layout'>
+                <div>
+                  <TextField
+                    variant="outlined"
+                    className='template-box'
+                    value={templateString}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
+                    multiline
+                    minRows = {7}
+                  />
+                </div>
+                <div className = "template-options">
+                  <div>
+                    <Typography>Output column:</Typography>
+                    <div className = "tiny-space" />
+                    <FormControl>
+                      <Select
+                        className="compact-select"
+                        value={outputColumn}
+                        onChange={(e) => {
+                          setOutputColumn(e.target.value);
+                        }}
+                        required
+                      >
+                        {headers.map((d, i) => (
+                            <MenuItem value={d} key={i}>{d}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </div>
+                  <div>
+                    <Typography>Stop sequence:</Typography>
+                    <div className = "tiny-space" />
+                    <TextField
+                      variant="outlined"
+                      className='small-text-field'
+                      size = "small"
+                      value={stopSequence}
+                      onChange={(e) => setStopSequence(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                      <Typography>Headers: </Typography>
+                      <div className = "tiny-space" />
+                      <div className = "headers-list">
+                        {headers.map((h, i) =>
+                          <Typography className='data-header' key={h}>
+                            {h}
+                          </Typography>
+                        )}
+                      </div >
+                  </div> 
+                </div>
+              </div>
+                {
+                  !datasetLoading?
+                  <div>
+                    <TableContainer sx = {{maxHeight: 300}}>
+                      <Table stickyHeader sx={{ minWidth: 650}}>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell className='table-cell'>Input Prompt</TableCell>
+                            <TableCell className='table-cell'>Completion</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {visibleRows.map((row,i) => (
+                            <TableRow
+                              key={i}
+                              sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
+                            >
+                              <TableCell className = "half-table-cell">
+                                <Typography>
+                                {
+                                  templateTransform(row)
+                                }
+                                </Typography>
+                              </TableCell>
+                              <TableCell className = "half-table-cell">
+                                <Typography>
+                                {outputColumn? row[outputColumn]: ""} 
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <Divider/>
+                    </TableContainer>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      component="div"
+                      count={datasets.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                  </div>
+                  : null
+                }
+            </>
+            :null}
+
+          {activeStep === 2 ?
             <>
               <Typography variant='h6'>
                 Hyperparameters
@@ -328,7 +574,7 @@ export default function Train() {
             </>
             : null}
 
-          {activeStep === 2 ?
+          {activeStep === 3 ?
             <>
               <Typography variant='h6'>
                 Review and launch
@@ -356,12 +602,13 @@ export default function Train() {
               <Box sx={{textAlign: 'left'}}>
                 <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
                 <Typography>Architecture: {modelArchitecture}</Typography>
-                <Typography>Dataset: {dataset}</Typography>
+                <Typography>Dataset: {dataset.name}</Typography>
                 <Typography>Estimated cost: $ {estimatedCost}</Typography>
               </Box>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-              <Button size='large' variant='contained' color="primary" onClick={handleFinetune}>Finetune</Button>
+              <Button size='large' variant='contained' color="primary" onClick={handleFinetune} 
+                disabled = {Object.keys(templateData).length === 0 || estimatedCost === ""} >Finetune</Button>
             </>
             : null}
 

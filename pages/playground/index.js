@@ -121,8 +121,7 @@ export default function Playground() {
         let p = prompt;
         if (differentPrompt) p = finetunedPrompt;
         axios.post("/api/infer/" + m.provider.toLowerCase(), {
-            provider: m.provider.toLowerCase(),
-            providerData: m.providerData,
+            model: m,
             prompt: p,
             projectName: project,
             hyperParams: hyperParams,

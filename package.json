@@ -41,6 +41,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "18.2.0",
     "react-icons": "^4.8.0",
-    "react-select": "^5.7.2"
+    "react-select": "^5.7.2",
+    "stream-array": "^1.1.2"
   }
 }

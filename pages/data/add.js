@@ -51,31 +51,22 @@ export async function getServerSideProps(context) {
 }
 
 export default function AddDataset() {
-  const [loading, setLoading] = useState(true);
-  const [datasets, setDatasets] = useState([]);
   const [error, setError] = useState();
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileVal, setSelectedFileVal] = useState(null);
   const [realFileName, setRealFileName] = useState('');  // Filename in S3
   const [realFileNameVal, setRealFileNameVal] = useState('');
-  const [progress, setProgress] = useState(0);
-  const [progressVal, setProgressVal] = useState(0);
   const [autoGenerateVal, setAutoGenerateVal] = useState(false);
   const [headers, setHeaders] = useState([]);
-  const [options, setOptions] = useState([]);
   const [trainInputFileData, setTrainInputFileData] = useState({});
   const [valInputFileData, setValInputFileData] = useState({});
-  const [numRows, setNumRows] = useState(0);
+  const [numTrainExamples, setNumTrainExamples] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set());
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [numValExamples, setNumValExamples] = useState(10);
-  const [inputColumn, setInputColumn] = useState('');
-  const [outputColumn, setOutputColumn] = useState('');
-  const [user, setUser] = useState(null);
-  const { data: session } = useSession();
-  const router = useRouter()
+  const router = useRouter();
 
   const handleFileInput = (e) => {
     console.log(e.target.files[0]);
@@ -87,15 +78,10 @@ export default function AddDataset() {
       // Get the headers by splitting first row of CSV
       let h = data.split('\n')[0].split(',');
       setHeaders(h);
-      let o = [];
-      for (let i=0; i<h.length; i++) {
-        o.push({value: h[i], label: h[i]});
-      }
-      setOptions(o);
     }
     setSelectedFile(f);
     Papa.parse(f, { complete: function(results) {
-      setNumRows(results.data.length);  // Subtract the header row
+      setNumTrainExamples(results.data.length);
       setNumValExamples(parseInt(results.data.length / 5));
       console.log(results);
     }, header: true, skipEmptyLines: true});
@@ -142,8 +128,7 @@ export default function AddDataset() {
     formData.append('valFileData', valInputFileData);
     formData.append('autoGenerateVal', autoGenerateVal);
     formData.append('numValExamples', numValExamples);
-    formData.append('inputColumn', inputColumn);
-    formData.append('outputColumn', outputColumn);
+    formData.append('numTrainExamples',numTrainExamples);
 
     axios.post("/api/data/add", formData, {
         headers: {
@@ -205,7 +190,7 @@ export default function AddDataset() {
 
   const isNextDisabled = (i) => {
     if (i === 0) {
-      return (!selectedFile || !inputColumn || !outputColumn);
+      return !selectedFile;
     } else if (i === 1) {
       return false;
     } else if (i === 2) {
@@ -224,7 +209,7 @@ export default function AddDataset() {
         <div className='horizontal-box'>
           <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
           <Typography variant='h4' className='page-main-header'>
-            Import Dataset
+            Upload Dataset
           </Typography>
         </div>
       </div>
@@ -257,11 +242,6 @@ export default function AddDataset() {
             <>
               <Typography variant='h6'>
                 Training data
-                <CustomTooltip title="💡 Training data should be separated into two columns: input and output" className='tooltip'>
-                  <IconButton disableRipple={true}>
-                    <BiInfoCircle size={16} color='#9C2315'/>
-                  </IconButton>
-                </CustomTooltip>
               </Typography>
               <div className='medium-space' />
               <div className="file-input">
@@ -271,72 +251,30 @@ export default function AddDataset() {
                       Upload training data
                       <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
                     </Button>
-                    <Typography>&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;</Typography>
-                    <Button variant="outlined" color="primary" component={Link} href="/data/create">
-                      Create csv
-                    </Button>
                   </div>
                   <div className='tiny-space' />
                   <Typography variant='body2' className='form-label'>
-                    Data must be uploaded as a CSV. After uploading a file, you can specify which
-                    column is the input and which column is the output.
+                    Data must be uploaded as a CSV.
                   </Typography>
                 </div>
               </div>
-              {selectedFile ?
+              {selectedFile ? 
                 <>
                   <div className='medium-space' />
                   <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
                   <div className='tiny-space' />
-                  <div className='horizontal-box' className='headers-container'>
+                  <div className='horizontal-box headers-container'>
                     <Typography>Headers:&nbsp; </Typography>
                     {headers.map((h, i) =>
                       <div className='data-header' key={h}>
                         <Typography>{h}</Typography>
                       </div>
                     )}
-                  </div>
-                  <div className='medium-space' />
-
-                  <Typography variant='h6'>Input</Typography>
-                  <div className='tiny-space' />
-                  <FormControl variant="filled">
-                    <InputLabel id="input-label">Input column</InputLabel>
-                    <Select
-                      labelId="project-label"
-                      className="wide-select project-select"
-                      label="Input"
-                      value={inputColumn}
-                      onChange={(e) => setInputColumn(e.target.value)}
-                    >
-                      {options.map((o) => (
-                        <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <div className='medium-space' />
-
-                  <Typography variant='h6'>Output column</Typography>
-                  <div className='tiny-space' />
-                  <FormControl variant="filled">
-                    <InputLabel id="output-label">Output</InputLabel>
-                    <Select
-                      labelId="project-label"
-                      className="wide-select project-select"
-                      label="Output"
-                      value={outputColumn}
-                      onChange={(e) => setOutputColumn(e.target.value)}
-                    >
-                      {options.map((o) => (
-                        <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </>
-                : null}
+                  </div> 
+                </> : null
+              }
             </>
             : null}
-
           {activeStep === 1 ?
             <>
               <Typography variant='h6'>
@@ -370,7 +308,7 @@ export default function AddDataset() {
                 <>
                   <div className='medium-space' />
                   <Typography variant='body1'>
-                    Total number of examples: &nbsp;{numRows}
+                    Total number of examples: &nbsp;{numTrainExamples}
                   </Typography>
                   <div className='tiny-space' />
                   <div className='horizontal-box'>
@@ -388,7 +326,7 @@ export default function AddDataset() {
                         onChange={(e) => setNumValExamples(e.target.value)}
                       />
                       <Typography variant='body2'>
-                        {Math.round((numValExamples / numRows) * 100)}% of dataset
+                        {Math.round((numValExamples / numTrainExamples) * 100)}% of dataset
                       </Typography>
                     </div>
                   </div>
@@ -425,9 +363,7 @@ export default function AddDataset() {
               <div className='medium-space' />
               <Box sx={{textAlign: 'left'}}>
                 <Typography>Train file name: {selectedFile.name}</Typography>
-                <Typography>Number of rows: {numRows}</Typography>
-                <Typography>Input column: {inputColumn}</Typography>
-                <Typography>Output column: {outputColumn}</Typography>
+                <Typography>Number of rows: {numTrainExamples}</Typography>
               </Box>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

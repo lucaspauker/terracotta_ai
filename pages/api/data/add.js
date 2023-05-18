@@ -59,19 +59,27 @@ export default async function handler(request, response) {
     const filename = inputData.fields.filename;
     const projectName = inputData.fields.projectName;
     const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
-    const numValExamples = inputData.fields.numValExamples;
-    const inputColumn = inputData.fields.inputColumn;
-    const outputColumn = inputData.fields.outputColumn;
+    let numValExamples = inputData.fields.numValExamples;
 
     const trainFileName = inputData.fields.trainFileName;
     const initialTrainFileName = inputData.fields.initialTrainFileName;
+    let numTrainExamples = inputData.fields.numTrainExamples;
     let valFileName = inputData.fields.valFileName;
     let initialValFileName = inputData.fields.initialValFileName;
-    let numValWords = 0;
-    let numValCharacters = 0;
-    let numTrainExamples = 0;
 
-    let trainOutputColumn = [];  // Used to get unique output classes
+    if (name === '') {
+      response.status(400).json({ error: 'Must specify a name' })
+      return;
+    }
+    if (filename === '') {
+      response.status(400).json({ error: 'Must provide a file' })
+      return;
+    }
+    if (inputData.files.trainFileData === '') {
+      response.status(400).json({ error: 'Must provide training data' })
+      return;
+    }
+
     let trainFileData = {};
     let valFileData = {};
     if (autoGenerateVal) {
@@ -83,88 +91,30 @@ export default async function handler(request, response) {
       let outputValFileDataJson = shuffled.slice(0, numValExamples);
       let outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
 
-      // Convert the data to the user-specified columns
-      console.log(outputTrainFileDataJson[0]);
-      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
-        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
-        return obj;
-      });
-      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
-        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
-        trainOutputColumn.push(obj);
-        return obj;
-      });
-      console.log(outputTrainFileDataJson[0]);
-
-      // JSON to CSV
+      // TODO: Parallelize this
       valFileData = await jsonexport(outputValFileDataJson);
       trainFileData = await jsonexport(outputTrainFileDataJson);
 
-      numValWords = valFileData.split(" ").length;
-      numValCharacters = valFileData.length;
       numTrainExamples = outputTrainFileDataJson.length;
     } else if (initialValFileName === '') {
       // SECOND case: No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
 
       let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
-      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
-        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
-        trainOutputColumn.push(obj);
-        return obj;
-      });
       trainFileData = await jsonexport(outputTrainFileDataJson);
 
       valFileName = null;
       initialValFileName = null;
-      numTrainExamples = outputTrainFileDataJson.length;
     } else {
       // THIRD case: Both train and val files are specified
       console.log("Both train and validation files are specified");
 
       let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
-      outputTrainFileDataJson = outputTrainFileDataJson.map((x, i) => {
-        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
-        trainOutputColumn.push(obj);
-        return obj;
-      });
       trainFileData = await jsonexport(outputTrainFileDataJson);
 
       let outputValFileDataJson = await csv().fromFile(inputData.files.valFileData.filepath);
-      outputValFileDataJson = outputValFileDataJson.map((x, i) => {
-        const obj = {prompt: x[inputColumn.trim()], completion: x[outputColumn.trim()]};
-        return obj;
-      });
       valFileData = await jsonexport(outputValFileDataJson);
-
-      numValWords = valFileData.split(" ").length;
-      numValCharacters = valFileData.length;
-      numTrainExamples = outputTrainFileDataJson.length;
-    }
-
-    // Get the number of characters and words in the train dataset
-    const numTrainWords = trainFileData.split(" ").length;
-    const numTrainCharacters = trainFileData.length;
-
-    // Get the unique classes in the training dataset
-    trainOutputColumn = trainOutputColumn.map((x, i) => {
-      return x['completion'];
-    });
-    let classesSet = Array.from(new Set(trainOutputColumn));
-    console.log(classesSet.length + " classes found")
-    console.log(classesSet);
-
-    if (name === '') {
-      response.status(400).json({ error: 'Must specify a name' })
-      return;
-    }
-    if (filename === '') {
-      response.status(400).json({ error: 'Must provide a file' })
-      return;
-    }
-    if (trainFileData === '') {
-      response.status(400).json({ error: 'Must provide training data' })
-      return;
+      numValExamples = outputValFileDataJson.length;
     }
 
     // Get user ID
@@ -184,9 +134,6 @@ export default async function handler(request, response) {
     if (!project) {
       response.status(400).json({ error: 'Project not found' });
       return;
-    }
-    if (project.type !== 'classification') {
-      classesSet = null;
     }
 
     // Check if dataset already exists
@@ -223,13 +170,8 @@ export default async function handler(request, response) {
           initialTrainFileName: initialTrainFileName,
           valFileName: valFileName,
           initialValFileName: initialValFileName,
-          numTrainWords: numTrainWords,
-          numTrainCharacters: numTrainCharacters,
-          numValWords: numValWords,
-          numValCharacters: numValCharacters,
           numTrainExamples: numTrainExamples,
           numValExamples: numValExamples,
-          classes: classesSet,
           timeCreated: Date.now(),
         });
     console.log(d);

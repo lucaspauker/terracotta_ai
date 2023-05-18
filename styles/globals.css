@@ -145,6 +145,11 @@ a {
   width: 100%;
 }
 
+.compact-select {
+  width: 200px;
+  height:40px;
+}
+
 .MuiDataGrid-columnHeaders {
   background-color:#d6daef;
 }
@@ -458,9 +463,6 @@ a {
   display: none;
 }
 
-.tooltip {
-}
-
 .metric-in-table {
   display: inline-block;
 }
@@ -498,3 +500,54 @@ a {
   animation: fade-in 0.5s ease-in;
 }
 
+.template-box {
+  width: 500px;
+}
+
+.template-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 200px;
+  height: 400px;
+  gap: 20px;
+}
+
+.headers-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.prompt-error {
+  width: 500px;
+  background-color: pink;
+  border-radius: 5px;
+  height: 30px;
+}
+
+.half-table-cell {
+  width: 50%;
+}
+
+.left-message {
+  display:flex;
+  flex-direction: row;
+  margin-left:10px;
+  width: 100%;
+}
+
+.template-layout {
+  display:flex;
+  flex-direction: row;
+  height:400px;
+}
+
+.headers-list {
+  height: 100px;
+  overflow: scroll;
+}
+
+.small-text-field {
+  width: 200px;
+}
