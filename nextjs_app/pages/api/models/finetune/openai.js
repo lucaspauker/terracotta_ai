@@ -204,7 +204,6 @@ export default async function handler(request, response) {
         });
       }
 
-<<<<<<< HEAD:pages/api/models/finetune/openai.js
       classes = Array.from(new Set(classes));
 
       template = {
