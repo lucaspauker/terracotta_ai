@@ -162,7 +162,7 @@ export default function Data() {
             + Create CSV
           </Button>
           <Button variant='contained' color="secondary" component={Link} href="/data/add">
-            + Import dataset from file
+            + Upload CSV
           </Button>
         </div>
       </div>

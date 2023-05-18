@@ -2,8 +2,14 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
+import { Prompt } from "next/font/google";
+import Data from "@/pages/data";
+import { error } from "console";
 
 const path = require('path');
+const csv = require('csvtojson');
+const streamify = require('stream-array');
+const ObjectId = require('mongodb').ObjectId;
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 
@@ -25,15 +31,15 @@ const { Configuration, OpenAIApi } = require("openai");
 
 const fs = require('fs');
 
-async function downloadFile(params, fileName) {
+async function downloadFile(data, filename) {
   return new Promise((resolve, reject) => {
-    const readStream = myBucket.getObject(params).createReadStream();
-
-    console.log("Retreiving file: " + 'raw_data/' + fileName);
-    console.log(params);
-
-    const writeStream = fs.createWriteStream('jsonl_data/' + fileName)
-    readStream.pipe(writeStream).on("finish", () => resolve())
+    const writeStream = fs.createWriteStream('jsonl_data/' + filename);
+    data.forEach(value => writeStream.write(`${JSON.stringify(value)}\n`));
+    writeStream.on('finish', () => resolve());
+    writeStream.on('error', (err) => {
+      console.error(`There is an error writing the file`)
+  });
+    writeStream.end();
   });
 }
 
@@ -63,6 +69,10 @@ export default async function handler(request, response) {
     const description = request.body.description;
     const projectName = request.body.projectName;
     let hyperParams = request.body.hyperParams;
+    const templateString = request.body.templateString;
+    const templateData = request.body.templateData;
+    const outputColumn = request.body.outputColumn;
+    const stopSequence = request.body.stopSequence;
 
     for (const [key, value] of Object.entries(hyperParams)){
       if (hyperParams[key] === null) {
@@ -94,7 +104,7 @@ export default async function handler(request, response) {
       return;
     }
 
-    const dataset = await db
+    let dataset = await db
       .collection("datasets")
       .findOne({userId: userId, name: datasetName});
     if (!dataset) {
@@ -133,71 +143,99 @@ export default async function handler(request, response) {
 
     // Only download from S3 and upload to openai once
     let valFilePresent = false;
-    if (!dataset.openaiData) {
+
+    // TODO: implement openaiuploaded logic, retrieve from mongo if it's already been uploaded,
+    // update usage of classes variable with this.
+    const openaiUploaded = false;
+    const regex = /{{.*}}/g;
+    const matches = templateString.match(regex);
+    let classes = [];
+
+    const templateTransform = (row) => {
+      if (project.type === "classification") {
+        classes.push(row[outputColumn]);
+      }
+      let prompt = templateString;
+      matches.forEach((match) => {
+        prompt = prompt.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return {prompt: prompt, completion: row[outputColumn] + stopSequence};
+    }
+
+    let template = {};
+
+    //TODO: Check whether we've uploaded a dataset with this template before
+    if (!openaiUploaded) {
 
       const trainFileName = dataset.trainFileName;
       const valFileName = dataset.valFileName;
       valFilePresent = valFileName && valFileName !== undefined;
 
-      let fileNames;
-      if (valFilePresent) {
-        fileNames = [trainFileName, valFileName];
-      } else {
-        fileNames = [trainFileName];
+      // Download files from S3
+
+      const params = {
+        Bucket: S3_BUCKET,
+        Key: 'raw_data/' + trainFileName,
       }
 
-      for(var i=0; i < fileNames.length; i++){
-        const fileName = fileNames[i]
+      const stream = myBucket.getObject(params).createReadStream();
+      const trainJson = await csv().fromStream(stream);
+      let valJson = {};
+
+      if (valFilePresent) {
         const params = {
           Bucket: S3_BUCKET,
-          Key: 'raw_data/' + fileName,
-        };
-
-        await downloadFile(params, fileName)
+          Key: 'raw_data/' + valFileName,
+        }
+  
+        const stream = myBucket.getObject(params).createReadStream();
+        valJson = await csv().fromStream(stream);
+  
       }
 
-      // Use openai CLI tool to create train and validation jsonl files
+      const trainData = trainJson.map((row) => {
+        return templateTransform(row);
+      });
+
+      let valData = {};
       if (valFilePresent) {
-        execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --val_fname ${'jsonl_data/' + valFileName} --task ${project.type}`, (error, stdout, stderr) => {
-          if (error) {
-              console.log(`error: ${error.message}`);
-              response.status(400).json({ error: error.message });
-              return;
-          }
-          if (stderr) {
-              console.log(`stderr: ${stderr}`);
-              response.status(400).json({ error: stderr });
-              return;
-          }
-          console.log(`stdout: ${stdout}`);
-        });
-      } else {
-        execSync(`python ${process.env.DIR_OPENAI_TOOLS}prepare_data_openai.py prepare_data --train_fname ${'jsonl_data/' + trainFileName} --task ${project.type}`, (error, stdout, stderr) => {
-          if (error) {
-              console.log(`error: ${error.message}`);
-              response.status(400).json({ error: error.message });
-              return;
-          }
-          if (stderr) {
-              console.log(`stderr: ${stderr}`);
-              response.status(400).json({ error: stderr });
-              return;
-          }
-          console.log(`stdout: ${stdout}`);
+        valData = valJson.map((row) => {
+          return templateTransform(row);
         });
       }
 
-      // Upload files to openAI, need to modify this later and save into a new collection
-      const preparedTrainFile = 'jsonl_data/' + path.parse(trainFileName).name + "_prepared.jsonl";
+      classes = Array.from(new Set(classes));
+
+      template = {
+        _id: new ObjectId(),
+        templateString: templateString,
+        templateData: templateData,
+        outputColumn: outputColumn,
+        datasetId: dataset._id,
+        classes: classes.length > 1? classes : null,
+        stopSequence: stopSequence,
+      }
+
+      await db
+      .collection("templates")
+      .insertOne(template);
+      
+      
+      const trainFileJsonl = trainFileName.split('.')[0] + '.jsonl'
+      const valFileJsonl = valFileName.split('.')[0] + '.jsonl'
+      await downloadFile(trainData, trainFileJsonl);
+      if (valFilePresent) {
+        await downloadFile(valData, valFileJsonl);
+      }
+
       const trainResponse = await openai.createFile(
-        fs.createReadStream(preparedTrainFile),
+        fs.createReadStream('jsonl_data/' + trainFileJsonl),
         "fine-tune"
       );
 
       if (valFilePresent) {
-        const preparedValFile = 'jsonl_data/' + path.parse(valFileName).name + "_prepared.jsonl";
         const valResponse = await openai.createFile(
-          fs.createReadStream(preparedValFile),
+          fs.createReadStream('jsonl_data/' + valFileJsonl),
           "fine-tune"
         );
         await db
@@ -210,41 +248,40 @@ export default async function handler(request, response) {
           .updateOne({"_id":dataset._id},
           {$set: { "openaiData" : {"trainFile": trainResponse.data.id}}})
       }
-    }
-
-    const uploadInfo = await db
+      dataset = await db
       .collection("datasets")
       .findOne({"_id":dataset._id})
+    }
 
+    console.log("Done");
 
     let finetuneRequest = null;
     if (project.type === "classification") {
-      if (dataset.classes.length <= 1) {
+      if (classes.length <= 1) {
         response.status(400).json({ error: 'Dataset classes not specified' });
         return;
-      } else if (dataset.classes.length === 2) {  // Binary classification
+      } else if (classes.length === 2) {  // Binary classification
         finetuneRequest = {
-          training_file: uploadInfo.openaiData.trainFile,
+          training_file: dataset.openaiData.trainFile,
           compute_classification_metrics: true,
-          classification_positive_class: " " + dataset.classes[0] + "$$$",
+          classification_positive_class: classes[0],
           model: modelArchitecture,
         };
-        if (valFilePresent) finetuneRequest.validation_file = uploadInfo.openaiData.valFile;
+        if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;
       } else {  // Multiclass classification
         finetuneRequest = {
-          training_file: uploadInfo.openaiData.trainFile,
+          training_file: dataset.openaiData.trainFile,
           compute_classification_metrics: true,
-          classification_n_classes: dataset.classes.length,
+          classification_n_classes: classes.length,
           model: modelArchitecture,
         };
-        if (valFilePresent) finetuneRequest.validation_file = uploadInfo.openaiData.valFile;
+        if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;
       }
     } else if (project.type === "generative") {
       finetuneRequest = {
-        training_file: uploadInfo.openaiData.trainFile,
+        training_file: dataset.openaiData.trainFile,
         model: modelArchitecture,
       };
-      if (valFilePresent) finetuneRequest.validation_file = uploadInfo.openaiData.valFile;
     }
 
     // Create finetune
@@ -259,7 +296,14 @@ export default async function handler(request, response) {
             finetuneId: finetuneResponse.data.id,
             hyperParams: hyperParams,
           },
+          templateId: template._id,
+          timeCreated: Date.now(),
         }});
+    
+    console.log(d);
+
+    response.status(200).send();
+
   } catch (e) {
     console.error(e);
     if (newModelId) await db
