@@ -1,22 +1,34 @@
 import '@/styles/globals.css'
 import { Layout, SimpleLayout } from '../components/layout'
 import { SessionProvider } from "next-auth/react"
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
 
-export default function App({ Component, pageProps: { session, ...pageProps },}) {
+
+function createEmotionCache() {
+ return createCache({ key: "css", prepend: true });
+}
+const clientSideEmotionCache = createEmotionCache();
+
+export default function App({Component, emotionCache = clientSideEmotionCache, pageProps: { session, ...pageProps },}) {
   const getLayout = Component.getLayout || null;
 
   if (getLayout) {
     return (
-      <SessionProvider session={session}>
-        {getLayout(<Component {...pageProps} />)}
-      </SessionProvider>
+      <CacheProvider value={emotionCache}>
+        <SessionProvider session={session}>
+          {getLayout(<Component {...pageProps} />)}
+        </SessionProvider>
+      </CacheProvider>
     );
   }
   return (
-    <SessionProvider session={session}>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
-    </SessionProvider>
+    <CacheProvider value={emotionCache}>
+      <SessionProvider session={session}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </SessionProvider>
+    </CacheProvider>
   );
 }
