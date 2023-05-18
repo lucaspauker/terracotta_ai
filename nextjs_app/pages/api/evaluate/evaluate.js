@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
+import {templateTransform} from '../../utils';
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 const csv = require('csvtojson');
@@ -123,16 +124,25 @@ export default async function handler(request, response) {
 
     let completions = [];
 
-    console.log("Starting to query OpenAI");
-    const requests = json_output.map((row) =>
-      openai.createCompletion({
+    const template = await db
+      .collection("templates")
+      .findOne({_id: model.templateId});
+    if (!template) throw new Error('Exiting try block');;
+
+    let requests = [];
+    let references = [];
+    const templateString = template.templateString;
+    for (let i=0; i<json_output.length; i++) {
+      const r = openai.createCompletion({
         model: model.providerData.modelId,
-        prompt: row.prompt + "\n\n###\n\n",
+        prompt: templateTransform(templateString, json_output[i]),
         max_tokens: project.type === "classification" ? 10 : 100,
         temperature: 0,
-        stop: '$$$',
-      })
-    );
+        stop: template.stopSequence,
+      });
+      requests.push(r);
+      references.push(json_output[i][template.outputColumn]);
+    }
 
     const results = await Promise.all(requests);
     console.log("Retrieved results from OpenAI");
@@ -191,7 +201,7 @@ export default async function handler(request, response) {
         },
         body: JSON.stringify({
           "completions": completions,
-          "reference": json_output,
+          "references": references,
         }),
       });
       const responseData = await response.json();

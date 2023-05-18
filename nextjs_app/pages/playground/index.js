@@ -374,7 +374,7 @@ export default function Playground() {
             <>
               <div className='small-space' />
               <div className='horizontal-box full-width flex-start'>
-                <Button color='secondary' variant='contained' onClick={clear}>Clear</Button>
+                <Button color='secondary' variant='contained' onClick={clear}>Reset</Button>
                 <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
               </div>
               <div className='tiny-space' />

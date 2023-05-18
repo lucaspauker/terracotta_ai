@@ -1,26 +1,12 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb';
+import {templateTransform} from '../../utils';
+
 const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
 const { Configuration, OpenAIApi } = require("openai");
-
-const templateTransform = (templateString, finetuneInputData) => {
-  const regex = /{{.*}}/g;
-  const matches = templateString.match(regex);
-
-  let result = templateString;
-  matches.forEach((match) => {
-    const strippedMatch = match.substring(2, match.length - 2);
-    if (strippedMatch in finetuneInputData) {
-      result = result.replace(match, finetuneInputData[strippedMatch]);
-    } else {
-      result = result.replace(match, '');
-    }
-  });
-  return result;
-}
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
