@@ -4,7 +4,6 @@ import GoogleProvider from "next-auth/providers/google"
 import axios from 'axios';
 
 export const authOptions = {
-  secret: process.env.NEXT_AUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
