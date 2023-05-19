@@ -26,7 +26,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 import {toTitleCase} from '/components/utils';
 
-const steps = ['Dataset and model', 'Metrics', 'Review'];
+const steps = ['Select dataset and model', 'Select metrics', 'Review evaluation'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -199,7 +199,7 @@ export default function DoEvaluate() {
         <div className='horizontal-box'>
           <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
           <Typography variant='h4' className='page-main-header'>
-            Evaluate
+            Evaluate Finetuned Model
           </Typography>
         </div>
       </div>
