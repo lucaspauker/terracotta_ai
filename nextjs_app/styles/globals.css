@@ -69,7 +69,7 @@ a {
 }
 
 .main-content {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0px auto;
 }
 
@@ -253,7 +253,7 @@ a {
 
 .data-header {
   background-color: lightgrey;
-  margin: 0px 5px;
+  margin: 5px 5px;
   padding: 0px 5px;
   border-radius: 5px;
 }
@@ -515,14 +515,16 @@ a {
 }
 
 .template-box {
-  width: 500px;
+  width: calc(70% - 20px);
+  margin-right: 20px;
 }
 
 .template-options {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  width: 200px;
+  align-items: center;
+  width: 30%;
   height: 400px;
   gap: 20px;
 }
@@ -534,10 +536,17 @@ a {
 }
 
 .prompt-error {
-  width: 500px;
   background-color: pink;
   border-radius: 5px;
-  height: 30px;
+  height: 36px;
+  padding: 10px;
+}
+
+.prompt-success {
+  background-color: lightgreen;
+  border-radius: 5px;
+  height: 36px;
+  padding: 10px;
 }
 
 .half-table-cell {
@@ -554,7 +563,7 @@ a {
 .template-layout {
   display:flex;
   flex-direction: row;
-  height:400px;
+  height: 400px;
 }
 
 .headers-list {

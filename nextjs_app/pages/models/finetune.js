@@ -31,9 +31,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 import { toTitleCase } from '../../components/utils';
 import {CustomTooltip} from '../../components/CustomToolTip.js';
+import DataTable from '../../components/DataTable';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -73,7 +75,7 @@ export default function Train() {
   const [stopSequence, setStopSequence] = useState('');
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -417,20 +419,27 @@ export default function Train() {
               </Typography>
               <div className='small-space' />
               <div className= "left-message">
-                {errorMessage === "" ? <Box sx = {{height: "25px"}}/>:  <Typography className = "prompt-error"> <ErrorOutlineIcon/> {errorMessage}</Typography>}
+                {errorMessage === "" ?
+                  <Typography className = "prompt-success horizontal-box flex-start">
+                    <CheckCircleOutlineIcon/>&nbsp;&nbsp;Valid prompt
+                  </Typography>
+                  :
+                  <Typography className = "prompt-error horizontal-box flex-start">
+                    <ErrorOutlineIcon/>&nbsp;&nbsp;{errorMessage}
+                  </Typography>
+                }
               </div>
               <div className='tiny-space' />
               <div className='full-width template-layout'>
-                <div>
-                  <TextField
-                    variant="outlined"
-                    className='template-box'
-                    value={templateString}
-                    onChange={(e) => handleTemplateChange(e.target.value)}
-                    multiline
-                    minRows = {7}
-                  />
-                </div>
+                <TextField
+                  variant="outlined"
+                  className='template-box'
+                  value={templateString}
+                  onChange={(e) => handleTemplateChange(e.target.value)}
+                  multiline
+                  minRows = {8}
+                  maxRows = {15}
+                />
                 <div className = "template-options">
                   <div>
                     <Typography>Output column:</Typography>
@@ -462,9 +471,9 @@ export default function Train() {
                     />
                   </div>
                   <div>
-                      <Typography>Headers: </Typography>
+                      <Typography sx={{textAlign:'center'}}>Headers: </Typography>
                       <div className = "tiny-space" />
-                      <div className = "headers-list">
+                      <div className = "headers-container" style={{justifyContent:'center'}}>
                         {headers.map((h, i) =>
                           <Typography className='data-header' key={h}>
                             {h}
@@ -477,29 +486,56 @@ export default function Train() {
                 {
                   !datasetLoading?
                   <div>
-                    <TableContainer sx = {{maxHeight: 300}}>
+                    <TableContainer className="shadow">
                       <Table stickyHeader sx={{ minWidth: 650}}>
                         <TableHead>
                           <TableRow>
-                            <TableCell className='table-cell'>Input Prompt</TableCell>
-                            <TableCell className='table-cell'>Completion</TableCell>
+                            {["Input Prompt", "Completion"].map((header, i) => (
+                              <TableCell
+                                key={i}
+                                align="center"
+                                style={{
+                                  borderRight: i === headers.length - 1 ? 'none' : '1px dashed lightgrey',
+                                  borderBottom: '3px solid #9C2315',
+                                  borderTop: 'none',
+                                  fontSize: '16px', // Increase font size for the header row
+                                  fontWeight: 'bold',
+                                }}
+                              >
+                                {header}
+                              </TableCell>
+                            ))}
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {visibleRows.map((row,i) => (
                             <TableRow
                               key={i}
-                              sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
+                              sx={{
+                                '&:last-child td, &:last-child th': { border: 0 },
+                                overflow: 'auto',
+                              }}
                             >
-                              <TableCell className = "half-table-cell">
-                                <Typography>
+                              <TableCell
+                                style={{
+                                  borderRight: '1px dashed lightgrey',
+                                  borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                                }}
+                                className = "half-table-cell"
+                              >
+                                <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
                                 {
                                   templateTransform(row)
                                 }
                                 </Typography>
                               </TableCell>
-                              <TableCell className = "half-table-cell">
-                                <Typography>
+                              <TableCell
+                                style={{
+                                  borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                                }}
+                                className = "half-table-cell"
+                              >
+                                <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
                                 {outputColumn? row[outputColumn] : ""}
                                 {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
                                 </Typography>
@@ -513,7 +549,7 @@ export default function Train() {
                     <TablePagination
                       rowsPerPageOptions={[5, 10, 25]}
                       component="div"
-                      count={datasets.length}
+                      count={trainData.length}
                       rowsPerPage={rowsPerPage}
                       page={page}
                       onPageChange={handleChangePage}
