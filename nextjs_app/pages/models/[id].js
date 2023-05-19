@@ -110,6 +110,7 @@ export default function ModelPage() {
   const [trainEval, setTrainEval] = useState(null);
   const [evals, setEvals] = useState([]);
   const [graphData, setGraphData] = useState(null);
+  const [templateString, setTemplateString] = useState('');
   const router = useRouter();
   const { model_id } = router.query;
 
@@ -134,6 +135,8 @@ export default function ModelPage() {
     const last = window.location.href.split('/').pop();  // This is a hack
     axios.get("/api/models/" + last).then((res) => {
       setModel(res.data);
+
+      setTemplateString(res.data.templateString);
 
       // Get the evaluations associated with the model
       axios.get("/api/evaluate/model/" + last).then((res) => {
@@ -244,6 +247,16 @@ export default function ModelPage() {
         <div className='medium-space' />
         </>
         : null }
+
+      <Typography variant="h6">Template</Typography>
+      <div className='tiny-space' />
+      <TextField
+        multiline
+        InputProps={{ readOnly: true, }}
+        className="white"
+        value={templateString}
+        sx={{width: '400px'}}
+      />
 
       {evals.length > 0 ?
         <>

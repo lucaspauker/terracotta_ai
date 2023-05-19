@@ -31,9 +31,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 import { toTitleCase } from '../../components/utils';
 import {CustomTooltip} from '../../components/CustomToolTip.js';
+import TemplateCreator from '../../components/TemplateCreator.js';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -71,9 +73,7 @@ export default function Train() {
   const [templateString, setTemplateString] = useState('');
   const [outputColumn, setOutputColumn] = useState('');
   const [stopSequence, setStopSequence] = useState('');
-  const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -85,77 +85,6 @@ export default function Train() {
   const router = useRouter();
 
   const steps = ['Choose a Model and Dataset', 'Create a Template', 'Select Hyperparameters', 'Review'];
-
-  const handleChangePage = useCallback(
-    (event, newPage) => {
-      setPage(newPage);
-      const updatedRows = trainData.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
-
-  const handleChangeRowsPerPage = useCallback(
-    (event) => {
-      const updatedRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(updatedRowsPerPage);
-      setPage(0);
-
-      const updatedRows = trainData.slice(
-        0 * updatedRowsPerPage,
-        0 * updatedRowsPerPage + updatedRowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
-
-  const handleTemplateChange = (newTemplateString) => {
-    if (newTemplateString !== '') {
-      const regex = /{{[^{}]*}}/g;
-      let matches = newTemplateString.match(regex);
-      if (matches === null) {
-        setErrorMessage('Template must contain at least one variable e.g. {{input}}');
-      } else {
-        const matchStrings = matches.map((match) => match.replace('{{','').replace('}}',''));
-        let templateStringCopy = newTemplateString;
-        for (let i = 0; i < matchStrings.length; i++){
-          if (!headers.includes(matchStrings[i])) {
-            setErrorMessage(`{{${matchStrings[i]}}} does not match any column in the dataset`);
-            setTemplateString(newTemplateString);
-            return;
-          } else {
-            templateStringCopy = templateStringCopy.replace(matches[i], '');
-          }
-        }
-        if (templateStringCopy.indexOf('{{') !== -1) {
-          setErrorMessage("Template contains unclosed variable tag {{")
-        } else if (templateStringCopy.indexOf('}}') !== -1) {
-          setErrorMessage("Template contains unclosed variable tag }}")
-        } else {
-          setErrorMessage('');
-        }
-      }
-    } else {
-      setErrorMessage('');
-    }
-    setTemplateString(newTemplateString);
-  }
-
-  const templateTransform = (row) => {
-    if (templateString !== '' && errorMessage === '') {
-      const regex = /{{.*}}/g;
-      const matches = templateString.match(regex);
-      let result = templateString;
-      matches.forEach((match) => {
-        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
-      });
-      return result;
-    } else {
-      return "";
-    }
-  }
 
   const handleFinetune = () => {
     let projectName = '';
@@ -172,7 +101,7 @@ export default function Train() {
         projectName: projectName,
         hyperParams: hyperParams,
         templateString: templateString,
-        templateData: templateData, 
+        templateData: templateData,
         outputColumn: outputColumn,
         stopSequence: stopSequence,
       }).then((res) => {
@@ -188,7 +117,6 @@ export default function Train() {
   }
 
   const estimateCost = (tempTemplateData) => {
-    
     axios.post("/api/models/finetune/cost", {
         provider: provider,
         modelArchitecture: modelArchitecture,
@@ -222,8 +150,21 @@ export default function Train() {
       });
   }, []);
 
-  // Functions for the stepper
+  const templateTransform = (row) => {
+    if (templateString !== '' && errorMessage === '') {
+      const regex = /{{.*}}/g;
+      const matches = templateString.match(regex);
+      let result = templateString;
+      matches.forEach((match) => {
+        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return result;
+    } else {
+      return "";
+    }
+  }
 
+  // Functions for the stepper
   const handleNext = () => {
     if (activeStep === 0) {
       setModelName(toTitleCase(modelArchitecture) + "_" + dataset.name);
@@ -231,8 +172,12 @@ export default function Train() {
         fileName: dataset.trainFileName,
       }).then((json_data) => {
         setTrainData(json_data.data);
-        const rowsOnMount = json_data.data.slice(0, rowsPerPage);
-        setHeaders(Object.keys(json_data.data[0]));
+        const rowsOnMount = json_data.data.slice(0, 5);
+        const inputHeaders = Object.keys(json_data.data[0]);
+        setHeaders(inputHeaders);
+        setOutputColumn(inputHeaders[1]);
+        setTemplateString("{{" + inputHeaders[0] + "}}\n\n###\n\n");
+        setStopSequence("$$$");
         setVisibleRows(rowsOnMount);
         setDatasetLoading(false);
       }).catch((error) => {
@@ -338,7 +283,7 @@ export default function Train() {
                 </Select>
               </FormControl>
               <div className='small-space' />
-                
+
               <FormControl className='button-margin' disabled={provider !== 'openai'}>
                 <InputLabel id="model-label">Model architecture</InputLabel>
                 <Select
@@ -412,111 +357,23 @@ export default function Train() {
                 Finetuning Template
               </Typography>
               <div className='small-space' />
-              <div className= "left-message">
-                {errorMessage === "" ? <Box sx = {{height: "25px"}}/>:  <Typography className = "prompt-error"> <ErrorOutlineIcon/> {errorMessage}</Typography>}
-              </div>
-              <div className='tiny-space' />
-              <div className='full-width template-layout'>
-                <div>
-                  <TextField
-                    variant="outlined"
-                    className='template-box'
-                    value={templateString}
-                    onChange={(e) => handleTemplateChange(e.target.value)}
-                    multiline
-                    minRows = {7}
-                  />
-                </div>
-                <div className = "template-options">
-                  <div>
-                    <Typography>Output column:</Typography>
-                    <div className = "tiny-space" />
-                    <FormControl>
-                      <Select
-                        className="compact-select"
-                        value={outputColumn}
-                        onChange={(e) => {
-                          setOutputColumn(e.target.value);
-                        }}
-                        required
-                      >
-                        {headers.map((d, i) => (
-                            <MenuItem value={d} key={i}>{d}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </div>
-                  <div>
-                    <Typography>Stop sequence:</Typography>
-                    <div className = "tiny-space" />
-                    <TextField
-                      variant="outlined"
-                      className='small-text-field'
-                      size = "small"
-                      value={stopSequence}
-                      onChange={(e) => setStopSequence(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                      <Typography>Headers: </Typography>
-                      <div className = "tiny-space" />
-                      <div className = "headers-list">
-                        {headers.map((h, i) =>
-                          <Typography className='data-header' key={h}>
-                            {h}
-                          </Typography>
-                        )}
-                      </div >
-                  </div> 
-                </div>
-              </div>
-                {
-                  !datasetLoading?
-                  <div>
-                    <TableContainer sx = {{maxHeight: 300}}>
-                      <Table stickyHeader sx={{ minWidth: 650}}>
-                        <TableHead>
-                          <TableRow>
-                            <TableCell className='table-cell'>Input Prompt</TableCell>
-                            <TableCell className='table-cell'>Completion</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {visibleRows.map((row,i) => (
-                            <TableRow
-                              key={i}
-                              sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
-                            >
-                              <TableCell className = "half-table-cell">
-                                <Typography>
-                                {
-                                  templateTransform(row)
-                                }
-                                </Typography>
-                              </TableCell>
-                              <TableCell className = "half-table-cell">
-                                <Typography>
-                                {outputColumn? row[outputColumn]: ""} 
-                                </Typography>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      <Divider/>
-                    </TableContainer>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      component="div"
-                      count={datasets.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                  </div>
-                  : null
-                }
+              {datasetLoading ?
+                <div className="horizontal-box"><CircularProgress /></div>
+                :
+                <TemplateCreator
+                  templateString={templateString}
+                  stopSequence={stopSequence}
+                  outputColumn={outputColumn}
+                  errorMessage={errorMessage}
+                  setTemplateString={setTemplateString}
+                  setStopSequence={setStopSequence}
+                  setOutputColumn={setOutputColumn}
+                  setErrorMessage={setErrorMessage}
+                  trainData={trainData}
+                  headers={headers}
+                  initialVisibleRows={visibleRows}
+                />
+              }
             </>
             :null}
 

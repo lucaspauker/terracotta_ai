@@ -76,6 +76,14 @@ export default async function handler(request, response) {
         models[i]["datasetId"] = dataset._id;
       }
 
+      const template = await db
+        .collection("templates")
+        .findOne({_id: model.templateId});
+      if (template) {
+        models[i]["templateString"] = template.templateString;
+        models[i]["templateFields"] = template.fields;
+      }
+
       if (model.status === "preparing") {
         models[i]["status"] = "preparing data";
       } else if (model.status !== "succeeded" && model.status !== "failed") {

@@ -69,7 +69,7 @@ a {
 }
 
 .main-content {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0px auto;
 }
 
@@ -253,7 +253,7 @@ a {
 
 .data-header {
   background-color: lightgrey;
-  margin: 0px 5px;
+  margin: 5px 5px;
   padding: 0px 5px;
   border-radius: 5px;
 }
@@ -270,6 +270,20 @@ a {
   font-weight: bold;
   border-bottom: 3px solid #9C2315;
 }
+
+.small-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.small-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.small-scrollbar::-webkit-scrollbar-thumb {
+  background: lightgrey;
+  border-radius: 3px; /* Add border radius */
+}
+
 
 .form-label {
   max-width: 500px;
@@ -300,7 +314,7 @@ a {
   flex-wrap: wrap;
   max-width: 500px;
   max-height: 300px;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .multi-select {
@@ -501,14 +515,16 @@ a {
 }
 
 .template-box {
-  width: 500px;
+  width: calc(70% - 20px);
+  margin-right: 20px;
 }
 
 .template-options {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  width: 200px;
+  align-items: center;
+  width: 30%;
   height: 400px;
   gap: 20px;
 }
@@ -520,27 +536,31 @@ a {
 }
 
 .prompt-error {
-  width: 500px;
   background-color: pink;
   border-radius: 5px;
-  height: 30px;
+  height: 36px;
+  padding: 10px;
+}
+
+.prompt-success {
+  background-color: lightgreen;
+  border-radius: 5px;
+  height: 36px;
+  padding: 10px;
 }
 
 .half-table-cell {
   width: 50%;
 }
 
-.left-message {
-  display:flex;
-  flex-direction: row;
-  margin-left:10px;
-  width: 100%;
-}
-
 .template-layout {
   display:flex;
   flex-direction: row;
-  height:400px;
+  height: 400px;
+}
+
+.left-message {
+  display: flex;
 }
 
 .headers-list {
@@ -551,3 +571,31 @@ a {
 .small-text-field {
   width: 200px;
 }
+
+.shadow {
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.popup {
+  position: relative;
+  text-align: left;
+  width: 500px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.content {
+  padding: 36px;
+}
+

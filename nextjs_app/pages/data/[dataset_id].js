@@ -27,7 +27,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 
-import styles from '@/styles/Data.module.css';
+import DataTable from '../../components/DataTable';
 
 export default function DataPage() {
   const [loading, setLoading] = useState(true);
@@ -41,10 +41,8 @@ export default function DataPage() {
   const [open, setOpen] = useState(false);
   const [trainOrVal, setTrainOrVal] = useState('train');
   const [rawData, setRawData] = useState({});
-  const [rawDataVal, setRawDataVal] = useState(null);
-  const [page, setPage] = useState(0);
-  const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [inputValData, setInputValData] = useState(null);
+  const [inputTrainData, setInputTrainData] = useState(null);
   const [headers, setHeaders] = useState([]);
   const router = useRouter();
   const { dataset_id } = router.query;
@@ -59,20 +57,10 @@ export default function DataPage() {
 
   const reloadDataset = (e, val) => {
     setTrainOrVal(val);
-    setPage(0);
-    const newPage = 0;
     if (val === 'train') {
-      const updatedRows = rawData.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
+      setRawData(inputTrainData)
     } else {
-      const updatedRows = rawDataVal.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
+      setRawData(inputValData)
     }
   }
 
@@ -85,38 +73,6 @@ export default function DataPage() {
     });
   }
 
-  const handleChangePage = useCallback(
-    (event, newPage) => {
-      setPage(newPage);
-      if (trainOrVal === 'train') {
-        const updatedRows = rawData.slice(
-          newPage * rowsPerPage,
-          newPage * rowsPerPage + rowsPerPage,
-        );
-        setVisibleRows(updatedRows);
-      } else {
-        const updatedRows = rawDataVal.slice(
-          newPage * rowsPerPage,
-          newPage * rowsPerPage + rowsPerPage,
-        );
-        setVisibleRows(updatedRows);
-      }
-    },
-  );
-
-  const handleChangeRowsPerPage = useCallback(
-    (event) => {
-      const updatedRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(updatedRowsPerPage);
-      setPage(0);
-
-      const updatedRows = rawData.slice(
-        0 * updatedRowsPerPage,
-        0 * updatedRowsPerPage + updatedRowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
 
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
@@ -126,23 +82,24 @@ export default function DataPage() {
         setFilename(res.data.trainFileName);
         setDisplayFilename(res.data.initialTrainFileName);
 
-        console.log(res.data.trainFileName);
+        // Get train file from S3
         axios.post("/api/data/file", {
             fileName: res.data.trainFileName,
           }).then((json_data) => {
             setRawData(json_data.data);
-            const rowsOnMount = json_data.data.slice(0, rowsPerPage);
+            setInputTrainData(json_data.data);
             setHeaders(Object.keys(json_data.data[0]));
-            setVisibleRows(rowsOnMount);
             setLoading(false);
           }).catch((error) => {
             console.log(error);
           });
+
+        // Get val file from S3
         if (res.data.valFileName) {
           axios.post("/api/data/file", {
               fileName: res.data.valFileName,
             }).then((json_data) => {
-              setRawDataVal(json_data.data);
+              setInputValData(json_data.data);
             }).catch((error) => {
               console.log(error);
             });
@@ -182,12 +139,12 @@ export default function DataPage() {
             Task:&nbsp;{type}
           </Typography>
 
-          {rawData.length > 0 ?
+          {inputTrainData.length > 0 ?
             <div>
               <div>
                 <Typography>Train file name: {displayFilename}</Typography>
-                <Typography># of train rows: {rawData.length}</Typography>
-                {rawDataVal ? <Typography># of validation rows: {rawDataVal.length}</Typography>
+                <Typography># of train rows: {inputTrainData.length}</Typography>
+                {inputValData ? <Typography># of validation rows: {inputValData.length}</Typography>
                   : <Typography>No validation data</Typography>}
                 {dataset.classes ?
                   <Typography>Classes: {dataset.classes.map((x, i) =>
@@ -203,7 +160,7 @@ export default function DataPage() {
         <Typography variant='h6'>
           View data
         </Typography>
-        {rawDataVal ? <ToggleButtonGroup
+        {inputValData ? <ToggleButtonGroup
           value={trainOrVal}
           exclusive
           onChange={reloadDataset}
@@ -221,38 +178,8 @@ export default function DataPage() {
         </ToggleButtonGroup> : null }
       </div>
       <div className='tiny-space' />
-      <Paper variant='outlined'>
-        <TableContainer>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow>
-                {headers.map((header, i) => 
-                ( <TableCell key={i} className='table-cell'>{header}</TableCell>))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {visibleRows.map((row, i) => (
-                <TableRow
-                  key={i}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                > 
-                  {headers.map((header, j) => (<TableCell key = {j}>{row[header]}</TableCell>))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Divider/>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={trainOrVal === 'train' ? rawData.length : rawDataVal.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+
+      <DataTable headers={headers} rawData={rawData} />
       <div className='medium-space' />
 
       <Dialog

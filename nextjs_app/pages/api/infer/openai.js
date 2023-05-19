@@ -1,19 +1,12 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb';
+import {templateTransform} from '../../../components/utils';
+
 const ObjectId = require('mongodb').ObjectId;
 const client = new MongoClient(process.env.MONGODB_URI);
 
 const { Configuration, OpenAIApi } = require("openai");
-
-// TODO: This wont work with templates using multiple columns
-const templateTransform = (prompt, templateString, matches) => {
-  let result = templateString;
-  matches.forEach((match) => {
-    result = result.replace(match, prompt);
-  });
-  return result;
-}
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -26,6 +19,7 @@ export default async function handler(request, response) {
   let completionName = request.body.completionName;
   let projectName = request.body.projectName;
   let hyperParams = request.body.hyperParams;
+  let finetuneInputData = request.body.finetuneInputData;
 
   const session = await getServerSession(request, response, authOptions);
   if (!session) {
@@ -77,18 +71,12 @@ export default async function handler(request, response) {
       const template = await db
         .collection("templates")
         .findOne({_id: new ObjectId(model.templateId)});
-      
-      console.log(template);  
 
       const templateString = template.templateString;
 
-      const regex = /{{.*}}/g;
-      const matches = templateString.match(regex);      
-
-      //if (project.type === 'classification') max_tokens = 20;  // Classification
       const completion = await openai.createCompletion({
         model: model.providerData.modelId,
-        prompt: templateTransform(prompt, templateString, matches),
+        prompt: templateTransform(templateString, finetuneInputData),
         max_tokens: max_tokens,
         temperature: temperature,
         stop: template.stopSequence,
