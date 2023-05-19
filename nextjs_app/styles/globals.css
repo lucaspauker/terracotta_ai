@@ -314,7 +314,7 @@ a {
   flex-wrap: wrap;
   max-width: 500px;
   max-height: 300px;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .multi-select {

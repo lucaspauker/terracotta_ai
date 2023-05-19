@@ -35,7 +35,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 import { toTitleCase } from '../../components/utils';
 import {CustomTooltip} from '../../components/CustomToolTip.js';
-import DataTable from '../../components/DataTable';
+import TemplateCreator from '../../components/TemplateCreator.js';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -73,9 +73,7 @@ export default function Train() {
   const [templateString, setTemplateString] = useState('');
   const [outputColumn, setOutputColumn] = useState('');
   const [stopSequence, setStopSequence] = useState('');
-  const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -87,77 +85,6 @@ export default function Train() {
   const router = useRouter();
 
   const steps = ['Choose a Model and Dataset', 'Create a Template', 'Select Hyperparameters', 'Review'];
-
-  const handleChangePage = useCallback(
-    (event, newPage) => {
-      setPage(newPage);
-      const updatedRows = trainData.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
-
-  const handleChangeRowsPerPage = useCallback(
-    (event) => {
-      const updatedRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(updatedRowsPerPage);
-      setPage(0);
-
-      const updatedRows = trainData.slice(
-        0 * updatedRowsPerPage,
-        0 * updatedRowsPerPage + updatedRowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
-
-  const handleTemplateChange = (newTemplateString) => {
-    if (newTemplateString !== '') {
-      const regex = /{{[^{}]*}}/g;
-      let matches = newTemplateString.match(regex);
-      if (matches === null) {
-        setErrorMessage('Template must contain at least one variable e.g. {{input}}');
-      } else {
-        const matchStrings = matches.map((match) => match.replace('{{','').replace('}}',''));
-        let templateStringCopy = newTemplateString;
-        for (let i = 0; i < matchStrings.length; i++){
-          if (!headers.includes(matchStrings[i])) {
-            setErrorMessage(`{{${matchStrings[i]}}} does not match any column in the dataset`);
-            setTemplateString(newTemplateString);
-            return;
-          } else {
-            templateStringCopy = templateStringCopy.replace(matches[i], '');
-          }
-        }
-        if (templateStringCopy.indexOf('{{') !== -1) {
-          setErrorMessage("Template contains unclosed variable tag {{")
-        } else if (templateStringCopy.indexOf('}}') !== -1) {
-          setErrorMessage("Template contains unclosed variable tag }}")
-        } else {
-          setErrorMessage('');
-        }
-      }
-    } else {
-      setErrorMessage('');
-    }
-    setTemplateString(newTemplateString);
-  }
-
-  const templateTransform = (row) => {
-    if (templateString !== '' && errorMessage === '') {
-      const regex = /{{.*}}/g;
-      const matches = templateString.match(regex);
-      let result = templateString;
-      matches.forEach((match) => {
-        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
-      });
-      return result;
-    } else {
-      return "";
-    }
-  }
 
   const handleFinetune = () => {
     let projectName = '';
@@ -190,7 +117,6 @@ export default function Train() {
   }
 
   const estimateCost = (tempTemplateData) => {
-
     axios.post("/api/models/finetune/cost", {
         provider: provider,
         modelArchitecture: modelArchitecture,
@@ -224,8 +150,21 @@ export default function Train() {
       });
   }, []);
 
-  // Functions for the stepper
+  const templateTransform = (row) => {
+    if (templateString !== '' && errorMessage === '') {
+      const regex = /{{.*}}/g;
+      const matches = templateString.match(regex);
+      let result = templateString;
+      matches.forEach((match) => {
+        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return result;
+    } else {
+      return "";
+    }
+  }
 
+  // Functions for the stepper
   const handleNext = () => {
     if (activeStep === 0) {
       setModelName(toTitleCase(modelArchitecture) + "_" + dataset.name);
@@ -233,7 +172,7 @@ export default function Train() {
         fileName: dataset.trainFileName,
       }).then((json_data) => {
         setTrainData(json_data.data);
-        const rowsOnMount = json_data.data.slice(0, rowsPerPage);
+        const rowsOnMount = json_data.data.slice(0, 5);
         const inputHeaders = Object.keys(json_data.data[0]);
         setHeaders(inputHeaders);
         setOutputColumn(inputHeaders[1]);
@@ -418,146 +357,23 @@ export default function Train() {
                 Finetuning Template
               </Typography>
               <div className='small-space' />
-              <div className= "left-message">
-                {errorMessage === "" ?
-                  <Typography className = "prompt-success horizontal-box flex-start">
-                    <CheckCircleOutlineIcon/>&nbsp;&nbsp;Valid prompt
-                  </Typography>
-                  :
-                  <Typography className = "prompt-error horizontal-box flex-start">
-                    <ErrorOutlineIcon/>&nbsp;&nbsp;{errorMessage}
-                  </Typography>
-                }
-              </div>
-              <div className='tiny-space' />
-              <div className='full-width template-layout'>
-                <TextField
-                  variant="outlined"
-                  className='template-box'
-                  value={templateString}
-                  onChange={(e) => handleTemplateChange(e.target.value)}
-                  multiline
-                  minRows = {8}
-                  maxRows = {15}
+              {datasetLoading ?
+                <div className="horizontal-box"><CircularProgress /></div>
+                :
+                <TemplateCreator
+                  templateString={templateString}
+                  stopSequence={stopSequence}
+                  outputColumn={outputColumn}
+                  errorMessage={errorMessage}
+                  setTemplateString={setTemplateString}
+                  setStopSequence={setStopSequence}
+                  setOutputColumn={setOutputColumn}
+                  setErrorMessage={setErrorMessage}
+                  trainData={trainData}
+                  headers={headers}
+                  initialVisibleRows={visibleRows}
                 />
-                <div className = "template-options">
-                  <div>
-                    <Typography>Output column:</Typography>
-                    <div className = "tiny-space" />
-                    <FormControl>
-                      <Select
-                        className="compact-select"
-                        value={outputColumn}
-                        onChange={(e) => {
-                          setOutputColumn(e.target.value);
-                        }}
-                        required
-                      >
-                        {headers.map((d, i) => (
-                            <MenuItem value={d} key={i}>{d}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </div>
-                  <div>
-                    <Typography>Stop sequence:</Typography>
-                    <div className = "tiny-space" />
-                    <TextField
-                      variant="outlined"
-                      className='small-text-field'
-                      size = "small"
-                      value={stopSequence}
-                      onChange={(e) => setStopSequence(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                      <Typography sx={{textAlign:'center'}}>Headers: </Typography>
-                      <div className = "tiny-space" />
-                      <div className = "headers-container" style={{justifyContent:'center'}}>
-                        {headers.map((h, i) =>
-                          <Typography className='data-header' key={h}>
-                            {h}
-                          </Typography>
-                        )}
-                      </div >
-                  </div>
-                </div>
-              </div>
-                {
-                  !datasetLoading?
-                  <div>
-                    <TableContainer className="shadow">
-                      <Table stickyHeader sx={{ minWidth: 650}}>
-                        <TableHead>
-                          <TableRow>
-                            {["Input Prompt", "Completion"].map((header, i) => (
-                              <TableCell
-                                key={i}
-                                align="center"
-                                style={{
-                                  borderRight: i === headers.length - 1 ? 'none' : '1px dashed lightgrey',
-                                  borderBottom: '3px solid #9C2315',
-                                  borderTop: 'none',
-                                  fontSize: '16px', // Increase font size for the header row
-                                  fontWeight: 'bold',
-                                }}
-                              >
-                                {header}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {visibleRows.map((row,i) => (
-                            <TableRow
-                              key={i}
-                              sx={{
-                                '&:last-child td, &:last-child th': { border: 0 },
-                                overflow: 'auto',
-                              }}
-                            >
-                              <TableCell
-                                style={{
-                                  borderRight: '1px dashed lightgrey',
-                                  borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
-                                }}
-                                className = "half-table-cell"
-                              >
-                                <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                                {
-                                  templateTransform(row)
-                                }
-                                </Typography>
-                              </TableCell>
-                              <TableCell
-                                style={{
-                                  borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
-                                }}
-                                className = "half-table-cell"
-                              >
-                                <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                                {outputColumn? row[outputColumn] : ""}
-                                {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
-                                </Typography>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      <Divider/>
-                    </TableContainer>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      component="div"
-                      count={trainData.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                  </div>
-                  : null
-                }
+              }
             </>
             :null}
 
