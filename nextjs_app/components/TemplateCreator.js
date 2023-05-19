@@ -27,6 +27,8 @@ import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
+import { formatTextForTypography } from './utils';
+
 function TemplateCreator({
       templateString,
       stopSequence,
@@ -223,18 +225,19 @@ function TemplateCreator({
                     >
                       <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
                       {
-                        templateTransform(row)
+                        formatTextForTypography(templateTransform(row))
                       }
                       </Typography>
                     </TableCell>
                     <TableCell
                       style={{
                         borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                        verticalAlign: 'top',
                       }}
                       className = "half-table-cell"
                     >
                       <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                      {outputColumn? row[outputColumn] : ""}
+                      {outputColumn? formatTextForTypography(row[outputColumn]) : ""}
                       {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
                       </Typography>
                     </TableCell>

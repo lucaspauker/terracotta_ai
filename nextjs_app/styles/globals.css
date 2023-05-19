@@ -553,17 +553,14 @@ a {
   width: 50%;
 }
 
-.left-message {
-  display:flex;
-  flex-direction: row;
-  margin-left:10px;
-  width: 100%;
-}
-
 .template-layout {
   display:flex;
   flex-direction: row;
   height: 400px;
+}
+
+.left-message {
+  display: flex;
 }
 
 .headers-list {

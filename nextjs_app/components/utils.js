@@ -50,3 +50,14 @@ export const templateTransform = (templateString, finetuneInputData) => {
   return result;
 }
 
+export const formatTextForTypography = (text) => {
+  if (!text) return undefined;
+  return text.split('\n').map((line, index) => {
+    if (line === '') {
+      return <br key={index} />;
+    } else {
+      return <p key={index}>{line}</p>;
+    }
+  });
+};
+
