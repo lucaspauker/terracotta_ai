@@ -168,7 +168,7 @@ export default function Evaluate() {
           <IconButton color="secondary" className='button-margin' onClick={refreshData}>
             <HiOutlineRefresh size={25} />
           </IconButton>
-          <Button variant='contained' color="secondary" component={Link} href="/evaluate/evaluate">
+          <Button variant='contained' color="secondary" component={Link} href="/evaluate/evaluate-select">
             + New evaluation
           </Button>
         </div>
