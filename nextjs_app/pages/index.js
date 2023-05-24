@@ -9,23 +9,6 @@ import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
 
 import styles from '@/styles/Home.module.css'
 
-export async function getServerSideProps(context) {
-  const session = await getSession(context)
-
-  if (session) {
-    return {
-      redirect: {
-        destination: '/projects',
-        permanent: false,
-      },
-    }
-  }
-
-  return {
-    props: { session }
-  }
-}
-
 export default function Home() {
   return (
     <div className='homepage'>
