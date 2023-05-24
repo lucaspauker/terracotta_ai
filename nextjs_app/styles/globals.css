@@ -173,6 +173,9 @@ a {
   .information-element {
     margin-bottom: 20px;
   }
+  .email-list-form {
+    flex-direction: column;
+  }
 }
 
 .information-element {
@@ -215,6 +218,33 @@ a {
 .part-subtext {
   font-size: 18px;
   color: #888888;
+}
+
+.signin-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.signin-button {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.signin-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  max-width: 600px;
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .text-label {

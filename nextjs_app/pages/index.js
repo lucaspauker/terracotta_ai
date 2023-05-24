@@ -4,17 +4,18 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { Layout, SimpleLayout } from '../components/layout'
-import ForestIcon from '@mui/icons-material/Forest';
 import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
-
-import styles from '@/styles/Home.module.css'
+import { GiClayBrick } from 'react-icons/gi';
 
 export default function Home() {
   return (
     <div className='homepage'>
       <div className="top-content">
         <div className='header horizontal-box full-width'>
-          <Typography className="logo" variant="h1">Terracotta</Typography>
+          <Typography className="logo horizontal-box" variant="h1">
+            <GiClayBrick style={{marginRight: 10}}/>
+            Terracotta
+          </Typography>
           <Button variant='contained' color='primary' size='large' onClick={() => signIn()}>Sign in</Button>
         </div>
         <div className='hero-image'></div>
