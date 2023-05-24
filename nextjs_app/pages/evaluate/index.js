@@ -14,11 +14,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
@@ -35,12 +30,7 @@ import {HiOutlineRefresh} from "react-icons/hi";
 
 import { calculateColor, timestampToDateTimeShort } from '/components/utils';
 import MenuComponent from "components/MenuComponent";
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
+import DatasetEvaluations from 'components/DatasetEvaluations';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -61,32 +51,32 @@ export async function getServerSideProps(context) {
 
 export default function Evaluate() {
   const [loading, setLoading] = useState(true);
-  const [evals, setEvals] = useState([]);
+  const [evals, setEvals] = useState({});
+  const [datasetData, setDatasetData] = useState([]);
   const [project, setProject] = useState('');
   const router = useRouter()
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [open, setOpen] = useState(false);
-  const [idToDelete, setIdToDelete] = useState(null);
   const { data: session } = useSession();
 
-  const handleEdit = (id) => {
-    router.push("/evaluate/edit/" + id);
-  };
-
-  const handleOpen = (id) => {
-    setIdToDelete(id);
-  };
-
-  const doDelete = () => {
-    axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
-      console.log(res.data);
-      setOpen(false);
-      refreshData();
-    }).catch((error) => {
-      console.log(error);
-    });
+  const groupByDatasets = (data) => {
+    let result = {};
+    let ddata = [];
+    for (let i = 0; i < data.length; i++) {
+      const dname = data[i].datasetName;
+      const id = data[i].datasetId;
+      if (dname in result) {
+        result[dname].push(data[i]);
+      } else {
+        result[dname] = [data[i]];
+        ddata.push(
+          {name: dname, id: id}
+        );
+      }
+    }
+    setDatasetData(ddata);
+    return result;
   }
 
   const refreshData = () => {
@@ -101,7 +91,7 @@ export default function Evaluate() {
       }).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
-          setEvals(res.data);
+          setEvals(groupByDatasets(res.data));
           setPage(0);
           const newPage = 0;
           const updatedRows = res.data.slice(
@@ -142,12 +132,6 @@ export default function Evaluate() {
   );
 
   useEffect(() => {
-    if (idToDelete !== null) {
-      setOpen(true);
-    }
-  }, [idToDelete]);
-
-  useEffect(() => {
     refreshData();
 
     window.addEventListener("storage", () => {
@@ -177,85 +161,8 @@ export default function Evaluate() {
       <div className='tiny-space' />
 
       <div>
-        {evals.length > 0 ?
-          <Paper variant="outlined">
-            <TableContainer>
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell className='table-cell'>Name</TableCell>
-                    <TableCell className='table-cell'>Date created</TableCell>
-                    <TableCell className='table-cell'>Model name</TableCell>
-                    <TableCell className='table-cell'>Dataset name</TableCell>
-                    <TableCell className='table-cell'>Metrics</TableCell>
-                    <TableCell className='table-cell'></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {visibleRows.map((e) => (
-                    <TableRow
-                      key={e._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
-                    >
-                      <TableCell>
-                        {e.status === "failed" ?
-                          <div className='horizontal-box flex-start'>
-                            <div>{e.name} &nbsp;&nbsp;&nbsp;</div>
-                            <Tooltip title="Error running evaluation">
-                              <ErrorIcon sx={{color:'red', fontSize:16}}/>
-                            </Tooltip>
-                          </div>
-                          : e.metricResults ?
-                          <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link>
-                          :
-                          <div className='horizontal-box flex-start'>
-                            <div>{e.name} &nbsp;&nbsp;&nbsp;</div>
-                            <CircularProgress size={16}/>
-                          </div>
-                        }
-                      </TableCell>
-                      <TableCell>{timestampToDateTimeShort(e.timeCreated)}</TableCell>
-                      <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
-                      <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
-                      <TableCell>
-                        {e.metricResults ?
-                          <div className='metrics-cell'>
-                            {e.metrics.map(m => <div key={m} className='metric-in-table'>
-                              <span className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
-                                {m in metricMap ? metricMap[m] : m}
-                            </span></div>)}
-                          </div>
-                          :
-                          <div className='metrics-cell'>
-                            {e.metrics.map(m => <div key={m} className='metric-in-table'>
-                              <span className='metric-in-table-text'>
-                                {m in metricMap ? metricMap[m] : m}
-                              </span></div>)}
-                          </div>
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <MenuComponent
-                          editFunction={() => handleEdit(e._id)}
-                          deleteFunction={() => handleOpen(e._id)}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Divider/>
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={evals.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </TableContainer>
-          </Paper>
+        {datasetData.length > 0 ?
+          <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData} />
           :
           <>
           <Paper variant='outlined' className='info-box'>
@@ -312,25 +219,6 @@ export default function Evaluate() {
           </>
         }
       </div>
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Delete evaluation?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This action is permanent and cannot be reversed.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={doDelete} autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </div>
   )
 }

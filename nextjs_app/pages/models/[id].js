@@ -257,6 +257,7 @@ export default function ModelPage() {
         value={templateString}
         sx={{width: '400px'}}
       />
+      <div className='medium-space' />
 
       {evals.length > 0 ?
         <>
