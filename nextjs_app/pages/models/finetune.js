@@ -353,9 +353,16 @@ export default function Train() {
 
           {activeStep === 1 ?
             <>
-              <Typography variant='h6'>
-                Finetuning Template
-              </Typography>
+              <Box className = "horizontal-box">
+                <Typography variant='h6'>
+                  Finetuning Template
+                </Typography>
+                <CustomTooltip title="Open AI recommends adding ### to the end of prompts" className='tooltip'>
+                        <IconButton disableRipple={true}>
+                          <BiInfoCircle size={16} color='#9C2315'/>
+                        </IconButton>
+                </CustomTooltip>
+              </Box>
               <div className='small-space' />
               {datasetLoading ?
                 <div className="horizontal-box"><CircularProgress /></div>
@@ -372,6 +379,7 @@ export default function Train() {
                   trainData={trainData}
                   headers={headers}
                   initialVisibleRows={visibleRows}
+                  dataset={dataset}
                 />
               }
             </>

@@ -99,6 +99,7 @@ export default function Evaluate() {
     axios.post("/api/evaluate", {
         projectName: p,
       }).then((res) => {
+        console.log(res.data);
         if (res.data !== "No data found") {
           setEvals(res.data);
           setPage(0);

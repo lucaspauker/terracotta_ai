@@ -155,7 +155,7 @@ export default async function handler(request, response) {
     if (project.type === "classification") {
       const total = completions.length;
       let tp = 0, fp = 0, tn = 0, fn = 0;
-      const positiveClass = dataset.classes[0];
+      const positiveClass = template.classes[0];
 
       for (let i = 0; i < total; i++) {
         const prediction = completions[i];

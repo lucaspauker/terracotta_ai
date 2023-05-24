@@ -88,7 +88,7 @@ export default function DoEvaluate() {
       p = localStorage.getItem("project");
     };
 
-    axios.post("/api/evaluate/evaluate", {
+    axios.post("/api/evaluate/evaluate-finetuned", {
         name: name,
         description: description,
         projectName: p,

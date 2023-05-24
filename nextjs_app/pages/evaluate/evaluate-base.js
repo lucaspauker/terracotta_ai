@@ -30,7 +30,7 @@ import {toTitleCase} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
 const steps = ['Select dataset and model', 'Choose template', 'Select metrics', 'Review evaluation'];
-const providers = ['openai', 'cohere'];
+
 const baseModelNamesDict = {
   'text-ada-001': 'GPT-3 Ada',
   'text-babbage-001': 'GPT-3 Babbage',
@@ -42,7 +42,6 @@ const baseModelNamesDict = {
   'classify-large': 'Classify Large',
   'classify-multilingual': 'Classify Multilingual',
 }
-const providerNameDict = {'openai':'OpenAI','cohere':'Cohere'}
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -72,9 +71,9 @@ export default function DoEvaluate() {
   const [datasets, setDatasets] = useState([]);
   const [dataset, setDataset] = useState('');
   const [checked, setChecked] = useState({});
-  const [models, setModels] = useState({});
-  const [model, setModel] = useState(null);
+  const [model, setModel] = useState("");
   const [metrics, setMetrics] = useState([]);
+  const [estimatedCost, setEstimatedCost] = useState(0);
   const { data: session } = useSession();
   const router = useRouter()
 
@@ -86,8 +85,40 @@ export default function DoEvaluate() {
   const [headers, setHeaders] = useState([]);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
-  const [trainData, setTrainData] = useState({});
-  const [valData, setValData] = useState({});
+  const [evalData, setEvalData] = useState({});
+  const [provider, setProvider] = useState('');
+  const [templateData, setTemplateData] = useState({});
+
+  const templateTransform = (row) => {
+    if (templateString !== '' && errorMessage === '') {
+      const regex = /{{.*}}/g;
+      const matches = templateString.match(regex);
+      let result = templateString;
+      matches.forEach((match) => {
+        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return result;
+    } else {
+      return "";
+    }
+  }
+
+  const estimateCost = (tempTemplateData) => {
+    axios.post("/api/models/finetune/cost", {
+        provider: provider,
+        modelArchitecture: modelArchitecture,
+        epochs: hyperParams["n_epochs"],
+        templateData: tempTemplateData,
+      }).then((res) => {
+        setEstimatedCost(res.data.estimatedCost);
+        console.log("response data")
+        console.log(res.data);
+        setError();
+      }).catch((error) => {
+        console.log(error);
+        setError(error.response.data);
+      });
+  }
 
   const toggleChecked = (id) => {
     let updatedChecked = Object.assign({}, checked);
@@ -115,29 +146,25 @@ export default function DoEvaluate() {
       p = localStorage.getItem("project");
     };
 
-    axios.post("/api/evaluate/evaluate", {
-        name: name,
-        description: description,
-        projectName: p,
-        modelName: model,
-        datasetName: dataset,
-        metrics: metrics.filter(x => checked[x]),
-      }).then((res) => {
-        console.log(res.data);
-        setError();
-        router.push('/evaluate/' + res.data);
-      }).catch((err) => {
-        console.log(err);
-        setError(err.response.data.error);
-      });
-  }
-
-  const groupByProviders = (models) => {
-    let result = {"openai":[],"cohere":[]};
-    for (let i = 0; i < models.length; i++) {
-      result[models[i].provider].push(models[i]);
-    }
-    return result;
+    axios.post("/api/evaluate/evaluate-base", {
+      name: name,
+      description: description,
+      projectName: p,
+      completionName: model,
+      datasetName: dataset.name,
+      metrics: metrics.filter(x => checked[x]),
+      templateString: templateString,
+      templateData: templateData,
+      outputColumn: outputColumn,
+      stopSequence: stopSequence,
+    }).then((res) => {
+      console.log(res.data);
+      setError();
+      router.push('/evaluate/' + res.data);
+    }).catch((err) => {
+      console.log(err);
+      setError(err.response.data.error);
+    });
   }
 
   useEffect(() => {
@@ -147,6 +174,7 @@ export default function DoEvaluate() {
       projectName = localStorage.getItem("project");
     }
 
+    // Why we doing this?
     axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
         console.log(res);
         if (res.data.type === "classification") {
@@ -158,15 +186,9 @@ export default function DoEvaluate() {
         console.log(error);
       });
 
-    axios.get("/api/providers/list").then((res) => {
-      const temp = groupByProviders(res.data);
-      setModels(temp);
-      axios.post("/api/data/list", {projectName: projectName}).then((res) => {
-        setDatasets(res.data);
-        setLoading(false);
-      }).catch((error) => {
-        console.log(error);
-      });
+    axios.post("/api/data/list", {projectName: projectName}).then((res) => {
+      setDatasets(res.data);
+      setLoading(false);
     }).catch((error) => {
       console.log(error);
     });
@@ -186,31 +208,54 @@ export default function DoEvaluate() {
     if (activeStep === 0) {
       setName(baseModelNamesDict[model.completionName] + " Evaluation");
 
-      axios.post("/api/data/file", {
-        fileName: dataset.trainFileName,
-      }).then((json_data) => {
-        setTrainData(json_data.data);
-        const rowsOnMount = json_data.data.slice(0, 5);
-        const inputHeaders = Object.keys(json_data.data[0]);
-        setHeaders(inputHeaders);
-        setOutputColumn(inputHeaders[1]);
-        setTemplateString("{{" + inputHeaders[0] + "}}\n\n###\n\n");
-        setStopSequence("$$$");
-        setVisibleRows(rowsOnMount);
-        setDatasetLoading(false);
-      }).catch((error) => {
-        console.log(error);
-      });
-
-      axios.post("/api/data/file", {
-        fileName: dataset.valFileName,
-      }).then((json_data) => {
-        console.log("Got amazon file");
-        setValData(json_data.data);
-      }).catch((error) => {
-        console.log(error);
-      });
+      if (dataset.valFileName) {
+        axios.post("/api/data/file", {
+          fileName: dataset.valFileName,
+        }).then((json_data) => {
+          setEvalData(json_data.data);
+          const rowsOnMount = json_data.data.slice(0, 5);
+          const inputHeaders = Object.keys(json_data.data[0]);
+          setHeaders(inputHeaders);
+          setOutputColumn(inputHeaders[1]);
+          setTemplateString("{{" + inputHeaders[0] + "}}\n\n###\n\n");
+          setStopSequence("$$$");
+          setVisibleRows(rowsOnMount);
+          setDatasetLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+      } else {
+        axios.post("/api/data/file", {
+          fileName: dataset.trainFileName,
+        }).then((json_data) => {
+          setEvalData(json_data.data);
+          const rowsOnMount = json_data.data.slice(0, 5);
+          const inputHeaders = Object.keys(json_data.data[0]);
+          setHeaders(inputHeaders);
+          setOutputColumn(inputHeaders[1]);
+          setTemplateString("{{" + inputHeaders[0] + "}}\n\n###\n\n");
+          setStopSequence("$$$");
+          setVisibleRows(rowsOnMount);
+          setDatasetLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+      }
+      
     }
+
+    if (activeStep === 1) {
+      let numWords = 0;
+      let numChars = 0;
+      evalData.forEach((row) => {
+        numWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
+        numChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
+      });
+      const tempTemplateData = {numTrainWords: numWords, numTrainChars: numChars, numValWords: 0, numValChars: 0};
+      setTemplateData(tempTemplateData);
+      //estimateCost(tempTemplateData);
+    }
+
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
@@ -257,15 +302,6 @@ export default function DoEvaluate() {
   if (loading) {
     return <div className='main vertical-box'><CircularProgress /></div>
   }
-
-  const menuItems = providers.flatMap((p) => [
-    <ListSubheader key={p}>{providerNameDict[p]}</ListSubheader>,
-    ...models[p].map((m) => (
-      <MenuItem key={m._id} value={m}>
-        {baseModelNamesDict[m.completionName]}
-      </MenuItem>
-    )),
-  ]);
 
   return (
     <div className='main'>
@@ -318,7 +354,9 @@ export default function DoEvaluate() {
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                   >
-                    {menuItems}
+                    {Object.keys(baseModelNamesDict).map((completionName) => (
+                        <MenuItem key={completionName} value={completionName}>{baseModelNamesDict[completionName]}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
                 <div className='small-space' />
@@ -362,9 +400,10 @@ export default function DoEvaluate() {
                   setStopSequence={setStopSequence}
                   setOutputColumn={setOutputColumn}
                   setErrorMessage={setErrorMessage}
-                  trainData={trainData}
+                  trainData={evalData}
                   headers={headers}
                   initialVisibleRows={visibleRows}
+                  dataset={dataset}
                 />
               }
             </>
