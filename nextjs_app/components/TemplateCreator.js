@@ -41,11 +41,29 @@ function TemplateCreator({
       trainData,
       headers,
       initialVisibleRows,
+      dataset,
     }) {
 
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(initialVisibleRows);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [models, setModels] = useState([]);
+  const [templateModel, setTemplateModel] = useState('');
+
+  useEffect(() => {
+    let p = '';
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+    };
+    axios.post("/api/models", {projectName: p}).then((res) => {
+      console.log(res.data);
+      const filteredModels = res.data.filter( (model) => model.datasetId === dataset._id);
+      console.log(filteredModels);
+      setModels(filteredModels);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, []);
 
   const handleChangePage = useCallback(
     (event, newPage) => {
@@ -106,7 +124,7 @@ function TemplateCreator({
 
   const templateTransform = (row) => {
     if (templateString !== '' && errorMessage === '') {
-      const regex = /{{.*}}/g;
+      const regex = /{{[^{}]*}}/g;
       const matches = templateString.match(regex);
       let result = templateString;
       matches.forEach((match) => {
@@ -143,6 +161,24 @@ function TemplateCreator({
           maxRows = {15}
         />
         <div className = "template-options">
+          <div className = "vertical-box">
+            <Typography>Import template from a model:</Typography>
+            <div className = "tiny-space" />
+            <FormControl>
+              <Select
+                className="compact-select"
+                value={templateModel}
+                onChange={(e) => {
+                  setTemplateModel(e.target.value);
+                  handleTemplateChange(e.target.value.templateString)
+                }}
+              >
+                {models.map((d, i) => (
+                    <MenuItem value={d} key={i}>{d.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
           <div>
             <Typography>Output column:</Typography>
             <div className = "tiny-space" />
@@ -223,9 +259,9 @@ function TemplateCreator({
                       }}
                       className = "half-table-cell"
                     >
-                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
+                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
                       {
-                        formatTextForTypography(templateTransform(row))
+                        templateTransform(row)
                       }
                       </Typography>
                     </TableCell>
@@ -236,8 +272,8 @@ function TemplateCreator({
                       }}
                       className = "half-table-cell"
                     >
-                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                      {outputColumn? formatTextForTypography(row[outputColumn]) : ""}
+                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
+                      {outputColumn? row[outputColumn] : ""}
                       {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
                       </Typography>
                     </TableCell>

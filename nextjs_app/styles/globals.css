@@ -527,6 +527,7 @@ a {
   width: 30%;
   height: 400px;
   gap: 20px;
+  text-align: center;
 }
 
 .headers-list {
