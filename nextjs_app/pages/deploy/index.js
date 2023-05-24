@@ -99,7 +99,7 @@ const response = await openai.createCompletion({
   }'`
 }
 
-  const [apiCode, setApiCode] = useState(curlApiCode(''));
+  const [apiCode, setApiCode] = useState(curlApiCode('', prompt));
 
   const getApiCode = (m, l, p) => {
     if (l === 'python') {
@@ -126,8 +126,6 @@ const response = await openai.createCompletion({
     setApiCode(getApiCode(model, library, newPrompt));
   }
 
-  
-
   useEffect(() => {
     let projectName = '';
     if (localStorage.getItem("project")) {
@@ -138,7 +136,7 @@ const response = await openai.createCompletion({
       if (res.data[0]) {
         const m = res.data[0].providerData.modelId;
         setModel(m);
-        setApiCode(getApiCode(m, library));
+        setApiCode(getApiCode(m, library, prompt));
       }
     }).catch((error) => {
       console.log(error);

@@ -52,7 +52,7 @@ export async function getServerSideProps(context) {
 export default function Evaluate() {
   const [loading, setLoading] = useState(true);
   const [evals, setEvals] = useState({});
-  const [datasetNames, setDatasetNames] = useState([]);
+  const [datasetData, setDatasetData] = useState([]);
   const [project, setProject] = useState('');
   const router = useRouter()
   const [page, setPage] = useState(0);
@@ -62,17 +62,20 @@ export default function Evaluate() {
 
   const groupByDatasets = (data) => {
     let result = {};
-    let dnames = [];
+    let ddata = [];
     for (let i = 0; i < data.length; i++) {
       const dname = data[i].datasetName;
+      const id = data[i].datasetId;
       if (dname in result) {
         result[dname].push(data[i]);
       } else {
         result[dname] = [data[i]];
-        dnames.push(dname);
+        ddata.push(
+          {name: dname, id: id}
+        );
       }
     }
-    setDatasetNames(dnames);
+    setDatasetData(ddata);
     return result;
   }
 
@@ -157,8 +160,8 @@ export default function Evaluate() {
       <div className='tiny-space' />
 
       <div>
-        {datasetNames.length > 0 ?
-          <DatasetEvaluations datasetNames={datasetNames} evaluations={evals} refreshData={refreshData} />
+        {datasetData.length > 0 ?
+          <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData} />
           :
           <>
           <Paper variant='outlined' className='info-box'>

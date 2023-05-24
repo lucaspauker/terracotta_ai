@@ -22,6 +22,7 @@ import axios from 'axios';
 
 import MenuComponent from "components/MenuComponent";
 import { calculateColor, timestampToDateTimeShort } from '/components/utils';
+import { FaArrowRight } from 'react-icons/fa';
 
 const metricMap = {
   'f1': 'F1',
@@ -29,8 +30,8 @@ const metricMap = {
   'rougel': 'RougeL',
 }
 
-function DatasetEvaluations({ datasetNames, evaluations, refreshData }) {
-  const [expanded, setExpanded] = useState(datasetNames);
+function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
+  const [expanded, setExpanded] = useState(datasetData);
   const router = useRouter()
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
@@ -45,18 +46,18 @@ function DatasetEvaluations({ datasetNames, evaluations, refreshData }) {
   }
 
   const handleExpandAll = () => {
-    setExpanded(datasetNames);
+    setExpanded(datasetData);
   };
 
   const handleCollapseAll = () => {
     setExpanded([]);
   };
 
-  const handleChange = (datasetName) => {
-    if (expanded.includes(datasetName)) {
-      setExpanded(expanded.filter((name) => name !== datasetName));
+  const handleChange = (input) => {
+    if (expanded.includes(input)) {
+      setExpanded(expanded.filter((name) => name !== input));
     } else {
-      setExpanded([...expanded, datasetName]);
+      setExpanded([...expanded, input]);
     }
   };
 
@@ -77,23 +78,26 @@ function DatasetEvaluations({ datasetNames, evaluations, refreshData }) {
   return (
     <div>
       <div>
-        <Button onClick={handleExpandAll} variant="outlined" color="primary">
-          Expand All
-        </Button>
         <Button onClick={handleCollapseAll} variant="outlined" color="primary" className='button-margin'>
           Collapse All
         </Button>
+        <Button onClick={handleExpandAll} variant="outlined" color="primary">
+          Expand All
+        </Button>
       </div>
       <div className='small-space' />
-      {datasetNames.map((datasetName, index) => (
-        <Box key={datasetName} marginBottom={2}>
+      {datasetData.map((datasetDataPoint, index) => (
+        <Box key={datasetDataPoint.id} marginBottom={2}>
           <Accordion
-            expanded={expanded.includes(datasetName)}
-            onChange={() => handleChange(datasetName)}
-            defaultExpanded="true"
+            expanded={expanded.includes(datasetDataPoint)}
+            onChange={() => handleChange(datasetDataPoint)}
+            defaultExpanded={true}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">{datasetName}</Typography>
+              <Typography variant="h6">{datasetDataPoint.name}&nbsp;&nbsp;&nbsp;&nbsp;</Typography>
+              <Button size="small" variant='outlined' color="secondary" component={Link} href={"/evaluate/by-dataset/" + datasetDataPoint.id} onClick={e => e.stopPropagation()}>
+                See more details&nbsp;&nbsp; <FaArrowRight />
+              </Button>
             </AccordionSummary>
             <AccordionDetails>
               <Paper variant="outlined">
@@ -110,7 +114,7 @@ function DatasetEvaluations({ datasetNames, evaluations, refreshData }) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {evaluations[datasetName].map((e) => (
+                      {evaluations[datasetDataPoint.name].map((e) => (
                         <TableRow
                           key={e._id}
                           sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
