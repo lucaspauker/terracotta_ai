@@ -1,24 +1,35 @@
-import '@/styles/globals.css'
-import { Layout, SimpleLayout } from '../components/layout'
+import '../styles/globals.css'
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import Head from 'next/head';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { CacheProvider } from '@emotion/react';
 import { SessionProvider } from "next-auth/react"
-import createCache from "@emotion/cache";
-import { CacheProvider } from "@emotion/react";
+import createEmotionCache from '../components/createEmotionCache';
+import { Layout, SimpleLayout } from '../components/layout'
 
-export default function App({Component, pageProps: { session, ...pageProps },}) {
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
+
+export default function App({Component, emotionCache = clientSideEmotionCache, pageProps: { session, ...pageProps },}) {
   const getLayout = Component.getLayout || null;
-
   if (getLayout) {
     return (
-      <SessionProvider session={session}>
-        {getLayout(<Component {...pageProps} />)}
-      </SessionProvider>
+      <CacheProvider value={emotionCache}>
+        <SessionProvider session={session}>
+          {getLayout(<Component {...pageProps} />)}
+        </SessionProvider>
+      </CacheProvider>
     );
   }
   return (
-    <SessionProvider session={session}>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
-    </SessionProvider>
+    <CacheProvider value={emotionCache}>
+      <SessionProvider session={session}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </SessionProvider>
+    </CacheProvider>
   );
 }
