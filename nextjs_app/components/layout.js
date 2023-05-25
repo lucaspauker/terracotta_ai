@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Head from 'next/head'
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Navbar from './navbar'
