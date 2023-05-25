@@ -19,7 +19,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
-import { calculateColor } from '/components/utils';
+import { calculateColor, metricFormat } from '/components/utils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -202,21 +202,34 @@ export default function ModelPage() {
       </div>
       <div className='medium-space' />
 
-      <div>
-        <Typography variant='h6'>
-          Model info
-        </Typography>
-        <div className='tiny-space'/>
-        <Paper className='small-card' variant='outlined'>
-          <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
-          <Typography>Architecture: {model.modelArchitecture}</Typography>
-          <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
-          <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></Typography>
-        </Paper>
-        <div className='medium-space' />
+      <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
+        <div>
+          <Typography variant='h6'>
+            Model info
+          </Typography>
+          <div className='tiny-space'/>
+          <Paper className='small-card' variant='outlined'>
+            <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
+            <Typography>Architecture: {model.modelArchitecture}</Typography>
+            <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
+            <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></Typography>
+          </Paper>
+        </div>
+        <div>
+          <Typography variant="h6">Template</Typography>
+          <div className='tiny-space' />
+          <TextField
+            multiline
+            InputProps={{ readOnly: true, }}
+            className="white"
+            value={templateString}
+            sx={{width: '400px'}}
+          />
+        </div>
       </div>
+      <div className='medium-space' />
 
-      {trainEval ?
+      {trainEval || graphData ?
         <>
         <Typography variant='h6'>
           Training evaluation
@@ -224,40 +237,29 @@ export default function ModelPage() {
         <div>
           <div className='tiny-space'/>
           <Paper className='card vertical-box' variant='outlined'>
-            {graphData ? <Line options={options} plugins={plugins} data={graphData} className='chart'/> : null}
-            <div className='horizontal-box'>
-              {trainEval.metrics.map(metric => (
-                <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
-                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                    {metric === 'bleu' ? 'BLEU' :
-                      metric === 'rougel' ? 'RougeL' :
-                      metric.charAt(0).toUpperCase() + metric.slice(1)}
-                  </Typography>
-                  <div className='small-space'/>
-                  <Typography variant='h6'>
-                    {metric === 'accuracy' ?
-                      parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
-                      parseFloat(trainEval.metricResults[metric]).toFixed(2)}
-                  </Typography>
-                </div>
-              ))}
-            </div>
+            {graphData && <Line options={options} plugins={plugins} data={graphData} className='chart'/>}
+            {trainEval &&
+              <div className='horizontal-box-grid'>
+                {trainEval.metrics.map(metric => (
+                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
+                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                      {metricFormat(metric)}
+                    </Typography>
+                    <div className='small-space'/>
+                    <Typography variant='h6'>
+                      {metric === 'accuracy' ?
+                        parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
+                        parseFloat(trainEval.metricResults[metric]).toFixed(2)}
+                    </Typography>
+                  </div>
+                ))}
+              </div>
+            }
           </Paper>
         </div>
         <div className='medium-space' />
         </>
         : null }
-
-      <Typography variant="h6">Template</Typography>
-      <div className='tiny-space' />
-      <TextField
-        multiline
-        InputProps={{ readOnly: true, }}
-        className="white"
-        value={templateString}
-        sx={{width: '400px'}}
-      />
-      <div className='medium-space' />
 
       {evals.length > 0 ?
         <>
@@ -271,13 +273,12 @@ export default function ModelPage() {
               <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></Typography>
               {e.description ? <Typography>Description: {e.description}</Typography> : null }
               <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
-              <div className='horizontal-box'>
+              <div className='small-space'/>
+              <div className='horizontal-box-grid'>
                 {e.metrics.map(metric => (
                   <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
                     <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                      {metric === 'bleu' ? 'BLEU' :
-                        metric === 'rougel' ? 'RougeL' :
-                        metric.charAt(0).toUpperCase() + metric.slice(1)}
+                      {metricFormat(metric)}
                     </Typography>
                     <div className='small-space'/>
                     <Typography variant='h6'>

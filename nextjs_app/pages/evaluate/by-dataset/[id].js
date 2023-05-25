@@ -4,13 +4,7 @@ import axios from 'axios';
 import { CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
 import { FaArrowLeft } from 'react-icons/fa';
 import BarGraph from 'components/BarGraph';
-import {toTitleCase} from 'components/utils';
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
+import {toTitleCase, metricFormat} from 'components/utils';
 
 export default function EvaluationDatasetPage() {
   const [loading, setLoading] = useState(false);
@@ -69,7 +63,7 @@ export default function EvaluationDatasetPage() {
                   <CardContent>
                     <Typography sx={{marginBottom: 2}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
                     {evaluation.metrics.map((e) => (
-                      <Typography key={e}>{e in metricMap ? metricMap[e] : toTitleCase(e)}: {evaluation.metricResults[e].toFixed(2)}</Typography>
+                      <Typography key={e}>{metricFormat(e)}: {evaluation.metricResults[e].toFixed(2)}</Typography>
                     ))}
                   </CardContent>
                 </Card>

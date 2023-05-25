@@ -24,16 +24,10 @@ import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 
 import MenuComponent from "components/MenuComponent";
-import { calculateColor, timestampToDateTimeShort } from '/components/utils';
+import { calculateColor, timestampToDateTimeShort, metricFormat } from '/components/utils';
 import { FaArrowRight } from 'react-icons/fa';
 import { BiInfoCircle } from 'react-icons/bi';
 import {CustomTooltip} from 'components/CustomToolTip.js';
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
   const [expanded, setExpanded] = useState(datasetData);
@@ -163,14 +157,14 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                               <div className='metrics-cell'>
                                 {e.metrics.map(m => <div key={m} className='metric-in-table'>
                                   <span className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
-                                    {m in metricMap ? metricMap[m] : m}
+                                    {metricFormat(m)}
                                 </span></div>)}
                               </div>
                               :
                               <div className='metrics-cell'>
                                 {e.metrics.map(m => <div key={m} className='metric-in-table'>
                                   <span className='metric-in-table-text'>
-                                    {m in metricMap ? metricMap[m] : m}
+                                    {metricFormat(m)}
                                   </span></div>)}
                               </div>
                             }

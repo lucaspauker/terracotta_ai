@@ -61,3 +61,12 @@ export const formatTextForTypography = (text) => {
   });
 };
 
+export const metricFormat = (metric) => {
+  if (metric === 'f1') return 'F1';
+  if (metric === 'bleu') return 'BLEU';
+  if (metric === 'rougel') return 'RougeL';
+  if (metric === 'auroc') return 'AUROC';
+  if (metric === 'auprc') return 'AUPRC';
+  return toTitleCase(metric);
+}
+

@@ -5,13 +5,7 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import {toTitleCase} from 'components/utils';
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
+import {toTitleCase, metricFormat} from 'components/utils';
 
 const BarGraph = ({ evaluations }) => {
   const labels = evaluations.map((evaluation) => evaluation.name);
@@ -53,7 +47,7 @@ const BarGraph = ({ evaluations }) => {
 
     return (
       <div key={metric}>
-        <Typography>{metric in metricMap ? metricMap[metric] : toTitleCase(metric)}</Typography>
+        <Typography>{metricFormat(metric)}</Typography>
         <Bar data={data} options={options} height={64}/>
       </div>
     );
