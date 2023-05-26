@@ -112,10 +112,10 @@ export default async function handler(request, response) {
           let makeEval = true;
           let metrics = [];
           let metricResults = [];
-          if (!dataset || !dataset.classes) {
+          if (!dataset || project.type !== "classification") {
             // Generative tasks, do something here
             makeEval = false;
-          } else if (dataset.classes.length === 2) {
+          } else if (template.classes.length === 2) {
             const accuracy = splitData[splitData.length - 6].replace(/\s+/g, '');
             const precision = splitData[splitData.length - 5].replace(/\s+/g, '');
             const recall = splitData[splitData.length - 4].replace(/\s+/g, '');
@@ -140,6 +140,7 @@ export default async function handler(request, response) {
 
           // Create evaluation with training results
           if (makeEval) {
+            console.log("Creating train eval");
             await db
               .collection("evaluations")
               .insertOne({

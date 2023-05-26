@@ -255,7 +255,7 @@ export default function Playground() {
 
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       if (res.data !== "No data found") {
-        let data = res.data;
+        let data = res.data.filter(x => x.status === "succeeded");
         setFinetunedModels(data);
       }
       setLoading(false);
@@ -287,7 +287,7 @@ export default function Playground() {
       axios.post("/api/models", {projectName: projectName}).then((res) => {
         console.log(res.data);
         if (res.data !== "No data found") {
-          let data = res.data;
+          let data = res.data.filter(x => x.status === "succeeded");
           setFinetunedModels(data);
         }
         setLoading(false);

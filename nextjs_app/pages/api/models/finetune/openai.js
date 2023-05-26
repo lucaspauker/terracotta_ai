@@ -10,6 +10,7 @@ const path = require('path');
 const csv = require('csvtojson');
 const streamify = require('stream-array');
 const ObjectId = require('mongodb').ObjectId;
+const tmp = require('tmp');
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 
@@ -33,13 +34,27 @@ const fs = require('fs');
 
 async function downloadFile(data, filename) {
   return new Promise((resolve, reject) => {
-    const writeStream = fs.createWriteStream('jsonl_data/' + filename);
+    const writeStream = fs.createWriteStream(filename);
     data.forEach(value => writeStream.write(`${JSON.stringify(value)}\n`));
-    writeStream.on('finish', () => resolve());
+    writeStream.on('finish', () => {
+      writeStream.close();
+      resolve();
+    });
     writeStream.on('error', (err) => {
-      console.error(`There is an error writing the file`)
-  });
+      console.error('There was an error writing the file:', err);
+      reject(err);
+    });
     writeStream.end();
+  });
+}
+
+function deleteTemporaryFile(filename) {
+  fs.unlink(filename, (err) => {
+    if (err) {
+      console.error('Error deleting temporary file:', err);
+    } else {
+      console.log('Temporary file deleted successfully');
+    }
   });
 }
 
@@ -166,7 +181,7 @@ export default async function handler(request, response) {
     let template = {};
 
     //TODO: Check whether we've uploaded a dataset with this template before
-    if (!openaiUploaded) {
+    if (true || !openaiUploaded) {
 
       const trainFileName = dataset.trainFileName;
       const valFileName = dataset.valFileName;
@@ -221,23 +236,28 @@ export default async function handler(request, response) {
       .collection("templates")
       .insertOne(template);
 
-      const trainFileJsonl = trainFileName.split('.')[0] + '.jsonl'
-      const valFileJsonl = valFileName.split('.')[0] + '.jsonl'
+      const trainFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
+      const valFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
+
       await downloadFile(trainData, trainFileJsonl);
       if (valFilePresent) {
         await downloadFile(valData, valFileJsonl);
       }
 
+      console.log("Downloaded files");
+
       const trainResponse = await openai.createFile(
-        fs.createReadStream('jsonl_data/' + trainFileJsonl),
+        fs.createReadStream(trainFileJsonl),
         "fine-tune"
       );
+      deleteTemporaryFile(trainFileJsonl);
 
       if (valFilePresent) {
         const valResponse = await openai.createFile(
-          fs.createReadStream('jsonl_data/' + valFileJsonl),
+          fs.createReadStream(valFileJsonl),
           "fine-tune"
         );
+        deleteTemporaryFile(valFileJsonl);
         await db
           .collection("datasets")
           .updateOne({"_id":dataset._id},
@@ -264,7 +284,7 @@ export default async function handler(request, response) {
         finetuneRequest = {
           training_file: dataset.openaiData.trainFile,
           compute_classification_metrics: true,
-          classification_positive_class: classes[0],
+          classification_positive_class: classes[0] + stopSequence,
           model: modelArchitecture,
         };
         if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;

@@ -6,6 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CollapseIcon from '@mui/icons-material/Remove';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -23,14 +24,10 @@ import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 
 import MenuComponent from "components/MenuComponent";
-import { calculateColor, timestampToDateTimeShort } from '/components/utils';
+import { calculateColor, timestampToDateTimeShort, metricFormat } from '/components/utils';
 import { FaArrowRight } from 'react-icons/fa';
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
+import { BiInfoCircle } from 'react-icons/bi';
+import {CustomTooltip} from 'components/CustomToolTip.js';
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
   const [expanded, setExpanded] = useState(datasetData);
@@ -97,9 +94,23 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="h6">{datasetDataPoint.name}&nbsp;&nbsp;&nbsp;&nbsp;</Typography>
-              <Button size="small" variant='outlined' color="secondary" component={Link} href={"/evaluate/by-dataset/" + datasetDataPoint.id} onClick={e => e.stopPropagation()}>
-                See more details&nbsp;&nbsp; <FaArrowRight />
+              <Button
+                size="small"
+                variant='outlined'
+                color="secondary"
+                component={Link}
+                href={"/evaluate/by-dataset/" + datasetDataPoint.id}
+                onClick={e => e.stopPropagation()}
+                disabled={evaluations[datasetDataPoint.name].length <= 1}
+              >
+                Compare evaluations&nbsp;&nbsp; <FaArrowRight />
               </Button>
+              {evaluations[datasetDataPoint.name].length <= 1 &&
+                <CustomTooltip title="💡 Create another evaluation to compare evaluations.">
+                  <IconButton disableRipple={true}>
+                    <BiInfoCircle size={16} color='#9C2315'/>
+                  </IconButton>
+                </CustomTooltip>}
             </AccordionSummary>
             <AccordionDetails>
               <Paper variant="outlined">
@@ -146,14 +157,14 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                               <div className='metrics-cell'>
                                 {e.metrics.map(m => <div key={m} className='metric-in-table'>
                                   <span className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
-                                    {m in metricMap ? metricMap[m] : m}
+                                    {metricFormat(m)}
                                 </span></div>)}
                               </div>
                               :
                               <div className='metrics-cell'>
                                 {e.metrics.map(m => <div key={m} className='metric-in-table'>
                                   <span className='metric-in-table-text'>
-                                    {m in metricMap ? metricMap[m] : m}
+                                    {metricFormat(m)}
                                   </span></div>)}
                               </div>
                             }

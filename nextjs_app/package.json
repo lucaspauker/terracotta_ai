@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
+    "@emotion/server": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.12.3",
@@ -42,6 +43,7 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.8.0",
     "react-select": "^5.7.2",
-    "stream-array": "^1.1.2"
+    "stream-array": "^1.1.2",
+    "tmp": "^0.2.1"
   }
 }

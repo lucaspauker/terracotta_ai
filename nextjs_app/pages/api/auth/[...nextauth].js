@@ -17,6 +17,9 @@ export const authOptions = {
   theme: {
     colorScheme: "light",
   },
+  pages: {
+    signIn: "/auth/signin",
+  },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       console.log("Signing " + profile.email + " in");
@@ -28,7 +31,6 @@ export const authOptions = {
           datetime: Date.now(),
         }).then((res) => {
           console.log(res.status);
-          redirect("/projects");
         }).catch((error) => {
           console.log(error);
         });

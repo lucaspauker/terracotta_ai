@@ -5,18 +5,13 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-
-const metricMap = {
-  'f1': 'F1',
-  'bleu': 'BLEU',
-  'rougel': 'RougeL',
-}
+import {toTitleCase, metricFormat} from 'components/utils';
 
 const BarGraph = ({ evaluations }) => {
   const labels = evaluations.map((evaluation) => evaluation.name);
   const metrics = evaluations[0]?.metrics || [];
 
-  const colors = ['#0000FF', '#008000']; // Blue and green colors
+  const colors = ['#6fbdf0', '#339665', '#ed6548', '#853973'];
 
   const graphComponents = metrics.map((metric, index) => {
     const color = colors[index % colors.length];
@@ -52,7 +47,7 @@ const BarGraph = ({ evaluations }) => {
 
     return (
       <div key={metric}>
-        <Typography>{metricMap[metric]}</Typography>
+        <Typography>{metricFormat(metric)}</Typography>
         <Bar data={data} options={options} height={64}/>
       </div>
     );
