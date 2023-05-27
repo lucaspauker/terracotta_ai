@@ -25,19 +25,9 @@ import { BiDetail, BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 import {CustomTooltip} from '../../components/CustomToolTip.js';
+import {baseModelNamesDict} from '/components/utils';
 
 const providers = ['openai', 'cohere'];
-const baseModelNamesDict = {
-  'text-ada-001': 'GPT-3 Ada',
-  'text-babbage-001': 'GPT-3 Babbage',
-  'text-curie-001': 'GPT-3 Curie',
-  'text-davinci-003': 'GPT-3 Davinci',
-  'generate-medium': 'Generate Medium',
-  'generate-xlarge': 'Generate X-Large',
-  'classify-small': 'Classify Small',
-  'classify-large': 'Classify Large',
-  'classify-multilingual': 'Classify Multilingual',
-}
 const providerNameDict = {'openai':'OpenAI','cohere':'Cohere'}
 
 export default function Playground() {

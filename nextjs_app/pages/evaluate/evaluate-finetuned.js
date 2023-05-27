@@ -24,7 +24,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import {toTitleCase} from '/components/utils';
+import {toTitleCase, metricFormat, classificationMetrics, generationMetrics} from '/components/utils';
 
 const steps = ['Select dataset and model', 'Select metrics', 'Review evaluation'];
 
@@ -115,9 +115,9 @@ export default function DoEvaluate() {
     axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
         console.log(res);
         if (res.data.type === "classification") {
-          setMetrics(['accuracy', 'precision', 'recall', 'f1']);
+          setMetrics(classificationMetrics);
         } else {
-          setMetrics(['bleu', 'rougel']);
+          setMetrics(generationMetrics);
         }
       }).catch((error) => {
         console.log(error);
@@ -282,11 +282,7 @@ export default function DoEvaluate() {
                 {metrics.map(m => (
                   <div key={m} className='horizontal-box'>
                     <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
-                    <Typography>{m === 'bleu' ?
-                      'BLEU' : m === 'rougel' ?
-                      'RougeL' :
-                      toTitleCase(m)}
-                    </Typography>
+                    <Typography>{metricFormat(m)}</Typography>
                   </div>
                 ))}
               </div>

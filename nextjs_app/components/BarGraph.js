@@ -9,22 +9,29 @@ import {toTitleCase, metricFormat} from 'components/utils';
 
 const BarGraph = ({ evaluations }) => {
   const labels = evaluations.map((evaluation) => evaluation.name);
-  const metrics = evaluations[0]?.metrics || [];
+  const allMetrics = evaluations.reduce((metrics, evaluation) => {
+    return metrics.concat(evaluation.metrics || []);
+  }, []);
+
+  const uniqueMetrics = [...new Set(allMetrics)];
 
   const colors = ['#6fbdf0', '#339665', '#ed6548', '#853973'];
 
-  const graphComponents = metrics.map((metric, index) => {
+  const graphComponents = uniqueMetrics.map((metric, index) => {
     const color = colors[index % colors.length];
     const dataset = {
       label: metric,
       backgroundColor: color,
       borderColor: color,
       borderWidth: 1,
-      data: evaluations.map((evaluation) => evaluation.metricResults[metric].toFixed(2)),
+      data: evaluations.filter(e => e.metricResults?.[metric] >= 0).map((evaluation) => {
+        const metricResult = evaluation.metricResults?.[metric];
+        return metricResult !== undefined ? metricResult.toFixed(2) : null;
+      }),
     };
 
     const data = {
-      labels: labels,
+      labels: evaluations.filter((evaluation) => evaluation.metricResults?.[metric] >= 0).map((e) => e.name),
       datasets: [dataset],
     };
 
@@ -48,13 +55,13 @@ const BarGraph = ({ evaluations }) => {
     return (
       <div key={metric}>
         <Typography>{metricFormat(metric)}</Typography>
-        <Bar data={data} options={options} height={64}/>
+        <Bar data={data} options={options} height={data.labels.length * 16} />
       </div>
     );
   });
 
-  return <div>{graphComponents}</div>;
+  // Render the graph components
+  return <>{graphComponents}</>;
 };
 
 export default BarGraph;
-import 'chart.js/auto';

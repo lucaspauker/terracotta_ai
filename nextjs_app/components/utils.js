@@ -34,22 +34,6 @@ export const calculateColor = (inputValue) => {
   return `rgb(${red}, ${green}, ${blue})`;
 };
 
-export const templateTransform = (templateString, finetuneInputData) => {
-  const regex = /{{.*}}/g;
-  const matches = templateString.match(regex);
-
-  let result = templateString;
-  matches.forEach((match) => {
-    const strippedMatch = match.substring(2, match.length - 2);
-    if (strippedMatch in finetuneInputData) {
-      result = result.replace(match, finetuneInputData[strippedMatch]);
-    } else {
-      result = result.replace(match, '');
-    }
-  });
-  return result;
-}
-
 export const formatTextForTypography = (text) => {
   if (!text) return undefined;
   return text.split('\n').map((line, index) => {
@@ -63,10 +47,26 @@ export const formatTextForTypography = (text) => {
 
 export const metricFormat = (metric) => {
   if (metric === 'f1') return 'F1';
-  if (metric === 'bleu') return 'BLEU';
-  if (metric === 'rougel') return 'RougeL';
   if (metric === 'auroc') return 'AUROC';
   if (metric === 'auprc') return 'AUPRC';
+  if (metric === 'bleu') return 'BLEU';
+  if (metric === 'rougel') return 'RougeL';
+  if (metric === 'mauve') return 'MAUVE';
   return toTitleCase(metric);
 }
+
+export const baseModelNamesDict = {
+  'text-ada-001': 'GPT-3 Ada',
+  'text-babbage-001': 'GPT-3 Babbage',
+  'text-curie-001': 'GPT-3 Curie',
+  'text-davinci-003': 'GPT-3 Davinci',
+  'generate-medium': 'Generate Medium',
+  'generate-xlarge': 'Generate X-Large',
+  'classify-small': 'Classify Small',
+  'classify-large': 'Classify Large',
+  'classify-multilingual': 'Classify Multilingual',
+}
+
+export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];
+export const generationMetrics = ['bleu', 'rougel', 'mauve'];
 

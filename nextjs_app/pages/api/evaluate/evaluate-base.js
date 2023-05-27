@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
-import {templateTransform} from '../../../components/utils';
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 const csv = require('csvtojson');
@@ -116,7 +115,7 @@ export default async function handler(request, response) {
     const matches = templateString.match(regex);
     const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
 
-    const classes = new Set();
+    let classes = new Set();
 
     const templateTransform = (templateString, finetuneInputData) => {
         const regex = /{{.*}}/g;
@@ -124,7 +123,7 @@ export default async function handler(request, response) {
         if (project.type === "classification") {
             classes.add(finetuneInputData[outputColumn]);
         }
-      
+
         let result = templateString;
         matches.forEach((match) => {
           const strippedMatch = match.substring(2, match.length - 2);
@@ -136,7 +135,7 @@ export default async function handler(request, response) {
         });
         return result;
     }
-    
+
     let fileName;
     if (dataset.valFileName) {
       fileName = dataset.valFileName;
@@ -154,8 +153,7 @@ export default async function handler(request, response) {
 
     let requests = [];
     let references = [];
-    //json_output.length
-    for (let i=0; i<1; i++) {
+    for (let i=0; i<json_output.length; i++) {
       const r = openai.createCompletion({
         model: completionName,
         prompt: templateTransform(templateString, json_output[i]),
@@ -171,7 +169,7 @@ export default async function handler(request, response) {
     console.log("Retrieved results from OpenAI");
 
     const templateId = new ObjectId();
-
+    classes = Array.from(classes);
     const template = {
         _id: templateId,
         templateString: templateString,
@@ -181,7 +179,7 @@ export default async function handler(request, response) {
         classes: project.type ===  "classification" ? classes : null,
         stopSequence: stopSequence,
         fields: matchesStrings,
-      }
+    }
 
     await db
       .collection("templates")
@@ -193,42 +191,26 @@ export default async function handler(request, response) {
 
     let metricResults = {}
     if (project.type === "classification") {
-      const total = completions.length;
-      let tp = 0, fp = 0, tn = 0, fn = 0;
-      const positiveClass = template.classes[0];
-
-      for (let i = 0; i < total; i++) {
-        const prediction = completions[i];
-        const actual = json_output[i].completion;
-        if (actual === positiveClass) {
-          if (prediction === positiveClass) {
-            tp ++;
-          } else {
-            fn ++;
-          }
-        } else {
-          if (prediction === positiveClass) {
-            fp ++;
-          } else {
-            tn ++;
-          }
-        }
-      }
-
+      // Call flask app
+      let url = process.env.FLASK_URL + "/evaluate_classification";
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "completions": completions,
+          "references": references,
+          "classes": template.classes,
+        }),
+      });
+      const responseData = await response.json();
+      const tempMetricResults = responseData.metric_results;
       for (let i = 0; i < metrics.length; i++) {
-        if (metrics[i] === "accuracy") {
-          metricResults["accuracy"] = (tp + tn)/(total);
-        }
-        if (metrics[i] === "precision") {
-          metricResults["precision"] = (tp)/(tp + fp);
-        }
-        if (metrics[i] === "recall") {
-          metricResults["recall"] = (tp)/(tp + fn);
-        }
-        if (metrics[i] === "f1") {
-          const precision = (tp)/(tp + fp);
-          const recall = (tp)/(tp + fn);
-          metricResults["f1"] = (2*precision*recall)/(precision + recall);
+        if (metrics[i] in tempMetricResults) {
+          metricResults[metrics[i]] = tempMetricResults[metrics[i]];
+        } else {
+          throw new Error("Metric type not supported");
         }
       }
     } else if (project.type === "generative") {
@@ -242,6 +224,7 @@ export default async function handler(request, response) {
         body: JSON.stringify({
           "completions": completions,
           "references": references,
+          "metrics": metrics,
         }),
       });
       const responseData = await response.json();
