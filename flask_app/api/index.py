@@ -1,11 +1,18 @@
 import nltk
 import numpy as np
 import mauve
+import logging
+import json
 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from rouge_score import rouge_scorer
 from flask import Flask, jsonify, request
 app = Flask(__name__)
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
 @app.route('/')
 def hello_world():
@@ -47,9 +54,10 @@ def nlp_metrics(test=False):
             mauve_score = mauve.compute_mauve(p_text=completions, q_text=reference, verbose=False).mauve
             metric_results['mauve'] = mauve_score
 
+        app.logger.info("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
     except Exception as e:
-        print(e)
+        app.logger.error(e)
         return jsonify({"error": str(e)})
 
 @app.route('/evaluate_classification', methods=["POST"])
@@ -74,10 +82,10 @@ def classification_metrics():
         else: # Multiclass classification
             pass
 
-        print(metric_results)
+        app.logger.info("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
     except Exception as e:
-        print(e)
+        app.logger.error(e)
         return jsonify({"error": str(e)})
 
 
