@@ -44,10 +44,32 @@ export default async function handler(request, response) {
           }
         },
         {
+          $lookup: {
+            from: "templates",
+            localField: "templateId",
+            foreignField: "_id",
+            as: "template"
+          }
+        },
+        {
+          $lookup: {
+            from: "providerModels",
+            localField: "providerModelId",
+            foreignField: "_id",
+            as: "providerModel"
+          }
+        },
+        {
           $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
         },
         {
           $unwind: { path: "$model", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $unwind: { path: "$template", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $unwind: { path: "$providerModel", preserveNullAndEmptyArrays: true }
         },
         {
           $project: {
@@ -61,6 +83,8 @@ export default async function handler(request, response) {
             metrics: "$metrics",
             metricResults: "$metricResults",
             trainingEvaluation: "$trainingEvaluation",
+            templateString: "$template.templateString",
+            completionName: "$providerModel.completionName",
           }
         }
       ]).toArray();
@@ -69,7 +93,7 @@ export default async function handler(request, response) {
       response.status(400).json({error:"Evaluation not found!"});
       return;
     }
-    
+
     response.status(200).send(evaluation[0]);
     return;
   } catch (e) {

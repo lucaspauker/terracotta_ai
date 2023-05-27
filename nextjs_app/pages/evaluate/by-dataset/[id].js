@@ -61,7 +61,7 @@ export default function EvaluationDatasetPage() {
               <Grid item key={evaluation._id} xs={12} sm={6} md={4} lg={3}>
                 <Card className='evaluation-card'>
                   <CardContent>
-                    <Typography sx={{marginBottom: 2}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
+                    <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
                     {evaluation.metrics.map((e) => (
                       <Typography key={e}>{metricFormat(e)}: {evaluation.metricResults[e].toFixed(2)}</Typography>
                     ))}

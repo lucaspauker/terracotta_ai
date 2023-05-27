@@ -24,7 +24,7 @@ import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 
 import MenuComponent from "components/MenuComponent";
-import { calculateColor, timestampToDateTimeShort, metricFormat } from '/components/utils';
+import { calculateColor, timestampToDateTimeShort, metricFormat, baseModelNamesDict } from '/components/utils';
 import { FaArrowRight } from 'react-icons/fa';
 import { BiInfoCircle } from 'react-icons/bi';
 import {CustomTooltip} from 'components/CustomToolTip.js';
@@ -150,7 +150,13 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                             }
                           </TableCell>
                           <TableCell>{timestampToDateTimeShort(e.timeCreated)}</TableCell>
-                          <TableCell><Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link></TableCell>
+                          <TableCell>
+                            {e.modelId ?
+                              <Link className='link' href={"/models/" + e.modelId}>{e.modelName}</Link>
+                              :
+                              <>{baseModelNamesDict[e.providerCompletionName]}</>
+                            }
+                          </TableCell>
                           <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
                           <TableCell>
                             {e.metricResults ?

@@ -50,18 +50,18 @@ const EvaluateSelect = () => {
       <Grid container spacing={2} justifyContent='center'>
         <Grid item>
           <EvaluationBox
-            href="/evaluate/evaluate-finetuned"
-            icon={<Psychology fontSize="inherit" sx={{ color: 'primary.main', fontSize: '50px' }} />}
-            title="Evaluate finetuned model"
-            description="Click here to evaluate the performance of your finetuned model."
-          />
-        </Grid>
-        <Grid item>
-          <EvaluationBox
             href="/evaluate/evaluate-base"
             icon={<Layers fontSize="inherit" sx={{ color: 'primary.main', fontSize: '50px' }} />}
             title="Evaluate base model"
             description="Click here to evaluate the performance of a base model with a custom prompt."
+          />
+        </Grid>
+        <Grid item>
+          <EvaluationBox
+            href="/evaluate/evaluate-finetuned"
+            icon={<Psychology fontSize="inherit" sx={{ color: 'primary.main', fontSize: '50px' }} />}
+            title="Evaluate finetuned model"
+            description="Click here to evaluate the performance of your finetuned model."
           />
         </Grid>
       </Grid>
