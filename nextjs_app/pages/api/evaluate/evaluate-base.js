@@ -108,7 +108,7 @@ export default async function handler(request, response) {
         }).then(res => {
           newEvaluationId = res.insertedId;
         });
-    response.status(200).send();
+    response.status(200).end();
     didReturn = true;
 
     const regex = /{{.*}}/g;

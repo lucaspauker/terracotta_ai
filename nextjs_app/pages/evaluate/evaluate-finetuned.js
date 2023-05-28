@@ -234,43 +234,49 @@ export default function DoEvaluate() {
                 Specify dataset and model
               </Typography>
               <div className='medium-space' />
-              <div className='vertical-box'>
-                <FormControl>
-                  <InputLabel id="model-label">Model</InputLabel>
-                  <Select
-                    labelId="model-label"
-                    className="wide-select"
-                    label="Model"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                  >
-                    {models.map((m) => (
-                      <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <div className='small-space' />
-                <FormControl>
-                  <InputLabel id="dataset-label">Dataset</InputLabel>
-                  <Select
-                    labelId="dataset-label"
-                    className="wide-select"
-                    label="Dataset"
-                    value={dataset}
-                    onChange={(e) => setDataset(e.target.value)}
-                  >
-                    {datasets.map((d) => (
-                      <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Typography variant='body2' color='textSecondary' sx={{width: '100%'}}>
-                  Will use validation data from dataset if present. Else, will use
-                  the entire dataset.
-                </Typography>
-              </div>
+              {loading ?
+                <CircularProgress />
+                :
+                <div>
+                  <div className='vertical-box'>
+                    <FormControl>
+                      <InputLabel id="model-label">Model</InputLabel>
+                      <Select
+                        labelId="model-label"
+                        className="wide-select"
+                        label="Model"
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                      >
+                        {models.map((m) => (
+                          <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <div className='small-space' />
+                    <FormControl>
+                      <InputLabel id="dataset-label">Dataset</InputLabel>
+                      <Select
+                        labelId="dataset-label"
+                        className="wide-select"
+                        label="Dataset"
+                        value={dataset}
+                        onChange={(e) => setDataset(e.target.value)}
+                      >
+                        {datasets.map((d) => (
+                          <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography variant='body2' color='textSecondary' sx={{width: '100%'}}>
+                      Will use validation data from dataset if present. Else, will use
+                      the entire dataset.
+                    </Typography>
+                  </div>
+                </div>
+              }
             </>
-            : null}
+          : null}
 
           {activeStep === 1 ?
             <>
@@ -287,7 +293,7 @@ export default function DoEvaluate() {
                 ))}
               </div>
             </>
-            : null}
+          : null}
 
           {activeStep === 2 ?
             <>
