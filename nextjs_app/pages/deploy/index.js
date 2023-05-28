@@ -126,7 +126,8 @@ const response = await openai.createCompletion({
     setApiCode(getApiCode(model, library, newPrompt));
   }
 
-  useEffect(() => {
+  const refresh = () => {
+    setLoading(true);
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
@@ -137,26 +138,17 @@ const response = await openai.createCompletion({
         const m = res.data[0].providerData.modelId;
         setModel(m);
         setApiCode(getApiCode(m, library, prompt));
+        setLoading(false);
       }
     }).catch((error) => {
       console.log(error);
     });
+  }
 
+  useEffect(() => {
+    refresh();
     window.addEventListener("storage", () => {
-      let projectName = '';
-      if (localStorage.getItem("project")) {
-        projectName = localStorage.getItem("project");
-      }
-      axios.post("/api/models", {projectName: projectName}).then((res) => {
-        setModels(res.data);
-        if (res.data[0]) {
-          const m = res.data[0].providerData.modelId;
-          setModel(m);
-          setApiCode(getApiCode(m, library));
-        }
-      }).catch((error) => {
-        console.log(error);
-      });
+      refresh();
     });
   }, []);
 
@@ -169,66 +161,70 @@ const response = await openai.createCompletion({
       </div>
       <div className='small-space' />
 
-      <div className='main-content'>
-        <Paper className='card vertical-box' variant='outlined'>
-          <div className='horizontal-box full-width'>
-            <FormControl>
-              <InputLabel id="model-label">Model</InputLabel>
-              <Select
-                labelId="model-label"
-                className="simple-select"
-                label="Model"
-                value={model}
-                onChange={(e) => handleModelChange(e.target.value)}
-              >
-                {models.map((m) => (
-                  <MenuItem key={m._id} value={m.providerData.modelId}>{m.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <InputLabel id="library-label">Library</InputLabel>
-              <Select
-                labelId="library-label"
-                className="simple-select"
-                label="Library"
-                value={library}
-                onChange={(e) => handleLibraryChange(e.target.value)}
-              >
-                {libraries.map((l) => (
-                  <MenuItem key={l} value={l}>{l}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <div>
-            <TextField
-                label="Input prompt"
-                variant="outlined"
-                value={prompt}
-                onChange={(e) => handlePromptChange(e.target.value)}
-            />
-            <CustomTooltip title="Any additional characters visible in the prompt field in the code block are required for proper model response." className='tooltip'>
-              <IconButton disableRipple={true}>
-                <BiInfoCircle size={16} color='#9C2315'/>
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        :
+        <div className='main-content'>
+          <Paper className='card vertical-box' variant='outlined'>
+            <div className='horizontal-box full-width'>
+              <FormControl>
+                <InputLabel id="model-label">Model</InputLabel>
+                <Select
+                  labelId="model-label"
+                  className="simple-select"
+                  label="Model"
+                  value={model}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                >
+                  {models.map((m) => (
+                    <MenuItem key={m._id} value={m.providerData.modelId}>{m.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl>
+                <InputLabel id="library-label">Library</InputLabel>
+                <Select
+                  labelId="library-label"
+                  className="simple-select"
+                  label="Library"
+                  value={library}
+                  onChange={(e) => handleLibraryChange(e.target.value)}
+                >
+                  {libraries.map((l) => (
+                    <MenuItem key={l} value={l}>{l}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <div>
+              <TextField
+                  label="Input prompt"
+                  variant="outlined"
+                  value={prompt}
+                  onChange={(e) => handlePromptChange(e.target.value)}
+              />
+              <CustomTooltip title="Any additional characters visible in the prompt field in the code block are required for proper model response." className='tooltip'>
+                <IconButton disableRipple={true}>
+                  <BiInfoCircle size={16} color='#9C2315'/>
+                </IconButton>
+              </CustomTooltip>
+              </div>
+              <IconButton className='horizontal-box copy' onClick={copyText}>
+                <BiCopy size={20} />
               </IconButton>
-            </CustomTooltip>
             </div>
-            <IconButton className='horizontal-box copy' onClick={copyText}>
-              <BiCopy size={20} />
-            </IconButton>
-          </div>
-          <div className='tiny-space' />
-          <TextField
-            multiline
-            InputProps={{
-              readOnly: true,
-            }}
-            rows={11}
-            className="output-text-box output-code-box"
-            value={apiCode}
-          />
-        </Paper>
-      </div>
+            <div className='tiny-space' />
+            <TextField
+              multiline
+              InputProps={{
+                readOnly: true,
+              }}
+              rows={11}
+              className="output-text-box output-code-box"
+              value={apiCode}
+            />
+          </Paper>
+        </div>
+      }
     </div>
   )
 }

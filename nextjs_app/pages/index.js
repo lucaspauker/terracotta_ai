@@ -66,7 +66,10 @@ export default function Home() {
       </div>
 
       <div className='email-list-form'>
-        <Typography variant="h3" className="email-header">Sign up for our email list</Typography>
+        <div className='vertical-box' style={{alignItems:'flex-start'}}>
+          <Typography variant="h3" className="email-header">Sign up for our email list</Typography>
+          <Typography className="part-subtext">We will keep you updated about what we are working on.</Typography>
+        </div>
         <div className='email-form-container horizontal-box'>
           <TextField
             label='Email'
@@ -77,13 +80,13 @@ export default function Home() {
             sx={{width: 300, marginRight: 2}}
           />
           {emailSuccess ?
-            <Button variant='contained' color='primary' size='small' onClick={signUpEmailList}
-              sx={{width:75}}>
+            <Button variant='contained' size='small' onClick={signUpEmailList}
+              sx={{width:75}} className='green'>
               <BsCheckLg size={20}/>
             </Button>
             :
             <Button variant='contained' color='primary' size='small' onClick={signUpEmailList}
-              sx={{width:75}}>
+              sx={{width:75}} className='green-on-press'>
               Sign Up
             </Button>
           }

@@ -153,10 +153,6 @@ export default function Data() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -175,7 +171,9 @@ export default function Data() {
       <div className='tiny-space' />
 
       <div>
-        {datasets.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : datasets.length > 0 ?
           <Paper variant="outlined">
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>

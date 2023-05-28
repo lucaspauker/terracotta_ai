@@ -64,7 +64,7 @@ export default function Models() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({});
   const router = useRouter();
 
   const handleEdit = (id) => {
@@ -82,8 +82,7 @@ export default function Models() {
       projectName = localStorage.getItem("project");
     }
 
-    // One liner to get current user on the frontend
-    axios.get("/api/user",).then((res) => setUser(res.data)).catch((error) => console.log(error));
+    axios.get("/api/user",).then((res) => {setUser(res.data);}).catch((error) => console.log(error));
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
@@ -151,13 +150,8 @@ export default function Models() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
-
       <div className='horizontal-box full-width'>
         <Typography variant='h4' className='page-main-header'>
           Finetuned Models
@@ -166,8 +160,12 @@ export default function Models() {
           <IconButton color="secondary" onClick={refreshModels}>
             <HiOutlineRefresh size={25} />
           </IconButton>
-          {user.cohereKey || user.openAiKey ?
+          {!loading && (user.cohereKey || user.openAiKey) ?
             <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
+              + Import model
+            </Button>
+            : loading ?
+            <Button className='button-margin' variant='contained' disabled>
               + Import model
             </Button>
             :
@@ -179,8 +177,12 @@ export default function Models() {
               </span>
             </CustomTooltip>
           }
-          {user.openAiKey ?
+          {!loading && user.openAiKey ?
             <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
+              + Finetune model
+            </Button>
+            : loading ?
+            <Button variant='contained' disabled>
               + Finetune model
             </Button>
             :
@@ -197,7 +199,9 @@ export default function Models() {
       <div className='tiny-space' />
 
       <div>
-        {models.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : models.length > 0 ?
           <Paper variant="outlined">
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>

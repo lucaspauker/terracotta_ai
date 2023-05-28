@@ -148,10 +148,6 @@ export default function Projects() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -165,7 +161,9 @@ export default function Projects() {
       <div className='tiny-space' />
 
       <div>
-        {projects.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : projects.length > 0 ?
           <div className='card-container'>
             {projects.map((project) => (
               <Card variant="outlined" key={project._id}

@@ -55,10 +55,6 @@ export default function Settings() {
       });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -69,55 +65,59 @@ export default function Settings() {
       </div>
       <div className='tiny-space' />
 
-      <div className='main-content'>
-        <Paper className='card vertical-box' variant='outlined'>
-          <Typography variant='h6'>API Keys</Typography>
-          <div className='small-space'/>
-          <div className='horizontal-box'>
-            <TextField
-              label="OpenAI API key"
-              variant="outlined"
-              className='text-label center'
-              value={showOpenAiPassword ? openAiKey : openAiKey.substr(0, 24)}
-              onChange={(e) => setOpenAiKey(e.target.value)}
-              type={showOpenAiPassword ? "text" : "password"}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowOpenAiPassword(!showOpenAiPassword)}
-                  >
-                    {showOpenAiPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                  </IconButton>
-                )
-              }}
-            />
-            <Button onClick={() => updateApiKeys("openai")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
-          </div>
-          <div className='small-space'/>
-          <div className='horizontal-box'>
-            <TextField
-              label="Cohere API key"
-              variant="outlined"
-              className='text-label center'
-              value={showCoherePassword ? cohereKey: cohereKey.substr(0, 24)}
-              onChange={(e) => setCohereKey(e.target.value)}
-              type={showCoherePassword ? "text" : "password"}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowCoherePassword(!showCoherePassword)}
-                  >
-                    {showCoherePassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                  </IconButton>
-                )
-              }}
-            />
-            <Button onClick={() => updateApiKeys("cohere")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
-          </div>
-        </Paper>
-      </div>
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        :
+        <div className='main-content'>
+          <Paper className='card vertical-box' variant='outlined'>
+            <Typography variant='h6'>API Keys</Typography>
+            <div className='small-space'/>
+            <div className='horizontal-box'>
+              <TextField
+                label="OpenAI API key"
+                variant="outlined"
+                className='text-label center'
+                value={showOpenAiPassword ? openAiKey : openAiKey.substr(0, 24)}
+                onChange={(e) => setOpenAiKey(e.target.value)}
+                type={showOpenAiPassword ? "text" : "password"}
+                InputProps={{
+                  endAdornment: (
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowOpenAiPassword(!showOpenAiPassword)}
+                    >
+                      {showOpenAiPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                    </IconButton>
+                  )
+                }}
+              />
+              <Button onClick={() => updateApiKeys("openai")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
+            </div>
+            <div className='small-space'/>
+            <div className='horizontal-box'>
+              <TextField
+                label="Cohere API key"
+                variant="outlined"
+                className='text-label center'
+                value={showCoherePassword ? cohereKey: cohereKey.substr(0, 24)}
+                onChange={(e) => setCohereKey(e.target.value)}
+                type={showCoherePassword ? "text" : "password"}
+                InputProps={{
+                  endAdornment: (
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowCoherePassword(!showCoherePassword)}
+                    >
+                      {showCoherePassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                    </IconButton>
+                  )
+                }}
+              />
+              <Button onClick={() => updateApiKeys("cohere")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
+            </div>
+          </Paper>
+        </div>
+      }
     </div>
   )
 }

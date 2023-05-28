@@ -276,6 +276,7 @@ export default function Playground() {
 
     window.addEventListener("storage", () => {
       refreshModels();
+      clear();
     });
 
     // Load data from localstorage
@@ -299,7 +300,16 @@ export default function Playground() {
   }, []);
 
   if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
+    return (
+      <div className='main'>
+        <div className='horizontal-box full-width'>
+          <Typography variant='h4' className='page-main-header'>
+            Playground
+          </Typography>
+        </div>
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+      </div>
+    );
   }
 
   return (
@@ -575,18 +585,22 @@ export default function Playground() {
               </Paper>
             ))
             : provider === "Finetuned" ?
-              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
-                <ImWarning size={20}/>&nbsp;&nbsp; Finetune a model
-              </Typography>
+              <Link href="/models">
+                <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                  <ImWarning size={20}/>&nbsp;&nbsp; Finetune a model
+                </Typography>
+              </Link>
             : provider === "cohere" && !user.cohereKey ?
-              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
-                <ImWarning size={20}/>&nbsp;&nbsp; Upload Cohere API key
-              </Typography>
+              <Link href="/settings">
+                <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                  <ImWarning size={20}/>&nbsp;&nbsp; Upload Cohere API key
+                </Typography>
+              </Link>
             : provider === "openai" && !user.openAiKey ?
               <Link href="/settings">
-              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
-                <ImWarning size={20}/>&nbsp;&nbsp; Upload OpenAI API key
-              </Typography>
+                <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                  <ImWarning size={20}/>&nbsp;&nbsp; Upload OpenAI API key
+                </Typography>
               </Link>
             : baseModels[provider] ?
               baseModels[provider].map((m) => (

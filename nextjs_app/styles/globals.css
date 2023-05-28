@@ -756,3 +756,16 @@ a {
   padding: 36px;
 }
 
+.green {
+  background-color: green;
+}
+.green:hover {
+  background-color: green;
+}
+.green-on-press:active {
+  background-color: green;
+}
+.green-on-press:hover {
+  background-color: #B0452B;
+}
+
