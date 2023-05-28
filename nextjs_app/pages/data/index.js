@@ -33,6 +33,12 @@ import {FaTrash} from "react-icons/fa";
 import {timestampToDateTimeShort} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
 
+const addPercentage = (a, b) => {
+  a = Number(a); b = Number(b);
+  const percentage = (100 * a) / (a + b);
+  return <>{a}&nbsp;&nbsp; <span style={{color:'grey'}}>({percentage.toFixed(1)}%)</span></>;
+}
+
 export async function getServerSideProps(context) {
   const session = await getSession(context)
 
@@ -177,10 +183,9 @@ export default function Data() {
                   <TableRow>
                     <TableCell className='table-cell'>Name</TableCell>
                     <TableCell className='table-cell'>Date created</TableCell>
-                    <TableCell className='table-cell'># of train words</TableCell>
+                    <TableCell className='table-cell'>Initial filename</TableCell>
                     <TableCell className='table-cell'># training examples</TableCell>
                     <TableCell className='table-cell'># validation examples</TableCell>
-                    <TableCell className='table-cell'># of classes</TableCell>
                     <TableCell className='table-cell'></TableCell>
                   </TableRow>
                 </TableHead>
@@ -192,10 +197,9 @@ export default function Data() {
                     >
                       <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
                       <TableCell>{timestampToDateTimeShort(dataset.timeCreated)}</TableCell>
-                      <TableCell>{dataset.numTrainWords}</TableCell>
-                      <TableCell>{dataset.numTrainExamples}</TableCell>
-                      <TableCell>{dataset.numValExamples}</TableCell>
-                      <TableCell>{dataset.classes ? dataset.classes.length : null}</TableCell>
+                      <TableCell><span style={{color:'grey'}}>{dataset.initialTrainFileName}</span></TableCell>
+                      <TableCell>{addPercentage(dataset.numTrainExamples, dataset.numValExamples)}</TableCell>
+                      <TableCell>{addPercentage(dataset.numValExamples, dataset.numTrainExamples)}</TableCell>
                       <TableCell>
                         <MenuComponent
                           editFunction={() => handleEdit(dataset._id)}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { styled } from '@mui/material/styles';
 import Link from 'next/link';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
@@ -23,12 +24,14 @@ import Backdrop from '@mui/material/Backdrop';
 import axios from 'axios';
 import { BiDetail, BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import { ImWarning } from 'react-icons/im';
 
 import {CustomTooltip} from '../../components/CustomToolTip.js';
 import {baseModelNamesDict} from '/components/utils';
 
 const providers = ['openai', 'cohere'];
 const providerNameDict = {'openai':'OpenAI','cohere':'Cohere'}
+const initialModelState = {};
 
 export default function Playground() {
   const [provider, setProvider] = useState('openai');
@@ -38,11 +41,11 @@ export default function Playground() {
   const [project, setProject] = useState('');
   const [baseModelsList, setBaseModelsList] = useState([]);
   const [output, setOutput] = useState({});
-  const [checked, setChecked] = useState({'text-ada-001': true});
-  const [loadingDict, setLoadingDict] = useState({'text-ada-001': false});
+  const [checked, setChecked] = useState(initialModelState);
+  const [loadingDict, setLoadingDict] = useState(initialModelState);
   const [temperature, setTemperature] = useState(0.75);
   const [maxTokens, setMaxTokens] = useState(100);
-  const [baseModelsChecked, setBaseModelsChecked] = useState(1);
+  const [baseModelsChecked, setBaseModelsChecked] = useState(0);
   const [finetunedModelsFields, setFinetunedModelsFields] = useState([]);
   const [finetuneData, setFinetuneData] = useState({});
   const [stripWhitespace, setStripWhitespace] = useState(true);
@@ -50,6 +53,7 @@ export default function Playground() {
   const [popupText, setPopupText] = useState('');
   const [popupTextTitle, setPopupTextTitle] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState({});
 
   const handleTemplateButtonClick = (text, title) => {
     setIsOpen(true);
@@ -137,22 +141,22 @@ export default function Playground() {
   }
 
   const clear = () => {
-    localStorage.setItem("checked", JSON.stringify({'text-ada-001': true}));
+    localStorage.setItem("checked", JSON.stringify(initialModelState));
     localStorage.setItem("temperature", JSON.stringify(0.75));
     localStorage.setItem("maxTokens", JSON.stringify(100));
-    localStorage.setItem("baseModelsChecked", JSON.stringify(1));
+    localStorage.setItem("baseModelsChecked", JSON.stringify(0));
     localStorage.setItem("finetuneData", JSON.stringify({}));
     localStorage.setItem("finetunedModelsFields", JSON.stringify([]));
     localStorage.setItem("stripWhitespace", JSON.stringify(true));
     localStorage.setItem("prompt", JSON.stringify(''));
     setOutput({});
-    setChecked({'text-ada-001': true});
-    setLoadingDict({'text-ada-001': false});
+    setChecked(initialModelState);
+    setLoadingDict(initialModelState);
     setTemperature(0.75);
     setMaxTokens(100);
     setStripWhitespace(true);
     setPrompt('');
-    setBaseModelsChecked(1);
+    setBaseModelsChecked(0);
     setFinetuneData({});
     setFinetunedModelsFields([]);
   }
@@ -235,14 +239,13 @@ export default function Playground() {
     return checked[id];
   }
 
-  useEffect(() => {
+  const refreshModels = () => {
     setLoading(true);
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
       setProject(projectName);
     }
-
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       if (res.data !== "No data found") {
         let data = res.data.filter(x => x.status === "succeeded");
@@ -252,7 +255,11 @@ export default function Playground() {
     }).catch((error) => {
       console.log(error);
     });
+  }
 
+  useEffect(() => {
+    axios.get("/api/user",).then((res) => setUser(res.data)).catch((error) => console.log(error));
+    refreshModels();
     axios.get("/api/providers/list").then((res) => {
       const temp = groupByProviders(res.data);
       setBaseModels(temp);
@@ -268,22 +275,7 @@ export default function Playground() {
     });
 
     window.addEventListener("storage", () => {
-      setLoading(true);
-      let projectName = '';
-      if (localStorage.getItem("project")) {
-        projectName = localStorage.getItem("project");
-        setProject(projectName);
-      }
-      axios.post("/api/models", {projectName: projectName}).then((res) => {
-        console.log(res.data);
-        if (res.data !== "No data found") {
-          let data = res.data.filter(x => x.status === "succeeded");
-          setFinetunedModels(data);
-        }
-        setLoading(false);
-      }).catch((error) => {
-        console.log(error);
-      });
+      refreshModels();
     });
 
     // Load data from localstorage
@@ -323,7 +315,7 @@ export default function Playground() {
         <div className='left'>
           {baseModelsChecked ?
             <>
-              <Typography variant='body1'>
+              <Typography variant='h6'>
                 Base model prompt
               </Typography>
               <div className='tiny-space' />
@@ -342,7 +334,7 @@ export default function Playground() {
             </> : null}
           {finetunedModelsFields.length > 0 &&
             <>
-            <Typography>Finetuned prompt inputs</Typography>
+            <Typography variant="h6">Finetuned prompt inputs</Typography>
             </>}
           {finetunedModelsFields.map((f) => (
             <div key={f}>
@@ -350,6 +342,7 @@ export default function Playground() {
               <div className="horizontal-box flex-start">
                 <Typography>{f}:&nbsp;&nbsp;</Typography>
                 <TextField
+                  size='small'
                   sx={{width: '100%'}}
                   className='white'
                   label=""
@@ -370,7 +363,11 @@ export default function Playground() {
               <div className='tiny-space' />
             </>
             :
-            <Typography>Select a model to get started!</Typography>
+            <Box className='vertical-box' sx={{height: 500}}>
+              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                <ImWarning size={20}/>&nbsp;&nbsp; Check a model on the right to get started.
+              </Typography>
+            </Box>
           }
 
           <div className='model-output'>
@@ -563,7 +560,7 @@ export default function Playground() {
           </FormControl>
           <div className='tiny-space'/>
 
-          {provider === "Finetuned" ?
+          {provider === "Finetuned" && finetunedModels.length > 0 ?
             finetunedModels.map((m) => (
               <Paper
                 variant='outlined'
@@ -577,8 +574,21 @@ export default function Playground() {
                 </Typography>
               </Paper>
             ))
-            :
-            baseModels[provider] ?
+            : provider === "Finetuned" ?
+              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                <ImWarning size={20}/>&nbsp;&nbsp; Finetune a model
+              </Typography>
+            : provider === "cohere" && !user.cohereKey ?
+              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                <ImWarning size={20}/>&nbsp;&nbsp; Upload Cohere API key
+              </Typography>
+            : provider === "openai" && !user.openAiKey ?
+              <Link href="/settings">
+              <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
+                <ImWarning size={20}/>&nbsp;&nbsp; Upload OpenAI API key
+              </Typography>
+              </Link>
+            : baseModels[provider] ?
               baseModels[provider].map((m) => (
                 <Paper
                   variant='outlined'

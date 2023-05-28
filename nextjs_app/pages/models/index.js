@@ -33,6 +33,7 @@ import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
+import {CustomTooltip} from '/components/CustomToolTip.js';
 import {timestampToDateTimeShort, getPriceString} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
 
@@ -63,6 +64,7 @@ export default function Models() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
   const handleEdit = (id) => {
@@ -79,6 +81,9 @@ export default function Models() {
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
+
+    // One liner to get current user on the frontend
+    axios.get("/api/user",).then((res) => setUser(res.data)).catch((error) => console.log(error));
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
@@ -161,12 +166,32 @@ export default function Models() {
           <IconButton color="secondary" onClick={refreshModels}>
             <HiOutlineRefresh size={25} />
           </IconButton>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
-            + Import model
-          </Button>
-          <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
-            + Finetune model
-          </Button>
+          {user.cohereKey || user.openAiKey ?
+            <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
+              + Import model
+            </Button>
+            :
+            <CustomTooltip title="💡 Add your OpenAI or Cohere API key to import a model." className='tooltip'>
+              <span>
+                <Button className='button-margin' variant='contained' color="secondary" disabled>
+                  + Import model
+                </Button>
+              </span>
+            </CustomTooltip>
+          }
+          {user.openAiKey ?
+            <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
+              + Finetune model
+            </Button>
+            :
+            <CustomTooltip title="💡 Add your OpenAI API key to finetune a model." className='tooltip'>
+              <span>
+                <Button variant='contained' color="secondary" disabled>
+                  + Finetune model
+                </Button>
+              </span>
+            </CustomTooltip>
+          }
         </div>
       </div>
       <div className='tiny-space' />

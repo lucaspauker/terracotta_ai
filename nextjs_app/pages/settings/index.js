@@ -30,10 +30,10 @@ export default function Settings() {
     let body = {};
     if (provider === "openai") {
       console.log("Updating OpenAI API key");
-      body = {openAiKey: openAiKey};
+      body = {apiKey: openAiKey, update: "openai"};
     } else if (provider === "cohere") {
       console.log("Updating Cohere API key");
-      body = {cohereKey: cohereKey};
+      body = {apiKey: cohereKey, update: "cohere"};
     } else {
       console.log("Provider not found, API keys not updated");
       return;

@@ -113,10 +113,23 @@ export default function Projects() {
       setCurrentProject(localStorage.getItem("project"));
     };
     axios.get("/api/project/list").then((res) => {
-        if (res.data !== "No data found") {
-          setProjects(res.data);
-        }
+        setProjects(res.data);
         setLoading(false);
+
+        // Check if project exists in the user's projects
+        let projectMatch = false;
+        for (let i=0; i < res.data.length; i++) {
+          if (res.data[i].name === p) {
+            console.log(p);
+            projectMatch = true;
+          }
+        }
+
+        if (!projectMatch && res.data.length > 0) {
+          localStorage.setItem("project", res.data[0].name);
+          window.dispatchEvent(new Event("storage"));
+          setCurrentProject(res.data[0].name);
+        }
       }).catch((error) => {
         console.log(error);
       });
@@ -127,9 +140,7 @@ export default function Projects() {
         setCurrentProject(localStorage.getItem("project"));
       };
       axios.get("/api/project/list").then((res) => {
-          if (res.data !== "No data found") {
-            setProjects(res.data);
-          }
+          setProjects(res.data);
           setLoading(false);
         }).catch((error) => {
           console.log(error);
