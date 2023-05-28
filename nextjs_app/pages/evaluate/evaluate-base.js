@@ -197,6 +197,7 @@ export default function DoEvaluate() {
       if (dataset.valFileName) {
         axios.post("/api/data/file", {
           fileName: dataset.valFileName,
+          maxLines: 50,
         }).then((json_data) => {
           setEvalData(json_data.data);
           const rowsOnMount = json_data.data.slice(0, 5);
@@ -213,6 +214,7 @@ export default function DoEvaluate() {
       } else {
         axios.post("/api/data/file", {
           fileName: dataset.trainFileName,
+          maxLines: 50,
         }).then((json_data) => {
           setEvalData(json_data.data);
           const rowsOnMount = json_data.data.slice(0, 5);

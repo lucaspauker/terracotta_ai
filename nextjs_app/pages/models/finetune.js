@@ -170,6 +170,7 @@ export default function Train() {
       setModelName(toTitleCase(modelArchitecture) + "_" + dataset.name);
       axios.post("/api/data/file", {
         fileName: dataset.trainFileName,
+        maxLines: 50,
       }).then((json_data) => {
         setTrainData(json_data.data);
         const rowsOnMount = json_data.data.slice(0, 5);
@@ -185,6 +186,7 @@ export default function Train() {
       });
       axios.post("/api/data/file", {
         fileName: dataset.valFileName,
+        maxLines: 50,
       }).then((json_data) => {
         console.log("Got amazon file");
         setValData(json_data.data);

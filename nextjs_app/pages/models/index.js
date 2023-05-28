@@ -33,7 +33,7 @@ import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-import {timestampToDateTimeShort} from '/components/utils';
+import {timestampToDateTimeShort, getPriceString} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
 
 export async function getServerSideProps(context) {
@@ -206,7 +206,7 @@ export default function Models() {
                                       {model.providerData.modelId}
                                   </Link>
                                   :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? (model.cost === null ? "unavailable" : model.cost === 0 ? "<$0.01" : "$" + model.cost): "pending"}</TableCell>
+                      <TableCell>{"cost" in model ? getPriceString(model.cost): "pending"}</TableCell>
                       <TableCell>
                         <MenuComponent
                           editFunction={() => handleEdit(model._id)}

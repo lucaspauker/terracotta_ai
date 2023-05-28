@@ -45,6 +45,16 @@ export const formatTextForTypography = (text) => {
   });
 };
 
+export const getPriceString = (price) => {
+  if (price === null) {
+    return "unavailable";
+  } else if (price === 0) {
+    return "<$0.01";
+  } else {
+    return "$" + price.toFixed(2);
+  }
+}
+
 export const metricFormat = (metric) => {
   if (metric === 'f1') return 'F1';
   if (metric === 'auroc') return 'AUROC';

@@ -58,6 +58,7 @@ export default function EvaluationDatasetPage() {
           <div className='tiny-space'/>
           <Grid container spacing={2}>
             {evals.map((evaluation) => (
+              evaluation.status === "succeeded" &&
               <Grid item key={evaluation._id} xs={12} sm={6} md={4} lg={3}>
                 <Card className='evaluation-card'>
                   <CardContent>
