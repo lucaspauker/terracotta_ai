@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -6,8 +7,27 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { Layout, SimpleLayout } from '../components/layout'
 import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
 import { GiClayBrick } from 'react-icons/gi';
+import { BsCheckLg } from 'react-icons/bs';
+import axios from 'axios';
 
 export default function Home() {
+  const [email, setEmail] = useState('');
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
+  const signUpEmailList = () => {
+    setEmail('');
+    axios.post("/api/email/add", {
+        email: email,
+      }).then((res) => {
+        setEmailSuccess(true);
+        setTimeout(function() { setEmailSuccess(false); }, 5000);
+        console.log(res.data);
+      }).catch((err) => {
+        setEmailSuccess(false);
+        console.log(err);
+      });
+  }
+
   return (
     <div className='homepage'>
       <div className="top-content">
@@ -52,11 +72,21 @@ export default function Home() {
             label='Email'
             variant='outlined'
             size='small'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             sx={{width: 300, marginRight: 2}}
           />
-          <Button variant='contained' color='primary' size='small'>
-            Sign Up
-          </Button>
+          {emailSuccess ?
+            <Button variant='contained' color='primary' size='small' onClick={signUpEmailList}
+              sx={{width:75}}>
+              <BsCheckLg size={20}/>
+            </Button>
+            :
+            <Button variant='contained' color='primary' size='small' onClick={signUpEmailList}
+              sx={{width:75}}>
+              Sign Up
+            </Button>
+          }
         </div>
       </div>
 
