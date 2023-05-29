@@ -197,7 +197,7 @@ export default function Playground() {
     }
     if (!isCheckedById(id)) {  // This will become checked
       if (baseOrFinetuned === "finetuned") {
-        const updatedFields = [...new Set([...finetunedModelsFields, ...m.templateFields])];
+        const updatedFields = [...new Set([...finetunedModelsFields, ...m.templateId.fields])];
         setFinetunedModelsFields(updatedFields);
         localStorage.setItem("finetunedModelsFields", JSON.stringify(updatedFields));
       } else {
@@ -211,7 +211,7 @@ export default function Playground() {
         for (let i=0; i<finetunedModels.length; i++) {
           let mFinetuned = finetunedModels[i];
           if (checked[mFinetuned._id] && m._id !== mFinetuned._id) {
-            array = [...array, ...mFinetuned.templateFields];
+            array = [...array, ...mFinetuned.templateId.fields];
           }
         }
         const updatedFields = [...new Set(array)];
@@ -432,7 +432,7 @@ export default function Playground() {
                     </Typography>
                     <div className='horizontal-box'>
                       <Tooltip title="Show template">
-                        <IconButton className='copy' onClick={() => handleTemplateButtonClick(m.templateString, m.name)}>
+                        <IconButton className='copy' onClick={() => handleTemplateButtonClick(m.templateId.templateString, m.name)}>
                           <BiDetail size={20} />
                         </IconButton>
                       </Tooltip>

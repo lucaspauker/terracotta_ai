@@ -108,9 +108,9 @@ export default function Train() {
         console.log(res.data);
         setError();
         router.push('/models');
-      }).catch((error) => {
-        console.log(error);
-        setError('Error finetuning model');
+      }).catch((err) => {
+        console.log(err);
+        setError(err.response.data.error);
       });
     } else if (provider === "cohere") {
     }
@@ -124,12 +124,10 @@ export default function Train() {
         templateData: tempTemplateData,
       }).then((res) => {
         setEstimatedCost(res.data.estimatedCost);
-        console.log("response data")
         console.log(res.data);
-        setError();
-      }).catch((error) => {
-        console.log(error);
-        setError(error.response.data);
+        setError("");
+      }).catch((err) => {
+        setEstimatedCost('Unavailable')
       });
   }
 

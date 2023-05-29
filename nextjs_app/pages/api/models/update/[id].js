@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
-const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+import Model from "../../../../schemas/Model";
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -21,12 +22,9 @@ export default async function handler(request, response) {
   try {
     const name = request.body.name;
 
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const model = await db
-      .collection("models")
-      .updateOne({"_id": new ObjectId(id)}, {$set: {"name": name}});
+    const model = await Model.findByIdAndUpdate(id, {name: name});
     if (!model) {
       response.status(400).json({error:"Model not found!"});
       return;
@@ -34,8 +32,12 @@ export default async function handler(request, response) {
 
     response.status(200).send(model);
     return;
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (error.code === 11000) {
+      error = createError(400, 'Another model with the same name exists in this project');
+    } else if (!error.status) {
+      error = createError(500, 'Error renaming model');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

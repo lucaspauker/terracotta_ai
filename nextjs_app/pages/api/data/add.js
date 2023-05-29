@@ -1,13 +1,15 @@
 import { IncomingForm } from 'formidable'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
-import { promises as fs } from 'fs';
 import AWS from 'aws-sdk'
+import Project from '../../../schemas/Project';  
+import User from '../../../schemas/User';
+import Dataset from '../../../schemas/Dataset';
 
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 const jsonexport = require('jsonexport');
 const csv = require('csvtojson');
-const client = new MongoClient(process.env.MONGODB_URI);
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 
@@ -41,8 +43,7 @@ export default async function handler(request, response) {
   console.log("Creating dataset");
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
     const inputData = await new Promise((resolve, reject) => {
       const form = new IncomingForm()
@@ -55,7 +56,6 @@ export default async function handler(request, response) {
 
     const name = inputData.fields.name;
     const description = inputData.fields.description;
-    const project_id = inputData.fields.project_id;
     const filename = inputData.fields.filename;
     const projectName = inputData.fields.projectName;
     const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
@@ -68,17 +68,34 @@ export default async function handler(request, response) {
     let initialValFileName = inputData.fields.initialValFileName;
 
     if (name === '') {
-      response.status(400).json({ error: 'Must specify a name' })
-      return;
+      throw createError(400, 'Must provide a name for the dataset');
     }
     if (filename === '') {
-      response.status(400).json({ error: 'Must provide a file' })
-      return;
+      throw createError(400, 'Must provide a file');
     }
     if (inputData.files.trainFileData === '') {
-      response.status(400).json({ error: 'Must provide training data' })
-      return;
+      throw createError(400, 'Must provide a training file');
     }
+
+    // Get user ID
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+    const userId = user._id;
+
+    // Get project ID
+    const project = await Project.findOne({userId: userId, name: projectName});
+    if (!project) {
+      throw createError(400,'Project not found');
+    }
+
+    // Check if dataset already exists
+    const filteredDataset = await Dataset.findOne({name: name, projectId: project._id});
+    if (filteredDataset) {
+      throw createError(400,'Dataset name already exists, pick a unique name.');
+    }
+
 
     let trainFileData = {};
     let valFileData = {};
@@ -117,34 +134,6 @@ export default async function handler(request, response) {
       numValExamples = outputValFileDataJson.length;
     }
 
-    // Get user ID
-    const filtered_user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
-    const user_id = filtered_user._id;
-    if (user_id === '') {
-      response.status(400).json({ error: 'Must specify user' })
-      return;
-    }
-
-    // Get project ID
-    const project = await db
-      .collection("projects")
-      .findOne({userId: user_id, name: projectName});
-    if (!project) {
-      response.status(400).json({ error: 'Project not found' });
-      return;
-    }
-
-    // Check if dataset already exists
-    const filtered_dataset = await db
-      .collection("datasets")
-      .findOne({name: name, projectId: project._id});
-    if (filtered_dataset) {
-      response.status(400).json({error:"Dataset name already exists, pick a unique name."});
-      return;
-    }
-
     const trainParams = {
       ACL: 'public-read',
       Body: trainFileData,
@@ -158,22 +147,21 @@ export default async function handler(request, response) {
       Key: 'raw_data/' + valFileName,
     };
 
-    const d = await db
-      .collection("datasets")
-      .insertOne({
-          name: name,
-          description: description,
-          userId: user_id,
-          projectId: project._id,
-          fileName: filename,
-          trainFileName: trainFileName,
-          initialTrainFileName: initialTrainFileName,
-          valFileName: valFileName,
-          initialValFileName: initialValFileName,
-          numTrainExamples: numTrainExamples,
-          numValExamples: numValExamples,
-          timeCreated: Date.now(),
-        });
+
+    const d = Dataset.create({
+      name: name,
+      description: description,
+      userId: userId,
+      projectId: project._id,
+      fileName: filename,
+      trainFileName: trainFileName,
+      initialTrainFileName: initialTrainFileName,
+      valFileName: valFileName,
+      initialValFileName: initialValFileName,
+      numTrainExamples: numTrainExamples,
+      numValExamples: numValExamples,
+    });
+
     console.log(d);
 
     response.status(200).json(d);
@@ -199,8 +187,10 @@ export default async function handler(request, response) {
         }
       });
     });
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error creating dataset');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

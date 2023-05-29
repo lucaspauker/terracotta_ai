@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
 const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+const mongoose = require('mongoose');
+import Project from '../../../../schemas/Project';  
+const createError = require('http-errors');
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -19,16 +20,19 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    await db
-      .collection("projects")
-      .deleteOne({_id: new ObjectId(id)});
+    const project = await Project.findByIdAndDelete(id);
+    console.log(project);
+    if (!project) {
+      throw createError(400,'Project not found');
+    }
 
     response.status(200).send();
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error creating project');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

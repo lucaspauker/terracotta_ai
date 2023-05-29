@@ -2,10 +2,9 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
+const createError = require('http-errors');
 
 const mongoose = require('mongoose');
-
-//const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -23,20 +22,20 @@ export default async function handler(request, response) {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
     const user =  await User.findOne({email: session.user.email});
-    console.log(user);
     if (!user) {
-      response.status(400).json({ error: 'User not found' });
-      return;
+      throw createError(400,'User not found');
     }
 
     const projects = await Project.find({userId: user._id});
     if (!projects) {
-      response.status(400).json({ error: 'Projects not found' });
+      throw createError(400,'Projects not found');
     }
 
     response.status(200).json(projects);
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error creating project');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

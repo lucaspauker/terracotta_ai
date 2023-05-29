@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
+import ProviderModel from '../../../schemas/ProviderModel';
 
-const client = new MongoClient(process.env.MONGODB_URI);
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
     if (request.method !== 'GET') {
@@ -16,17 +17,16 @@ export default async function handler(request, response) {
     }
   
     try {
-      await client.connect();
-      const db = client.db("sharpen");
-  
-      const providerModels = await db
-        .collection("providerModels")
-        .find()
-        .toArray();
+
+      await mongoose.connect(process.env.MONGOOSE_URI);
+
+      const providerModels = await ProviderModel.find({});
   
       response.status(200).json(providerModels);
-    } catch (e) {
-      console.error(e);
-      response.status(400).json({ error: e })
+    } catch (error) {
+      if (!error.status) {
+        error = createError(500, 'Error retrieving completion');
+      }
+      response.status(error.status).json({ error: error.message });
     }
   }

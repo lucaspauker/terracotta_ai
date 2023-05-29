@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
+import User from '../../../schemas/User';
 
-const client = new MongoClient(process.env.MONGODB_URI);
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -16,6 +17,9 @@ export default async function handler(request, response) {
   }
 
   try {
+
+    await mongoose.connect(process.env.MONGOOSE_URI);
+
     const openAiKey = request.body.openAiKey;
     const cohereKey = request.body.cohereKey;
     let updateSet = {};
@@ -26,24 +30,22 @@ export default async function handler(request, response) {
       updateSet["cohereKey"] = cohereKey;
     }
 
-    await client.connect();
-    const db = client.db("sharpen");
 
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
-
+    // Get user ID
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
     const userId = user._id;
 
-    await db
-      .collection("users")
-      .updateOne({"_id" : userId},
-      {$set: updateSet});
+    await User.findByIdAndUpdate(userId, updateSet);
 
     console.log("User API keys successfully added");
     response.status(200).json();
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error saving api key');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

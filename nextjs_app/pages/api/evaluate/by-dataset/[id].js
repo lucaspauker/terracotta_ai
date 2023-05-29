@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
-const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+import Evaluation from '../../../../schemas/Evaluation';
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -20,18 +21,17 @@ export default async function handler(request, response) {
   console.log(id);
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const evals = await db
-      .collection("evaluations")
-      .find({datasetId: new ObjectId(id)})
-      .toArray();
+    const evals = Evaluation.find({datasetId:id});
+
     console.log(evals);
 
     response.status(200).json(evals);
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error displaying evaluations');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

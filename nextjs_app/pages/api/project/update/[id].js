@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
-const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+const createError = require('http-errors');
+const mongoose = require('mongoose');
+import Project from '../../../../schemas/Project'; 
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -19,23 +19,19 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
+    await mongoose.connect(process.env.MONGOOSE_URI);
     const name = request.body.name;
 
-    await client.connect();
-    const db = client.db("sharpen");
-
-    const project = await db
-      .collection("projects")
-      .updateOne({"_id": new ObjectId(id)}, {$set: {"name": name}});
-    if (!project) {
-      response.status(400).json({error:"Project not found!"});
-      return;
-    }
+    const project = await Project.findByIdAndUpdate(id, {name: name});
 
     response.status(200).send(project);
     return;
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (error.code === 11000) {
+      error = createError(400, 'Project name already exists');
+    } else if (!error.status) {
+      error = createError(500, 'Error creating project');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

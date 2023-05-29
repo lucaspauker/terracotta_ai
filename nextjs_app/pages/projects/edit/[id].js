@@ -24,15 +24,17 @@ export default function ProjectPage() {
   const [projectId, setProjectId] = useState('');
   const [project, setProject] = useState('');
   const [projectName, setProjectName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const save = () => {
     axios.post("/api/project/update/" + projectId, {
       name: projectName,
     }).then((res) => {
-      console.log(res.data);
+      setErrorMessage("");
       router.push('/projects');
     }).catch((error) => {
+      setErrorMessage(error.response.data.error);
       console.log(error);
     });
   };
@@ -100,6 +102,7 @@ export default function ProjectPage() {
             required
           />
           <div className='medium-space' />
+          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
           <Button size='large' variant="contained" onClick={save}>Save</Button>
         </Paper>
 

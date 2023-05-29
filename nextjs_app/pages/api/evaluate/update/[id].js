@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
-const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+import Evaluation from '../../../../schemas/Evaluation';
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -21,21 +22,29 @@ export default async function handler(request, response) {
   try {
     const name = request.body.name;
 
-    await client.connect();
-    const db = client.db("sharpen");
+    console.log(name);
 
-    const e = await db
-      .collection("evaluations")
-      .updateOne({"_id": new ObjectId(id)}, {$set: {"name": name}});
+    await mongoose.connect(process.env.MONGOOSE_URI);
+
+    console.log("connected");
+
+    const e = await Evaluation.findByIdAndUpdate(id,{name:name},{new:true});
+
+    console.log(e);
+
     if (!e) {
-      response.status(400).json({error:"Evaluation not found!"});
-      return;
+      throw createError(400,'Evaluation not found')
     }
 
     response.status(200).send(e);
     return;
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (error.code === 11000) {
+      error = createError(400, 'Another evaluation with the same name exists in this project');
+    } else if (!error.status) {
+      console.log(error);
+      error = createError(500, 'Error renaming evaluation');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

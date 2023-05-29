@@ -13,7 +13,6 @@ import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-import styles from '@/styles/Data.module.css'
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -35,7 +34,7 @@ export async function getServerSideProps(context) {
 export default function Add() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [error, setError] = useState();
+  const [errorMessage, setErrorMessage] = useState("");
   const [type, setType] = useState('classification');
   const [progress , setProgress] = useState(0);
   const nameRef = useRef();
@@ -46,7 +45,7 @@ export default function Add() {
 
   const handleCreateProject = () => {
     if (nameRef.current.value === '') {
-      setError("Please provide a name.");
+      setErrorMessage("Please provide a name.");
       return;
     }
     let p = '';
@@ -56,19 +55,16 @@ export default function Add() {
     axios.post("/api/project/add", {
         name: nameRef.current.value,
         type: type,
-        datetime: Date.now(),
       }).then((res) => {
-        console.log(res.data);
-        setError();
+        setErrorMessage("");
 
         // Switch to the newly created project
         localStorage.setItem("project", nameRef.current.value);
         window.dispatchEvent(new Event("storage"));
 
         router.push('/projects');
-      }).catch((err) => {
-        console.log(err);
-        setError(err.response.data.error);
+      }).catch((error) => {
+        setErrorMessage(error.response.data.error);
       });
   }
 
@@ -118,7 +114,7 @@ export default function Add() {
           </div>
           <div className='medium-space' />
 
-          {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
           <Button variant='contained' color="primary" onClick={handleCreateProject}>Create project</Button>
         </Paper>
       </div>

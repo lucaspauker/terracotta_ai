@@ -1,10 +1,17 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
-import {templateTransform} from '../../../components/utils';
 
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
+import User from '../../../schemas/User';
+import Project from '../../../schemas/Project';
+import Evaluation from '../../../schemas/Evaluation';
+import Dataset from "../../../schemas/Dataset";
+import Template from "../../../schemas/Template";
+import ProviderModel from "../../../schemas/ProviderModel";
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
+
 const csv = require('csvtojson');
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
@@ -35,8 +42,6 @@ export default async function handler(request, response) {
 
   let didReturn = false;
   let newEvaluationId;
-  await mongoClient.connect();
-  const db = mongoClient.db("sharpen");
 
   try {
     const name = request.body.name;
@@ -50,65 +55,58 @@ export default async function handler(request, response) {
     const outputColumn = request.body.outputColumn;
     const stopSequence = request.body.stopSequence;
 
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
-    const userId = user._id;
+    await mongoose.connect(process.env.MONGOOSE_URI);
+
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
 
     const configuration = new Configuration({
       apiKey: user.openAiKey,
     });
     const openai = new OpenAIApi(configuration);
 
-    const project = await db
-      .collection("projects")
-      .findOne({userId: userId, name: projectName});
+    const project = await Project.findOne({userId: user._id, name: projectName});
     if (!project) {
       response.status(400).json({ error: 'Project not found' });
       return;
     }
 
-    const prev = await db
-      .collection("evaluations")
-      .findOne({name: name, projectId: project._id});
+    const prev = await Evaluation.findOne({name: name, projectId: project._id});
+
     if (prev) {
       response.status(400).json({error:"Evaluation name already exists, pick a unique name."});
       return;
     }
 
-    // First, get the dataset and model from the database
-    const dataset = await db
-      .collection("datasets")
-      .findOne({userId: userId, name: datasetName});
+    const dataset = await Dataset.findOne({userId: user._id, name: datasetName});
+
     if (!dataset) {
       response.status(400).json({ error: 'Dataset not found' });
       return;
     }
 
-    const providerModel = await db
-      .collection("providerModels")
-      .findOne({completionName: completionName});
+    const providerModel = await ProviderModel.findOne({completionName: completionName});
 
     console.log(providerModel);
 
-    await db
-      .collection("evaluations")
-      .insertOne({
-          name: name,
-          description: description,
-          datasetId: dataset._id,
-          projectId: project._id,
-          providerModelId: providerModel._id,
-          userId: user._id,
-          templateId: null,
-          metrics: metrics,
-          metricResults: null,
-          trainingEvaluation: false,
-          status: "evaluating",
-          timeCreated: Date.now(),
-        }).then(res => {
-          newEvaluationId = res.insertedId;
-        });
+    const newEvaluation = await Evaluation.create({
+      name: name,
+      description: description,
+      datasetId: dataset._id,
+      projectId: project._id,
+      providerModelId: providerModel._id,
+      userId: user._id,
+      templateId: null,
+      metrics: metrics,
+      metricResults: null,
+      trainingEvaluation: false,
+      status: "evaluating",
+    })
+
+    newEvaluationId = newEvaluation._id;
+
     response.status(200).send();
     didReturn = true;
 
@@ -170,22 +168,15 @@ export default async function handler(request, response) {
     const results = await Promise.all(requests);
     console.log("Retrieved results from OpenAI");
 
-    const templateId = new ObjectId();
-
-    const template = {
-        _id: templateId,
-        templateString: templateString,
-        templateData: templateData,
-        outputColumn: outputColumn,
-        datasetId: dataset._id,
-        classes: project.type ===  "classification" ? classes : null,
-        stopSequence: stopSequence,
-        fields: matchesStrings,
-      }
-
-    await db
-      .collection("templates")
-      .insertOne(template);
+    const template = await Template.create({
+      templateString: templateString,
+      templateData: templateData,
+      outputColumn: outputColumn,
+      datasetId: dataset._id,
+      classes: project.type ===  "classification" ? classes : null,
+      stopSequence: stopSequence,
+      fields: matchesStrings,
+    })
 
     results.map((completion) => {
       completions.push(completion.data.choices[0].text.trim());
@@ -250,30 +241,32 @@ export default async function handler(request, response) {
         if (metrics[i] in tempMetricResults) {
           metricResults[metrics[i]] = tempMetricResults[metrics[i]];
         } else {
-          throw new Error("Metric type not supported");
+          // TODO: Not sure if we want to expose these errors or fall back to 500
+          throw createError("Metric type not supported");
         }
       }
     } else {
-        throw new Error("Project type not supported");
+        throw createError("Project type not supported");
     }
 
-    await db
-      .collection("evaluations")
-      .updateOne({_id: newEvaluationId}, {$set: {
-          metricResults: metricResults,
-          status: "succeeded",
-          templateId: templateId,
-        }});
+    await Evaluation.findByIdAndUpdate(newEvaluationId, {
+      metricResults: metricResults,
+      status: "succeeded",
+      templateId: template._id,
+    })
 
-
-  } catch (e) {
-    console.error(e);
-    await db
-      .collection("evaluations")
-      .updateOne({_id: newEvaluationId}, {$set: {
-        status: "failed",
-        }});
-    if (!didReturn) response.status(400).json({ error: e });
+  } catch (error) {
+    console.error(error);
+    if (didReturn) {
+      await Evaluation.findByIdAndUpdate(newEvaluationId, {
+        status: "failed"
+      })
+    } else {
+      if (!error.status) {
+        error = createError(500, 'Error creating evaluation');
+      }
+      response.status(error.status).json({ error: error.message });
+    } 
   }
 }
 

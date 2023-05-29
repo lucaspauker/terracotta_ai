@@ -1,9 +1,13 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
 import AWS from 'aws-sdk'
 const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+
+import Evaluation from '../../../../schemas/Evaluation';
+import Model from '../../../../schemas/Model';
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
@@ -31,19 +35,15 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const model = await db
-      .collection("models")
-      .findOne({_id: new ObjectId(id)});
+    const model = Model.findById(id);
     if (!model) {
-      response.status(400).json({error:"Model not found!"});
-      return;
+      throw Error('Model not found');
     }
 
     // Get evaluations
-    const evals = await db.collection("evaluations")
+    const evals = await Evaluation
       .aggregate([
         {
           $match: { modelId: new ObjectId(id) }
@@ -71,7 +71,7 @@ export default async function handler(request, response) {
             trainingEvaluation: "$trainingEvaluation",
           }
         }
-      ]).toArray();
+      ]);
 
     // Get training curve data if it exists
     if (model.providerData.resultsFileName) {
@@ -114,8 +114,10 @@ export default async function handler(request, response) {
       response.status(200).json({'evals': evals});
       return;
     }
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error creating evaluation');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }
