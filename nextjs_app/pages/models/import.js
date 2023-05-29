@@ -39,6 +39,7 @@ export default function Import() {
     const [provider, setProvider] = useState('');
     const [error, setError] = useState();
     const [type, setType] = useState('classification');
+    const [allImportableModels, setAllImportableModels] = useState([]);
     const [importableModels, setImportableModels] = useState([]);
     const [importModel, setImportModel] = useState('');
     const [modelName, setModelName] = useState('');
@@ -47,23 +48,26 @@ export default function Import() {
     const handleProviderChange = (provider) => {
       setProvider(provider);
       setImportModel('');
-      if (provider === 'openai') {
-        let p = '';
-        if (localStorage.getItem("project")) {
-          p = localStorage.getItem("project");
-        };
-        axios.post("/api/models/import/openai/list", {
-          projectName: p,
-        }).then((res) => {
-          console.log(res.data);
-          setError();
-          setImportableModels(res.data);
-        }).catch((err) => {
-          console.log(err);
-          setError(err.response.data.error);
-        });
-      }
+      setImportableModels(allImportableModels[provider])
     }
+
+    useEffect(() => {
+      let p = '';
+      if (localStorage.getItem("project")) {
+        p = localStorage.getItem("project");
+      };
+      axios.post("/api/models/import/openai/list", {
+        projectName: p,
+      }).then((res) => {
+        setError('');
+        const currentState = {...allImportableModels};
+        currentState['openai'] = res.data;
+        setAllImportableModels(currentState);
+      }).catch((err) => {
+        console.log(err);
+        setError(err.response.data.error);
+      });
+    }, []);
 
     const handleImportModel = () => {
         let p = '';
@@ -75,7 +79,7 @@ export default function Import() {
             modelName: modelName,
             model: importModel,
             }).then((res) => {
-              setError();
+              setError("");
               router.push('/models');
             }).catch((err) => {
               console.log(err);

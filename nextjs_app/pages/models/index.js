@@ -225,7 +225,7 @@ export default function Models() {
                     >
                       <TableCell><Link className='link' href={'models/' + model._id}>{model.name}</Link></TableCell>
                       <TableCell>{timestampToDateTimeShort(model.timeCreated)}</TableCell>
-                      <TableCell><Link className='link' href={'data/' + model.datasetId._id}>{model.datasetId.name}</Link></TableCell>
+                      <TableCell>{model.datasetId? <Link className='link' href={'data/' + model.datasetId._id}>{model.datasetId.name}</Link>: null}</TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>

@@ -37,6 +37,9 @@ const modelSchema = new Schema({
   templateId: {
     type: Schema.Types.ObjectId,
     ref: 'templates',
+    required: function () {
+      return !this.status === 'imported';
+    }
   },
   cost: Number,
   timeCreated: {
