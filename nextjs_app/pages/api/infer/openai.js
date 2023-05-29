@@ -1,10 +1,13 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
 import {templateTransform} from '../../../utils/template';
 
-const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+import Project from '../../../schemas/Project';  
+import User from '../../../schemas/User';
+import Template from '../../../schemas/Template';
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 const { Configuration, OpenAIApi } = require("openai");
 
@@ -28,16 +31,13 @@ export default async function handler(request, response) {
   }
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
     // Get user in order to keep track of history
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
+    const user =  await User.findOne({email: session.user.email});
     if (!user) {
-      response.status(400).json({ error: 'User not found' });
-      return;
+      throw createError(400,'User not found');
     }
 
     // Configure openai with user API key
@@ -60,17 +60,15 @@ export default async function handler(request, response) {
       return;
     } else {  // Finetuned model
 
-      const project = await db
-        .collection("projects")
-        .findOne({userId: user._id, name: projectName});
+      const project = await Project.findOne({userId: user._id, name: projectName});
       if (!project) {
-        response.status(400).json({ error: 'Project not found' });
-        return;
+        throw createError(400,'Project not found');
       }
 
-      const template = await db
-        .collection("templates")
-        .findOne({_id: new ObjectId(model.templateId)});
+      const template = await Template.findById(model.templateId);
+      if (!template) {
+        throw createError(400,'Template not found');
+      }
 
       const templateString = template.templateString;
 
@@ -84,8 +82,10 @@ export default async function handler(request, response) {
       response.status(200).json(completion.data.choices[0].text);
       return;
     }
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error retrieving completion');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

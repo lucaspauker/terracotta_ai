@@ -1,20 +1,19 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
-import { Prompt } from "next/font/google";
-import Data from "@/pages/data";
-import { error } from "console";
+import Project from '../../../../schemas/Project';  
+import User from '../../../../schemas/User';
+import Dataset from '../../../../schemas/Dataset';
+import Model from "../../../../schemas/Model";
+import Template from "../../../../schemas/Template";
 
-const path = require('path');
+const createError = require('http-errors');
+const mongoose = require('mongoose');
+
+
 const csv = require('csvtojson');
-const streamify = require('stream-array');
-const ObjectId = require('mongodb').ObjectId;
 const tmp = require('tmp');
 
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
-
-const { execSync } = require("child_process");
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
@@ -70,11 +69,7 @@ export default async function handler(request, response) {
     return;
   }
 
-  await mongoClient.connect();
-  const db = mongoClient.db("sharpen");
-
   // Don't return a status twice
-  let didReturn = false;
   let newModelId = null;
   try {
     const provider = request.body.provider;
@@ -97,9 +92,12 @@ export default async function handler(request, response) {
       }
     }
 
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
+    await mongoose.connect(process.env.MONGOOSE_URI);
+
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
     const userId = user._id;
 
     // Configure openai with user API key
@@ -108,53 +106,35 @@ export default async function handler(request, response) {
     });
     const openai = new OpenAIApi(configuration);
 
-    const project = await db
-      .collection("projects")
-      .findOne({userId: userId, name: projectName});
+    const project = await Project.findOne({userId: userId, name: projectName});
+
     if (!project) {
-      response.status(400).json({ error: 'Project not found' });
-      return;
+      throw createError(400,'Project not found');
     } else if (project.type !== "generative" && project.type !== "classification") {
-      response.status(400).json({ error: 'Only classification and generation are supported' });
-      return;
+      throw createError(400,'Only classification and generation are supported');
     }
 
-    let dataset = await db
-      .collection("datasets")
-      .findOne({userId: userId, name: datasetName});
+    let dataset = await Dataset.findOne({projectId: project._id, name: datasetName});
+
     if (!dataset) {
-      response.status(400).json({ error: 'Dataset not found' });
-      return;
-    }
-
-    // Check if model already exists
-    const prevModel = await db
-      .collection("models")
-      .findOne({name: modelName, projectId: project._id});
-    if (prevModel) {
-      response.status(400).json({error:"Model name already exists, pick a unique name."});
-      return;
+      throw createError(400,'Dataset not found');
     }
 
     // Create model in db, then we will fill in provider data later
-    await db
-      .collection("models")
-      .insertOne({
-          name: modelName,
-          description: description,
-          provider: provider,
-          modelArchitecture: modelArchitecture,
-          status: "preparing",
-          datasetId: dataset._id,
-          projectId: project._id,
-          userId: userId,
-          providerData: {},
-          timeCreated: Date.now(),
-        }).then(res => {
-          newModelId = res.insertedId;
-        });
+
+    const model = await Model.create({
+      name: modelName,
+      description: description,
+      provider: provider,
+      modelArchitecture: modelArchitecture,
+      status: "preparing",
+      datasetId: dataset._id,
+      projectId: project._id,
+      userId: userId,
+      providerData: {},
+    });
+    newModelId = model._id;
     response.status(200).send();
-    didReturn = true;
 
     // Only download from S3 and upload to openai once
     let valFilePresent = false;
@@ -221,8 +201,7 @@ export default async function handler(request, response) {
 
       classes = Array.from(new Set(classes));
 
-      template = {
-        _id: new ObjectId(),
+      template = await Template.create({
         templateString: templateString,
         templateData: templateData,
         outputColumn: outputColumn,
@@ -230,11 +209,7 @@ export default async function handler(request, response) {
         classes: classes.length > 1? classes : null,
         stopSequence: stopSequence,
         fields: matchesStrings,
-      }
-
-      await db
-      .collection("templates")
-      .insertOne(template);
+      });
 
       const trainFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
       const valFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
@@ -258,28 +233,19 @@ export default async function handler(request, response) {
           "fine-tune"
         );
         deleteTemporaryFile(valFileJsonl);
-        await db
-          .collection("datasets")
-          .updateOne({"_id":dataset._id},
-          {$set: { "openaiData" : {"trainFile": trainResponse.data.id, "valFile": valResponse.data.id}}})
+        dataset = await Dataset.findByIdAndUpdate(dataset._id, 
+          {openaiData: {trainFile: trainResponse.data.id, valFile: valResponse.data.id}}, {new: true}); 
       } else {
-        await db
-          .collection("datasets")
-          .updateOne({"_id":dataset._id},
-          {$set: { "openaiData" : {"trainFile": trainResponse.data.id}}})
+        dataset = await Dataset.findByIdAndUpdate(dataset._id, {openaiData: {trainFile: trainResponse.data.id}}, {new: true});
       }
-      dataset = await db
-      .collection("datasets")
-      .findOne({"_id":dataset._id})
     }
 
     console.log("Done");
 
     let finetuneRequest = null;
     if (project.type === "classification") {
-      if (classes.length <= 1) {
-        response.status(400).json({ error: 'Dataset classes not specified' });
-        return;
+      if (classes.length <= 1) { 
+        throw createError(400,'Dataset classes not specified')
       } else if (classes.length === 2) {  // Binary classification
         finetuneRequest = {
           training_file: dataset.openaiData.trainFile,
@@ -308,28 +274,30 @@ export default async function handler(request, response) {
     finetuneRequest = {...finetuneRequest,...hyperParams};
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
 
-    const ret = await db
-      .collection("models")
-      .updateOne({_id: newModelId}, {$set: {
-          status: "training",
-          providerData: {
-            finetuneId: finetuneResponse.data.id,
-            hyperParams: hyperParams,
-          },
-          templateId: template._id,
-          timeCreated: Date.now(),
-        }});
+    await Model.findByIdAndUpdate(
+      model._id,
+      {
+        status: "training",
+        providerData: {
+          finetuneId: finetuneResponse.data.id,
+          hyperParams: hyperParams
+        },
+        templateId: template._id
+      }
+    );
 
     response.status(200).send();
 
-  } catch (e) {
-    console.error(e);
-    if (newModelId) await db
-      .collection("models")
-      .updateOne({_id: newModelId}, {$set: {
-          status: "failed",
-        }});
-    if (!didReturn) response.status(400).json({ error: e });
+  } catch (error) {
+    console.error(error);
+    if (error.code === 11000) {
+      error = createError(400, 'Another model with the same name exists in this project');
+      response.status(error.status).json({ error: error.message });
+    } else {
+      if (newModelId) {
+        await Model.findByIdAndUpdate(newModelId, {status: "failed"})
+      }
+    }
   }
 }
 

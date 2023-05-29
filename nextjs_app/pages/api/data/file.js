@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
 import AWS from 'aws-sdk'
 
 const csv = require('csvtojson');

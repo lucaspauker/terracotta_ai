@@ -1,13 +1,14 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
+import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
-
 const createError = require('http-errors');
+
 const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
-  if (request.method !== 'POST') {
-    response.status(400).json({ error: 'Use POST request' })
+  if (request.method !== 'GET') {
+    response.status(400).json({ error: 'Use GET request' })
   }
 
   const session = await getServerSession(request, response, authOptions);
@@ -20,30 +21,20 @@ export default async function handler(request, response) {
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const apiKey = request.body.apiKey;
-    const update = request.body.update;
-    let updateSet = {};
-    if (update === "openai") {
-      updateSet["openAiKey"] = apiKey;
-    } else if (update === "cohere") {
-      updateSet["cohereKey"] = apiKey;
-    }
-
-
-    // Get user ID
     const user =  await User.findOne({email: session.user.email});
     if (!user) {
       throw createError(400,'User not found');
     }
-    const userId = user._id;
 
-    await User.findByIdAndUpdate(userId, updateSet);
+    const projects = await Project.find({userId: user._id});
+    if (!projects) {
+      throw createError(400,'Projects not found');
+    }
 
-    console.log("User API keys successfully added");
-    response.status(200).json();
+    response.status(200).json(projects);
   } catch (error) {
     if (!error.status) {
-      error = createError(500, 'Error saving api key');
+      error = createError(500, 'Error creating project');
     }
     response.status(error.status).json({ error: error.message });
   }

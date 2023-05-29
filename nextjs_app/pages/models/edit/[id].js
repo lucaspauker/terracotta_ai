@@ -24,16 +24,16 @@ export default function EditModelPage() {
   const [modelId, setModelId] = useState('');
   const [model, setModel] = useState('');
   const [modelName, setModelName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const save = () => {
     axios.post("/api/models/update/" + modelId, {
       name: modelName,
     }).then((res) => {
-      console.log(res.data);
       router.push('/models');
     }).catch((error) => {
-      console.log(error);
+      setErrorMessage(error.response.data.error);
     });
   };
 
@@ -100,6 +100,7 @@ export default function EditModelPage() {
             required
           />
           <div className='medium-space' />
+          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
           <Button size='large' variant="contained" onClick={save}>Save</Button>
         </Paper>
 

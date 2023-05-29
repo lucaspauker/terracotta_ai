@@ -24,6 +24,7 @@ export default function EditEvaluatePage() {
   const [evaluationId, setEvaluationId] = useState('');
   const [evaluation, setEvaluation] = useState('');
   const [evaluationName, setEvaluationName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const save = () => {
@@ -33,6 +34,7 @@ export default function EditEvaluatePage() {
       console.log(res.data);
       router.push('/evaluate');
     }).catch((error) => {
+      setErrorMessage(error.response.data.error);
       console.log(error);
     });
   };
@@ -100,6 +102,7 @@ export default function EditEvaluatePage() {
             required
           />
           <div className='medium-space' />
+          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
           <Button size='large' variant="contained" onClick={save}>Save</Button>
         </Paper>
 

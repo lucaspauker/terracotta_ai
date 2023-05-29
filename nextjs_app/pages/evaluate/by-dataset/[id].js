@@ -24,7 +24,7 @@ export default function EvaluationDatasetPage() {
         setLoading(false);
       })
       .catch((error) => {
-        setError(error.message);
+        setError(error.response.data.error);
         setLoading(false);
       });
   }, []);
