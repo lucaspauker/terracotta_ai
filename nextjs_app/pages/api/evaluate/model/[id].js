@@ -66,6 +66,7 @@ export default async function handler(request, response) {
             datasetId: "$dataset._id",
             datasetName: "$dataset.name",
             description: "$description",
+            status: "$status",
             metrics: "$metrics",
             metricResults: "$metricResults",
             trainingEvaluation: "$trainingEvaluation",

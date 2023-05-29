@@ -117,6 +117,21 @@ export default function Projects() {
           setProjects(res.data);
         }
         setLoading(false);
+
+        // Check if project exists in the user's projects
+        let projectMatch = false;
+        for (let i=0; i < res.data.length; i++) {
+          if (res.data[i].name === p) {
+            console.log(p);
+            projectMatch = true;
+          }
+        }
+
+        if (!projectMatch && res.data.length > 0) {
+          localStorage.setItem("project", res.data[0].name);
+          window.dispatchEvent(new Event("storage"));
+          setCurrentProject(res.data[0].name);
+        }
       }).catch((error) => {
         console.log(error);
       });
@@ -137,10 +152,6 @@ export default function Projects() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -154,7 +165,9 @@ export default function Projects() {
       <div className='tiny-space' />
 
       <div>
-        {projects.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : projects.length > 0 ?
           <div className='card-container'>
             {projects.map((project) => (
               <Card variant="outlined" key={project._id}

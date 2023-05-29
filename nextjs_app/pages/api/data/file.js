@@ -16,6 +16,27 @@ const myBucket = new AWS.S3({
   region: REGION,
 });
 
+function getRandomSubset(list, N) {
+  const subset = [];
+  const length = list.length;
+  const indices = new Set();
+
+  if (N > length) {
+    throw new Error("Subset size exceeds the length of the list.");
+  }
+
+  while (indices.size < N) {
+    const randomIndex = Math.floor(Math.random() * length);
+    indices.add(randomIndex);
+  }
+
+  for (const index of indices) {
+    subset.push(list[index]);
+  }
+
+  return subset;
+}
+
 export default async function handler(request, response) {
   // This function gets a file from S3 by using the filename inputted in the request
 
@@ -30,18 +51,49 @@ export default async function handler(request, response) {
   }
 
   try {
+    const fileName = request.body.fileName;
+    const maxLines = request.body.maxLines || 1000;  // Only read 1000 lines ever
+    const shuffle = request.body.shuffle || false;
+
     const params = {
       Bucket: S3_BUCKET,
-      Key: 'raw_data/' + request.body.fileName,
+      Key: 'raw_data/' + fileName,
     };
 
-    console.log("Retreiving file: " + 'raw_finetune_data/' + request.body.fileName);
+    console.log("Retrieving file: " + 'raw_finetune_data/' + request.body.fileName);
 
-    console.log(params);
     const stream = myBucket.getObject(params).createReadStream();
-    const json_output = await csv().fromStream(stream);
 
-    response.status(200).json(json_output);
+    const csvParser = csv();
+    let lines = [];
+
+    const processStream = new Promise((resolve, reject) => {
+      stream
+        .pipe(csvParser)
+        .on('data', (line) => {
+          if (!shuffle && maxLines && lines.length >= maxLines) {
+            // Stop reading after reaching the specified maxLines
+            stream.destroy();
+            resolve(lines);
+          } else {
+            lines.push(JSON.parse(line.toString()));
+          }
+        })
+        .on('end', () => {
+          // Resolve the promise with the lines array
+          resolve(lines);
+        })
+        .on('error', (error) => {
+          // Reject the promise if there's an error
+          reject(error);
+        });
+    });
+
+    let ret = await processStream;
+    if (maxLines && shuffle) {
+      ret = getRandomSubset(ret, maxLines);
+    }
+    response.status(200).json(ret);
   } catch (e) {
     console.error(e);
     response.status(400).json({ error: e })

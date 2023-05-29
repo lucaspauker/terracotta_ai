@@ -20,14 +20,13 @@ export default async function handler(request, response) {
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const openAiKey = request.body.openAiKey;
-    const cohereKey = request.body.cohereKey;
+    const apiKey = request.body.apiKey;
+    const update = request.body.update;
     let updateSet = {};
-    if (openAiKey) {
-      updateSet["openAiKey"] = openAiKey;
-    }
-    if (cohereKey) {
-      updateSet["cohereKey"] = cohereKey;
+    if (update === "openai") {
+      updateSet["openAiKey"] = apiKey;
+    } else if (update === "cohere") {
+      updateSet["cohereKey"] = apiKey;
     }
 
 

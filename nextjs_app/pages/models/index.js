@@ -33,7 +33,8 @@ import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-import {timestampToDateTimeShort} from '/components/utils';
+import {CustomTooltip} from '/components/CustomToolTip.js';
+import {timestampToDateTimeShort, getPriceString} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
 
 export async function getServerSideProps(context) {
@@ -61,6 +62,7 @@ export default function Models() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const [user, setUser] = useState({});
   const router = useRouter();
 
   const handleEdit = (id) => {
@@ -78,6 +80,8 @@ export default function Models() {
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");
     }
+
+    axios.get("/api/user",).then((res) => {setUser(res.data);}).catch((error) => console.log(error));
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
@@ -145,13 +149,8 @@ export default function Models() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
-
       <div className='horizontal-box full-width'>
         <Typography variant='h4' className='page-main-header'>
           Finetuned Models
@@ -160,18 +159,48 @@ export default function Models() {
           <IconButton color="secondary" onClick={refreshModels}>
             <HiOutlineRefresh size={25} />
           </IconButton>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
-            + Import model
-          </Button>
-          <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
-            + Finetune model
-          </Button>
+          {!loading && (user.cohereKey || user.openAiKey) ?
+            <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
+              + Import model
+            </Button>
+            : loading ?
+            <Button className='button-margin' variant='contained' color='secondary'>
+              + Import model
+            </Button>
+            :
+            <CustomTooltip title="💡 Add your OpenAI or Cohere API key to import a model." className='tooltip'>
+              <span>
+                <Button className='button-margin' variant='contained' color="secondary" disabled>
+                  + Import model
+                </Button>
+              </span>
+            </CustomTooltip>
+          }
+          {!loading && user.openAiKey ?
+            <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
+              + Finetune model
+            </Button>
+            : loading ?
+            <Button variant='contained' color='secondary'>
+              + Finetune model
+            </Button>
+            :
+            <CustomTooltip title="💡 Add your OpenAI API key to finetune a model." className='tooltip'>
+              <span>
+                <Button variant='contained' color="secondary" disabled>
+                  + Finetune model
+                </Button>
+              </span>
+            </CustomTooltip>
+          }
         </div>
       </div>
       <div className='tiny-space' />
 
       <div>
-        {models.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : models.length > 0 ?
           <Paper variant="outlined">
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>
@@ -205,7 +234,7 @@ export default function Models() {
                                       {model.providerData.modelId}
                                   </Link>
                                   :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? (model.cost === null ? "unavailable" : model.cost === 0 ? "<$0.01" : "$" + model.cost): "pending"}</TableCell>
+                      <TableCell>{"cost" in model ? getPriceString(model.cost): "pending"}</TableCell>
                       <TableCell>
                         <MenuComponent
                           editFunction={() => handleEdit(model._id)}

@@ -139,10 +139,6 @@ export default function Evaluate() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -161,7 +157,9 @@ export default function Evaluate() {
       <div className='tiny-space' />
 
       <div>
-        {datasetData.length > 0 ?
+        {loading ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : datasetData.length > 0 ?
           <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData} />
           :
           <>

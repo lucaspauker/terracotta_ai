@@ -267,6 +267,7 @@ export default function ModelPage() {
           Evaluations
         </Typography>
         {evals.map(e => (
+          e.status === "succeeded" &&
           <div key={e._id}>
             <div className='tiny-space'/>
             <Paper className='card' variant='outlined'>

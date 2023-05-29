@@ -58,10 +58,11 @@ export default function EvaluationDatasetPage() {
           <div className='tiny-space'/>
           <Grid container spacing={2}>
             {evals.map((evaluation) => (
+              evaluation.status === "succeeded" &&
               <Grid item key={evaluation._id} xs={12} sm={6} md={4} lg={3}>
                 <Card className='evaluation-card'>
                   <CardContent>
-                    <Typography sx={{marginBottom: 2}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
+                    <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
                     {evaluation.metrics.map((e) => (
                       <Typography key={e}>{metricFormat(e)}: {evaluation.metricResults[e].toFixed(2)}</Typography>
                     ))}

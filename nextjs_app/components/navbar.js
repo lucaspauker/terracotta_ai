@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Router from "next/router";
+import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Toolbar from '@mui/material/Toolbar';
@@ -89,7 +90,8 @@ export default function Navbar() {
     window.dispatchEvent(new Event("storage"));
   }
 
-  useEffect(() => {
+  const refreshProjects = () => {
+    setLoading(true);
     if (localStorage.getItem("project")) {
       setProject(localStorage.getItem("project"));
     };
@@ -102,19 +104,12 @@ export default function Navbar() {
     }).catch((error) => {
       console.log(error);
     });
+  }
+
+  useEffect(() => {
+    refreshProjects();
     window.addEventListener("storage", () => {
-      if (localStorage.getItem("project")) {
-        setProject(localStorage.getItem("project"));
-      };
-      axios.get("/api/project").then((res) => {
-        console.log(res.data);
-        if (res.data !== "No data found") {
-          setAllProjects(res.data);
-        }
-        setLoading(false);
-      }).catch((error) => {
-        console.log(error);
-      });
+      refreshProjects();
     });
   }, []);
 

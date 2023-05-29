@@ -26,22 +26,10 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import {toTitleCase} from '/components/utils';
+import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
 const steps = ['Select dataset and model', 'Choose template', 'Select metrics', 'Review evaluation'];
-
-const baseModelNamesDict = {
-  'text-ada-001': 'GPT-3 Ada',
-  'text-babbage-001': 'GPT-3 Babbage',
-  'text-curie-001': 'GPT-3 Curie',
-  'text-davinci-003': 'GPT-3 Davinci',
-  'generate-medium': 'Generate Medium',
-  'generate-xlarge': 'Generate X-Large',
-  'classify-small': 'Classify Small',
-  'classify-large': 'Classify Large',
-  'classify-multilingual': 'Classify Multilingual',
-}
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -178,9 +166,9 @@ export default function DoEvaluate() {
     axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
         console.log(res);
         if (res.data.type === "classification") {
-          setMetrics(['accuracy', 'precision', 'recall', 'f1']);
+          setMetrics(classificationMetrics);
         } else {
-          setMetrics(['bleu', 'rougel']);
+          setMetrics(generationMetrics);
         }
       }).catch((error) => {
         console.log(error);
@@ -206,11 +194,10 @@ export default function DoEvaluate() {
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
-      setName(baseModelNamesDict[model.completionName] + " Evaluation");
-
       if (dataset.valFileName) {
         axios.post("/api/data/file", {
           fileName: dataset.valFileName,
+          maxLines: 50,
         }).then((json_data) => {
           setEvalData(json_data.data);
           const rowsOnMount = json_data.data.slice(0, 5);
@@ -227,6 +214,7 @@ export default function DoEvaluate() {
       } else {
         axios.post("/api/data/file", {
           fileName: dataset.trainFileName,
+          maxLines: 50,
         }).then((json_data) => {
           setEvalData(json_data.data);
           const rowsOnMount = json_data.data.slice(0, 5);
@@ -241,10 +229,10 @@ export default function DoEvaluate() {
           console.log(error);
         });
       }
-      
     }
 
     if (activeStep === 1) {
+      setName(baseModelNamesDict[model] + " Evaluation");
       let numWords = 0;
       let numChars = 0;
       evalData.forEach((row) => {
@@ -419,11 +407,7 @@ export default function DoEvaluate() {
                 {metrics.map(m => (
                   <div key={m} className='horizontal-box'>
                     <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
-                    <Typography>{m === 'bleu' ?
-                      'BLEU' : m === 'rougel' ?
-                      'RougeL' :
-                      toTitleCase(m)}
-                    </Typography>
+                    <Typography>{metricFormat(m)}</Typography>
                   </div>
                 ))}
               </div>
@@ -457,7 +441,7 @@ export default function DoEvaluate() {
               <div className='medium-space' />
               <Box sx={{textAlign: 'left'}}>
                 <Typography>Dataset: {dataset.name}</Typography>
-                <Typography>Model: {baseModelNamesDict[model.completionName]}</Typography>
+                <Typography>Model: {baseModelNamesDict[model]}</Typography>
                 <Typography>Metrics: {metrics.map((m, i) =>
                                         (isChecked(m) ? m + ' ' : null)
                                       )}</Typography>

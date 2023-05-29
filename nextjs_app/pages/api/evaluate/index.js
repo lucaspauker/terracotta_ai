@@ -57,10 +57,21 @@ export default async function handler(request, response) {
           },
         },
         {
+          $lookup: {
+            from: "providerModels",
+            localField: "providerModelId",
+            foreignField: "_id",
+            as: "providerModel"
+          },
+        },
+        {
           $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
         },
         {
-          $unwind: "$model",
+          $unwind: { path: "$model", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $unwind: { path: "$providerModel", preserveNullAndEmptyArrays: true }
         },
         {
           $project: {
@@ -70,6 +81,7 @@ export default async function handler(request, response) {
             datasetName: "$dataset.name",
             modelId: "$model._id",
             modelName: "$model.name",
+            providerCompletionName: "$providerModel.completionName",
             description: "$description",
             metrics: "$metrics",
             metricResults: "$metricResults",

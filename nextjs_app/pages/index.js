@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -6,11 +7,30 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { Layout, SimpleLayout } from '../components/layout'
 import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
 import { GiClayBrick } from 'react-icons/gi';
+import { BsCheckLg } from 'react-icons/bs';
+import axios from 'axios';
 
 export default function Home() {
+  const [email, setEmail] = useState('');
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
+  const signUpEmailList = () => {
+    setEmail('');
+    axios.post("/api/email/add", {
+        email: email,
+      }).then((res) => {
+        setEmailSuccess(true);
+        setTimeout(function() { setEmailSuccess(false); }, 5000);
+        console.log(res.data);
+      }).catch((err) => {
+        setEmailSuccess(false);
+        console.log(err);
+      });
+  }
+
   return (
     <div className='homepage'>
-      <div className="top-content">
+      <div className="top-content fade-in-animation">
         <div className='header horizontal-box full-width'>
           <Typography className="logo horizontal-box" variant="h1">
             <GiClayBrick style={{marginRight: 10}}/>
@@ -46,17 +66,30 @@ export default function Home() {
       </div>
 
       <div className='email-list-form'>
-        <Typography variant="h3" className="email-header">Sign up for our email list</Typography>
+        <div className='vertical-box' style={{alignItems:'flex-start'}}>
+          <Typography variant="h3" className="email-header">Sign up for our email list</Typography>
+          <Typography className="part-subtext">We will keep you updated about what we are working on.</Typography>
+        </div>
         <div className='email-form-container horizontal-box'>
           <TextField
             label='Email'
             variant='outlined'
             size='small'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             sx={{width: 300, marginRight: 2}}
           />
-          <Button variant='contained' color='primary' size='small'>
-            Sign Up
-          </Button>
+          {emailSuccess ?
+            <Button variant='contained' size='small' onClick={signUpEmailList}
+              sx={{width:75}} className='green'>
+              <BsCheckLg size={20}/>
+            </Button>
+            :
+            <Button variant='contained' color='primary' size='small' onClick={signUpEmailList}
+              sx={{width:75}} className='green-on-press'>
+              Sign Up
+            </Button>
+          }
         </div>
       </div>
 

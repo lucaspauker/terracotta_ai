@@ -19,7 +19,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
-import { calculateColor } from '/components/utils';
+import { calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
 
 export default function ModelPage() {
   const [loading, setLoading] = useState(true);
@@ -77,17 +77,36 @@ export default function ModelPage() {
       </div>
       <div className='medium-space' />
 
-      <div>
-        <Typography variant='h6'>
-          Evaluation info
-        </Typography>
-        <div className='tiny-space'/>
-        <Paper className='small-card' variant='outlined'>
-          <Typography>Model: <Link className='link' href={'/models/' + evaluation.modelId}>{evaluation.modelName}</Link></Typography>
-          <Typography>Evaluation dataset: <Link className='link' href={'/data/' + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
-        </Paper>
-        <div className='medium-space' />
+      <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
+        <div>
+          <Typography variant='h6'>
+            Evaluation info
+          </Typography>
+          <div className='tiny-space'/>
+          <Paper className='small-card' variant='outlined'>
+            <Typography>
+              Model: {evaluation.modelId ?
+                  <Link className='link' href={'/models/' + evaluation.modelId}>{evaluation.modelName}</Link>
+                  :
+                  baseModelNamesDict[evaluation.completionName]
+              }
+            </Typography>
+            <Typography>Evaluation dataset: <Link className='link' href={'/data/' + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
+          </Paper>
+        </div>
+        <div>
+          <Typography variant="h6">Template</Typography>
+          <div className='tiny-space' />
+          <TextField
+            multiline
+            InputProps={{ readOnly: true, }}
+            className="white"
+            value={evaluation.templateString}
+            sx={{width: '400px'}}
+          />
+        </div>
       </div>
+      <div className='medium-space' />
 
       <div>
           <div className='tiny-space'/>
@@ -95,11 +114,7 @@ export default function ModelPage() {
             <div className='horizontal-box-grid'>
               {evaluation.metrics.map(metric => (
                 <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
-                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                    {metric === 'bleu' ? 'BLEU' :
-                      metric === 'rougel' ? 'RougeL' :
-                      metric.charAt(0).toUpperCase() + metric.slice(1)}
-                  </Typography>
+                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
                   <div className='small-space'/>
                   <Typography variant='h6'>
                     {metric === 'accuracy' ?

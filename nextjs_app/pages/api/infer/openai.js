@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import {templateTransform} from '../../../components/utils';
+import {templateTransform} from '../../../utils/template';
 
 import Project from '../../../schemas/Project';  
 import User from '../../../schemas/User';

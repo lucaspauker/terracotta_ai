@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
@@ -23,6 +24,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { DataGrid } from '@mui/x-data-grid';
+import { BiShuffle } from 'react-icons/bi';
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
@@ -73,37 +75,67 @@ export default function DataPage() {
     });
   }
 
+  const shuffleData = () => {
+    setLoading(true);
+    if (trainOrVal === 'train') {
+      // Get train file from S3
+      axios.post("/api/data/file", {
+          fileName: dataset.trainFileName,
+          maxLines: 50,
+          shuffle: true,
+        }).then((json_data) => {
+          setRawData(json_data.data);
+          setInputTrainData(json_data.data);
+          setLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+    } else {
+      // Get train file from S3
+      axios.post("/api/data/file", {
+          fileName: dataset.valFileName,
+          maxLines: 50,
+          shuffle: true,
+        }).then((json_data) => {
+          setRawData(json_data.data);
+          setInputValData(json_data.data);
+          setLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+    }
+  }
 
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
     axios.get("/api/data/" + last).then((res) => {
-      if (res.data !== "No data found") {
-        setDataset(res.data);
-        setFilename(res.data.trainFileName);
-        setDisplayFilename(res.data.initialTrainFileName);
+      setDataset(res.data);
+      setFilename(res.data.trainFileName);
+      setDisplayFilename(res.data.initialTrainFileName);
 
-        // Get train file from S3
+      // Get train file from S3
+      axios.post("/api/data/file", {
+          fileName: res.data.trainFileName,
+          maxLines: 50,
+        }).then((json_data) => {
+          setRawData(json_data.data);
+          setInputTrainData(json_data.data);
+          setHeaders(Object.keys(json_data.data[0]));
+          setLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+
+      // Get val file from S3
+      if (res.data.valFileName) {
         axios.post("/api/data/file", {
-            fileName: res.data.trainFileName,
+            fileName: res.data.valFileName,
+            maxLines: 50,
           }).then((json_data) => {
-            setRawData(json_data.data);
-            setInputTrainData(json_data.data);
-            setHeaders(Object.keys(json_data.data[0]));
-            setLoading(false);
+            setInputValData(json_data.data);
           }).catch((error) => {
             console.log(error);
           });
-
-        // Get val file from S3
-        if (res.data.valFileName) {
-          axios.post("/api/data/file", {
-              fileName: res.data.valFileName,
-            }).then((json_data) => {
-              setInputValData(json_data.data);
-            }).catch((error) => {
-              console.log(error);
-            });
-        }
       }
     }).catch((error) => {
       console.log(error);
@@ -143,8 +175,8 @@ export default function DataPage() {
             <div>
               <div>
                 <Typography>Train file name: {displayFilename}</Typography>
-                <Typography># of train rows: {inputTrainData.length}</Typography>
-                {inputValData ? <Typography># of validation rows: {inputValData.length}</Typography>
+                <Typography># of train rows: {dataset.numTrainExamples}</Typography>
+                {inputValData ? <Typography># of validation rows: {dataset.numValExamples}</Typography>
                   : <Typography>No validation data</Typography>}
                 {dataset.classes ?
                   <Typography>Classes: {dataset.classes.map((x, i) =>
@@ -157,9 +189,14 @@ export default function DataPage() {
       </div>
 
       <div className='horizontal-box full-width'>
-        <Typography variant='h6'>
-          View data
-        </Typography>
+        <div className='horizontal-box'>
+          <Typography variant='h6'>
+            View data
+          </Typography>
+          <IconButton color="primary" onClick={shuffleData}>
+            <BiShuffle />
+          </IconButton>
+        </div>
         {inputValData ? <ToggleButtonGroup
           value={trainOrVal}
           exclusive
