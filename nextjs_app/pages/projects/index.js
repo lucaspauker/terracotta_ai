@@ -83,7 +83,7 @@ export default function Projects() {
       console.log(res.data);
 
       // After deleting, call project/list again to get all the projects
-      axios.get("/api/project/list").then((res) => {
+      axios.get("/api/project").then((res) => {
           if (res.data !== "No data found") {
             setProjects(res.data);
           }
@@ -112,8 +112,10 @@ export default function Projects() {
       p = localStorage.getItem("project");
       setCurrentProject(localStorage.getItem("project"));
     };
-    axios.get("/api/project/list").then((res) => {
-        setProjects(res.data);
+    axios.get("/api/project").then((res) => {
+        if (res.data !== "No data found") {
+          setProjects(res.data);
+        }
         setLoading(false);
 
         // Check if project exists in the user's projects
@@ -139,8 +141,10 @@ export default function Projects() {
         p = localStorage.getItem("project");
         setCurrentProject(localStorage.getItem("project"));
       };
-      axios.get("/api/project/list").then((res) => {
-          setProjects(res.data);
+      axios.get("/api/project").then((res) => {
+          if (res.data !== "No data found") {
+            setProjects(res.data);
+          }
           setLoading(false);
         }).catch((error) => {
           console.log(error);

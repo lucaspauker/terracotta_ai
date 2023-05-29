@@ -1,9 +1,16 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
 
-const client = new MongoClient(process.env.MONGODB_URI);
+import Project from '../../../schemas/Project';  
+import User from '../../../schemas/User';
+import Model from "../../../schemas/Model";
+import Evaluation from "../../../schemas/Evaluation";
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
+
+
 const { Configuration, OpenAIApi } = require("openai");
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
@@ -34,12 +41,13 @@ export default async function handler(request, response) {
   try {
     const projectName = request.body.projectName;
 
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+    const userId = user._id;
 
     // Configure openai with user API key
     const configuration = new Configuration({
@@ -47,41 +55,32 @@ export default async function handler(request, response) {
     });
     const openai = new OpenAIApi(configuration);
 
-    const userId = user._id;
 
-    const project = await db
-      .collection("projects")
-      .findOne({userId: userId, name: projectName});
+    // Get project ID
+    const project = await Project.findOne({userId: userId, name: projectName});
     if (!project) {
-      response.status(400).json({ error: 'Project not found' });
-      return;
+      throw createError(400,'Project not found');
     }
+
     const projectId = project._id;
 
-    const models = await db
-      .collection("models")
-      .find({userId: userId, projectId: projectId})
-      .toArray();
 
+    let models = await Model.find({userId: userId, projectId: projectId}).populate(
+      {
+        path: 'datasetId',
+        select: 'name',
+      }
+    ).populate(
+      {
+        path: 'templateId',
+        select: 'templateString fields classes'
+      }
+    );
+    
     for (let i=0; i<models.length; i++) {
       let model = models[i];
       if (model.status === "imported") {
         continue;
-      }
-      const dataset = await db
-        .collection("datasets")
-        .findOne({_id: model.datasetId});
-      if (dataset) {
-        models[i]["datasetName"] = dataset.name;
-        models[i]["datasetId"] = dataset._id;
-      }
-
-      const template = await db
-        .collection("templates")
-        .findOne({_id: model.templateId});
-      if (template) {
-        models[i]["templateString"] = template.templateString;
-        models[i]["templateFields"] = template.fields;
       }
 
       if (model.status === "preparing") {
@@ -112,10 +111,10 @@ export default async function handler(request, response) {
           let makeEval = true;
           let metrics = [];
           let metricResults = [];
-          if (!dataset || project.type !== "classification") {
+          if (project.type !== "classification") {
             // Generative tasks, do something here
             makeEval = false;
-          } else if (template.classes.length === 2) {
+          } else if (model.templateId.classes.length === 2) {
             const accuracy = splitData[splitData.length - 6].replace(/\s+/g, '');
             const precision = splitData[splitData.length - 5].replace(/\s+/g, '');
             const recall = splitData[splitData.length - 4].replace(/\s+/g, '');
@@ -141,36 +140,32 @@ export default async function handler(request, response) {
           // Create evaluation with training results
           if (makeEval) {
             console.log("Creating train eval");
-            await db
-              .collection("evaluations")
-              .insertOne({
-                  name: model.name + " training evaluation",
-                  projectId: project._id,
-                  modelId: model._id,
-                  userId: user._id,
-                  metrics: metrics,
-                  metricResults: metricResults,
-                  trainingEvaluation: true,
-                });
+            await Evaluation.create({
+              name: model.name + " training evaluation",
+              projectId: project._id,
+              modelId: model._id,
+              userId: user._id,
+              metrics: metrics,
+              metricResults: metricResults,
+              trainingEvaluation: true,
+            })
           }
 
           models[i]["status"] = "succeeded";
           models[i].providerData.modelId = finetuneResponse.fine_tuned_model;
-          await db
-            .collection("models")
-            .updateOne({"_id" : model._id},
-            {$set: {
-                "status" : "succeeded",
-                "providerData.modelId": finetuneResponse.fine_tuned_model,
-                "providerData.resultsFileName": resultsFileName,
-                "providerData.resultsFileId": finetuneResponse.result_files[0].id
-            }});
+          await Model.findByIdAndUpdate(model._id, {
+            "status" : "succeeded",
+            "providerData.modelId": finetuneResponse.fine_tuned_model,
+            "providerData.resultsFileName": resultsFileName,
+            "providerData.resultsFileId": finetuneResponse.result_files[0].id
+          });
+
         } else if (finetuneResponse.status === "failed") {
           models[i]["status"] = "failed";
-          await db
-            .collection("models")
-            .updateOne({"_id" : model._id},
-            {$set: { "status" : "failed", "providerData.modelId": finetuneResponse.fine_tuned_model}});
+          await Model.findByIdAndUpdate(model._id, {
+            "status" : "failed",
+            "providerData.modelId": finetuneResponse.fine_tuned_model
+          });
           continue;
         } else {
           // Check last event to update status
@@ -195,18 +190,18 @@ export default async function handler(request, response) {
           if (costEvent["message"].startsWith("Fine-tune costs")) {
             const cost = parseFloat(costEvent["message"].split('$')[1]);
             models[i]["cost"] = cost;
-            await db
-              .collection("models")
-              .updateOne({"_id" : model._id},
-              {$set: { "cost" : cost}});
+            await Model.findByIdAndUpdate(model._id, {
+              "cost" : cost
+            });
           }
         }
       }
     }
-
     response.status(200).json(models);
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error listing models');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }

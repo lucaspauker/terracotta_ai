@@ -95,7 +95,7 @@ export default function Navbar() {
     if (localStorage.getItem("project")) {
       setProject(localStorage.getItem("project"));
     };
-    axios.get("/api/project/list").then((res) => {
+    axios.get("/api/project").then((res) => {
       console.log(res.data);
       if (res.data !== "No data found") {
         setAllProjects(res.data);

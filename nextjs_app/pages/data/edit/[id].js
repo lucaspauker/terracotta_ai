@@ -24,6 +24,7 @@ export default function EditDataPage() {
   const [datasetId, setDatasetId] = useState('');
   const [dataset, setDataset] = useState('');
   const [datasetName, setDatasetName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const save = () => {
@@ -33,7 +34,7 @@ export default function EditDataPage() {
       console.log(res.data);
       router.push('/data');
     }).catch((error) => {
-      console.log(error);
+      setErrorMessage(error.response.data.error);
     });
   };
 
@@ -100,6 +101,7 @@ export default function EditDataPage() {
             required
           />
           <div className='medium-space' />
+          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
           <Button size='large' variant="contained" onClick={save}>Save</Button>
         </Paper>
 

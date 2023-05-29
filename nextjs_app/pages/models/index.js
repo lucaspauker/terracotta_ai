@@ -57,8 +57,6 @@ export async function getServerSideProps(context) {
 export default function Models() {
   const [loading, setLoading] = useState(true);
   const [models, setModels] = useState([]);
-  const [selectedFile, setSelectedFile] = useState();
-	const [isFilePicked, setIsFilePicked] = useState(false);
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -72,6 +70,7 @@ export default function Models() {
   };
 
   const handleOpen = (id) => {
+    console.log(id)
     setIdToDelete(id);
   };
 
@@ -226,11 +225,11 @@ export default function Models() {
                     >
                       <TableCell><Link className='link' href={'models/' + model._id}>{model.name}</Link></TableCell>
                       <TableCell>{timestampToDateTimeShort(model.timeCreated)}</TableCell>
-                      <TableCell><Link className='link' href={'data/' + model.datasetId}>{model.datasetName}</Link></TableCell>
+                      <TableCell><Link className='link' href={'data/' + model.datasetId._id}>{model.datasetId.name}</Link></TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>
-                      <TableCell>{"modelId" in model.providerData?
+                      <TableCell>{(model.providerData && "modelId" in model.providerData)?
                                   <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>
                                       {model.providerData.modelId}
                                   </Link>

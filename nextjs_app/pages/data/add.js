@@ -133,11 +133,9 @@ export default function AddDataset() {
         headers: {
           'Content-Type': 'multipart/form-data'
         }}).then((res) => {
-        console.log(res.data);
-        setError();
+        setError("");
         router.push('/data');
       }).catch((err) => {
-        console.log(err);
         setError(err.response.data.error);
       });
   }

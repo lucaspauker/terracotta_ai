@@ -1,8 +1,10 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
+import Evaluation from '../../../schemas/Evaluation';
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -19,10 +21,9 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const evaluation = await db.collection("evaluations")
+    const evaluation = await Evaluation
       .aggregate([
         {
           $match: { _id: new ObjectId(id) }
@@ -87,17 +88,18 @@ export default async function handler(request, response) {
             completionName: "$providerModel.completionName",
           }
         }
-      ]).toArray();
+    ]);
 
     if (!evaluation) {
-      response.status(400).json({error:"Evaluation not found!"});
-      return;
+      throw Error('Evaluation not found')
     }
 
     response.status(200).send(evaluation[0]);
     return;
-  } catch (e) {
-    console.error(e);
-    response.status(400).json({ error: e })
+  } catch (error) {
+    if (!error.status) {
+      error = createError(500, 'Error creating evaluation');
+    }
+    response.status(error.status).json({ error: error.message });
   }
 }
