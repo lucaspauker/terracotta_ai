@@ -66,28 +66,24 @@ export default async function handler(request, response) {
 
     const project = await Project.findOne({userId: user._id, name: projectName});
     if (!project) {
-      response.status(400).json({ error: 'Project not found' });
-      return;
+      throw createError(400,'Project not found');
     }
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
 
     if (prev) {
-      response.status(400).json({error:"Evaluation name already exists, pick a unique name."});
-      return;
+      throw createError(400,'Evaluation name already exists, pick a unique name.');
     }
 
     const dataset = await Dataset.findOne({userId: user._id, name: datasetName});
 
     if (!dataset) {
-      response.status(400).json({ error: 'Dataset not found' });
-      return;
+      throw createError(400,'Dataset not found')
     }
 
     const model = await Model.findOne({userId: user._id, name: modelName});
     if (!model) {
-      response.status(400).json({ error: 'Model not found' });
-      return;
+      throw createError(400,'Model not found');
     }
 
     const newEvaluation = await Evaluation.create({

@@ -1,11 +1,16 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from  "../../../auth/[...nextauth]"
-import { MongoClient } from 'mongodb'
 import AWS from 'aws-sdk'
+
+import User from '@/schemas/User';
+import Project from '@/schemas/Project';
+import Model from "@/schemas/Model";
+
+const createError = require('http-errors');
+const mongoose = require('mongoose');
 
 const path = require('path');
 
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
 const { Configuration, OpenAIApi } = require("openai");
 
 export default async function handler(request, response) {
@@ -27,54 +32,47 @@ export default async function handler(request, response) {
 
       console.log(request.body);
 
-      await mongoClient.connect();
-      const db = mongoClient.db("sharpen");
-      
-      const user = await db
-      .collection("users")
-      .findOne({email: session.user.email});
-      if (!user) {
-        response.status(400).json({ error: 'User not found' });
-        return;
-      }
+      await mongoose.connect(process.env.MONGOOSE_URI);
 
+      const user =  await User.findOne({email: session.user.email});
+      if (!user) {
+        throw createError(400,'User not found');
+      }
       const userId = user._id;
 
-      const project = await db
-        .collection("projects")
-        .findOne({userId: userId, name: projectName});
+      const project = await Project.findOne({userId: user._id, name: projectName});
       if (!project) {
         response.status(400).json({ error: 'Project not found' });
         return;
       }
 
-      const projectId = project._id;
-
       // TODO: Retrieve cost from openai
 
-      const d = await db
-      .collection("models")
-      .insertOne({
-          name: modelName,
-          provider: "openai",
-          modelArchitecture: model.model,
-          status: "imported",
-          datasetId: null,
-          projectId: project._id,
-          userId: userId,
-          cost: null,
-          providerData: {
-            finetuneId: model.id,
-            modelId: model.fine_tuned_model,
-            hyperParams: model.hyperParams
-          },
-          timeCreated: Date.now(),
-        });
+      const d = await Model.create({
+        name: modelName,
+        provider: "openai",
+        modelArchitecture: model.model,
+        status: "imported",
+        datasetId: null,
+        projectId: project._id,
+        userId: userId,
+        cost: null,
+        providerData: {
+          finetuneId: model.id,
+          modelId: model.fine_tuned_model,
+          hyperParams: model.hyperParams
+        }
+      });
 
       response.status(200).send();
   
-    } catch (e) {
-      console.error(e);
-      response.status(400).json({ error: e })
+    } catch (error) {
+      console.log(error);
+      if (error.code === 11000) {
+        error = createError(400, 'Another model with the same name exists in this project');
+      } else if (!error.status) {
+        error = createError(500, 'Error importing model');
+      }
+      response.status(error.status).json({ error: error.message });
     }
   }
