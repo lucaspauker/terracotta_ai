@@ -26,7 +26,7 @@ import { BiDetail, BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { ImWarning } from 'react-icons/im';
 
-import {CustomTooltip} from '../../components/CustomToolTip.js';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import {baseModelNamesDict} from '/components/utils';
 
 const providers = ['openai', 'cohere'];
@@ -496,11 +496,7 @@ export default function Playground() {
             <div className='vertical-box full-width'>
               <div className='horizontal-box'>
                 <Typography>Temperature: {temperature.toFixed(2)}</Typography>
-                <CustomTooltip title="💡 Higher temperature means more random output while lower temperature means more accurate output" className='tooltip'>
-                  <IconButton disableRipple={true}>
-                    <BiInfoCircle size={16} color='#9C2315'/>
-                  </IconButton>
-                </CustomTooltip>
+                {createCustomTooltip("Higher temperature means more random output while lower temperature means more accurate output")}
               </div>
               <div className='horizontal-box full-width'>
                 <Typography sx={{marginRight:2}}>0</Typography>
@@ -520,11 +516,7 @@ export default function Playground() {
 
               <div className='horizontal-box'>
                 <Typography>Max tokens:</Typography>
-                <CustomTooltip title="💡 One word is 2-3 tokens" className='tooltip'>
-                  <IconButton disableRipple={true}>
-                    <BiInfoCircle size={16} color='#9C2315'/>
-                  </IconButton>
-                </CustomTooltip>
+                {createCustomTooltip("One word is 2-3 tokens")}
               </div>
               <TextField
                 className='prompt'

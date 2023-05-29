@@ -25,7 +25,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaCopy } from 'react-icons/fa';
 import { BiCopy } from 'react-icons/bi';
-import {CustomTooltip} from '../../components/CustomToolTip.js';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import { BiInfoCircle } from 'react-icons/bi';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
@@ -195,18 +195,14 @@ const response = await openai.createCompletion({
                   ))}
                 </Select>
               </FormControl>
-              <div>
-              <TextField
-                  label="Input prompt"
-                  variant="outlined"
-                  value={prompt}
-                  onChange={(e) => handlePromptChange(e.target.value)}
-              />
-              <CustomTooltip title="Any additional characters visible in the prompt field in the code block are required for proper model response." className='tooltip'>
-                <IconButton disableRipple={true}>
-                  <BiInfoCircle size={16} color='#9C2315'/>
-                </IconButton>
-              </CustomTooltip>
+              <div className='horizontal-box'>
+                <TextField
+                    label="Input prompt"
+                    variant="outlined"
+                    value={prompt}
+                    onChange={(e) => handlePromptChange(e.target.value)}
+                />
+                {createCustomTooltip("Any additional characters visible in the prompt field in the code block are required for proper model response.")}
               </div>
               <IconButton className='horizontal-box copy' onClick={copyText}>
                 <BiCopy size={20} />

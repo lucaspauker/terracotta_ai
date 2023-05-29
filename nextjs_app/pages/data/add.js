@@ -29,7 +29,6 @@ import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
-import {CustomTooltip} from '../../components/CustomToolTip.js';
 
 const steps = ['Training data', 'Validation data', 'Review'];
 
