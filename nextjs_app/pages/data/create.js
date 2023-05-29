@@ -30,8 +30,6 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaTrash } from 'react-icons/fa';
 
-import styles from '@/styles/Data.module.css'
-
 const steps = ['General information', 'Training data', 'Validation data', 'Review'];
 
 export async function getServerSideProps(context) {

@@ -165,7 +165,7 @@ export default function Models() {
               + Import model
             </Button>
             : loading ?
-            <Button className='button-margin' variant='contained' disabled>
+            <Button className='button-margin' variant='contained' color='secondary'>
               + Import model
             </Button>
             :
@@ -182,7 +182,7 @@ export default function Models() {
               + Finetune model
             </Button>
             : loading ?
-            <Button variant='contained' disabled>
+            <Button variant='contained' color='secondary'>
               + Finetune model
             </Button>
             :

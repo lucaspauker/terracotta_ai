@@ -17,8 +17,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import axios from 'axios';
 
-import styles from '@/styles/Data.module.css'
-
 export default function Settings() {
   const [loading, setLoading] = useState(false);
   const [openAiKey, setOpenAiKey] = useState('');

@@ -97,7 +97,7 @@ const EvaluateSelect = () => {
             href="/evaluate/evaluate-base"
             title="Evaluate base model"
             description="Click here to evaluate the performance of a base model with a custom prompt."
-            disabled={user.openAiKey || user.cohereKey}
+            disabled={!user.openAiKey && !user.cohereKey}
           />
         </Grid>
         <Grid item>

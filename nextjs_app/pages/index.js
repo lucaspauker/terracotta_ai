@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <div className='homepage'>
-      <div className="top-content">
+      <div className="top-content fade-in-animation">
         <div className='header horizontal-box full-width'>
           <Typography className="logo horizontal-box" variant="h1">
             <GiClayBrick style={{marginRight: 10}}/>
