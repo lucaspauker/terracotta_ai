@@ -18,14 +18,11 @@ export default async function handler(request, response) {
   }
 
   const { id } = request.query;
-  console.log(id);
 
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const evals = Evaluation.find({datasetId:id});
-
-    console.log(evals);
+    const evals = await Evaluation.find({datasetId:id});
 
     response.status(200).json(evals);
   } catch (error) {
