@@ -211,7 +211,7 @@ function TemplateCreator({
           <div>
               <Typography sx={{textAlign:'center'}}>Headers: </Typography>
               <div className = "tiny-space" />
-              <div className = "headers-container small-scrollbar" style={{justifyContent:'center', maxHeight:'150px'}}>
+              <div className = "headers-container small-scrollbar" style={{justifyContent:'center', maxHeight:'170px'}}>
                 {headers.map((h, i) =>
                   <Typography className='data-header' key={h}>
                     {h}

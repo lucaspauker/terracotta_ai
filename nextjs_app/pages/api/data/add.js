@@ -60,6 +60,7 @@ export default async function handler(request, response) {
     const projectName = inputData.fields.projectName;
     const autoGenerateVal = inputData.fields.autoGenerateVal === 'true';
     let numValExamples = inputData.fields.numValExamples;
+    const headers = inputData.fields.headers.trim().split(',');
 
     const trainFileName = inputData.fields.trainFileName;
     const initialTrainFileName = inputData.fields.initialTrainFileName;
@@ -160,6 +161,7 @@ export default async function handler(request, response) {
       initialValFileName: initialValFileName,
       numTrainExamples: numTrainExamples,
       numValExamples: numValExamples,
+      headers: headers,
     });
 
     console.log(d);

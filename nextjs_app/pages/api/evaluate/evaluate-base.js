@@ -165,7 +165,7 @@ export default async function handler(request, response) {
     console.log("Retrieved results from OpenAI");
 
     classes = Array.from(classes);
-    
+
     const template = await Template.create({
       templateString: templateString,
       templateData: templateData,

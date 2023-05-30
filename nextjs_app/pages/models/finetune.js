@@ -34,7 +34,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 import { toTitleCase } from '../../components/utils';
-import {CustomTooltip} from '../../components/CustomToolTip.js';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
 export async function getServerSideProps(context) {
@@ -294,33 +294,13 @@ export default function Train() {
                     onChange={(e) => setModelArchitecture(e.target.value)}
                     required
                 >
-                    <MenuItem value={'ada'}>Ada {
-                      <CustomTooltip title="💡 Capable of very simple tasks, usually the fastest model in the GPT-3 series, and lowest cost." className='tooltip'>
-                        <IconButton disableRipple={true}>
-                          <BiInfoCircle size={16} color='#9C2315'/>
-                        </IconButton>
-                      </CustomTooltip>}
+                    <MenuItem value={'ada'}>Ada {createCustomTooltip("Capable of very simple tasks, usually the fastest model in the GPT-3 series, and lowest cost.")}
                     </MenuItem>
-                    <MenuItem value={'babbage'}>Babbage {
-                      <CustomTooltip title="💡 Capable of straightforward tasks, very fast, and lower cost." className='tooltip'>
-                        <IconButton disableRipple={true}>
-                          <BiInfoCircle size={16} color='#9C2315'/>
-                        </IconButton>
-                      </CustomTooltip>}
+                    <MenuItem value={'babbage'}>Babbage {createCustomTooltip("Capable of straightforward tasks, very fast, and lower cost.")}
                     </MenuItem>
-                    <MenuItem value={'curie'}>Curie {
-                      <CustomTooltip title="💡 Very capable, but faster and lower cost than Davinci." className='tooltip'>
-                        <IconButton disableRipple={true}>
-                          <BiInfoCircle size={16} color='#9C2315'/>
-                        </IconButton>
-                      </CustomTooltip>}
+                    <MenuItem value={'curie'}>Curie {createCustomTooltip("Very capable, but faster and lower cost than Davinci.")}
                     </MenuItem>
-                    <MenuItem value={'davinci'}>Davinci {
-                      <CustomTooltip title="💡 Most capable GPT-3 model. Can do any task the other models can do, often with higher quality." className='tooltip'>
-                        <IconButton disableRipple={true}>
-                          <BiInfoCircle size={16} color='#9C2315'/>
-                        </IconButton>
-                      </CustomTooltip>}
+                    <MenuItem value={'davinci'}>Davinci {createCustomTooltip("Most capable GPT-3 model. Can do any task the other models can do, often with higher quality.")}
                     </MenuItem>
                 </Select>
               </FormControl>
@@ -357,11 +337,7 @@ export default function Train() {
                 <Typography variant='h6'>
                   Finetuning Template
                 </Typography>
-                <CustomTooltip title="Open AI recommends adding ### to the end of prompts" className='tooltip'>
-                        <IconButton disableRipple={true}>
-                          <BiInfoCircle size={16} color='#9C2315'/>
-                        </IconButton>
-                </CustomTooltip>
+                {createCustomTooltip("Open AI recommends adding ### to the end of prompts")}
               </Box>
               <div className='small-space' />
               {datasetLoading ?

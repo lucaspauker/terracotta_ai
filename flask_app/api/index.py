@@ -69,7 +69,6 @@ def classification_metrics():
         classes = json_data['classes']
 
         metric_results = {}
-        print(completions, references, classes)
         if len(classes) == 2: # Binary classification
             accuracy = accuracy_score(references, completions)
 
@@ -80,7 +79,9 @@ def classification_metrics():
             f1 = f1_score(references, completions, pos_label=classes[0], zero_division=0)
             metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall, 'precision': precision}
         else: # Multiclass classification
-            pass
+            accuracy = accuracy_score(references, completions)
+            weighted_f1 = f1_score(references, completions, zero_division=0, average='weighted')
+            metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1}
 
         app.logger.info("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})

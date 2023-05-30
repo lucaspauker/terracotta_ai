@@ -14,6 +14,7 @@ const datasetSchema = new Schema({
     required: true
   },
   description: String,
+  headers: [String],
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'users',

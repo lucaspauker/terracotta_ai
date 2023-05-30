@@ -1,6 +1,10 @@
 import React from 'react';
-import { Box, Typography, Grid, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Layers, Psychology } from '@mui/icons-material';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -13,6 +17,8 @@ const EvaluateSelect = () => {
   const router = useRouter();
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState([]);
+  const [hasSucceededModel, setHasSucceededModel] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -20,10 +26,23 @@ const EvaluateSelect = () => {
       setUser(res.data);
       setLoading(false);
     }).catch((error) => console.log(error));
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+    }
+    axios.post("/api/models", {projectName: projectName}).then((res) => {
+      setModels(res.data);
+      for (let i=0; i<res.data.length; i++) {
+        if (res.data[i].status==="succeeded") setHasSucceededModel(true);
+      }
+      console.log(res.data);
+    }).catch((error) => {
+      console.log(error);
+    });
   }, []);
 
 
-  const EvaluationBox = ({ href, title, description, disabled }) => {
+  const EvaluationBox = ({ href, title, description, disabled, baseModel }) => {
     let mainColor;
     if (disabled) {
       mainColor = "grey";
@@ -65,8 +84,12 @@ const EvaluateSelect = () => {
 
     return(
       <>
-        {disabled ?
+        {disabled && baseModel ?
           <CustomTooltip title="💡 Add your OpenAI or Cohere API key to evaluate a base model." className='tooltip'>
+            <span><LinkBox /></span>
+          </CustomTooltip>
+          : disabled ?
+          <CustomTooltip title="💡 Finetune a model to evaluate a finetuned model." className='tooltip'>
             <span><LinkBox /></span>
           </CustomTooltip>
           :
@@ -74,10 +97,6 @@ const EvaluateSelect = () => {
         }
       </>
     );
-  }
-
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
   }
 
   return (
@@ -91,24 +110,28 @@ const EvaluateSelect = () => {
         </div>
       </div>
       <div className='small-space' />
-      <Grid container spacing={2} justifyContent='center'>
-        <Grid item>
-          <EvaluationBox
-            href="/evaluate/evaluate-base"
-            title="Evaluate base model"
-            description="Click here to evaluate the performance of a base model with a custom prompt."
-            disabled={!user.openAiKey && !user.cohereKey}
-          />
+      {loading ? <div className='vertical-box' style={{height:500}}><CircularProgress /></div> :
+        <Grid container spacing={10} justifyContent='center'>
+          <Grid item>
+            <EvaluationBox
+              href="/evaluate/evaluate-base"
+              title="Evaluate base model"
+              description="Click here to evaluate the performance of a base model with a custom prompt."
+              disabled={!user.openAiKey && !user.cohereKey}
+              baseModel={true}
+            />
+          </Grid>
+          <Grid item>
+            <EvaluationBox
+              href="/evaluate/evaluate-finetuned"
+              title="Evaluate finetuned model"
+              description="Click here to evaluate the performance of your finetuned model."
+              disabled={!hasSucceededModel}
+              baseModel={false}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <EvaluationBox
-            href="/evaluate/evaluate-finetuned"
-            title="Evaluate finetuned model"
-            description="Click here to evaluate the performance of your finetuned model."
-            disabled={false}
-          />
-        </Grid>
-      </Grid>
+      }
     </div>
   );
 };
