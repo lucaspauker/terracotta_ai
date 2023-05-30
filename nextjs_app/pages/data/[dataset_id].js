@@ -142,10 +142,6 @@ export default function DataPage() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -161,63 +157,69 @@ export default function DataPage() {
       </div>
       <div className='medium-space' />
 
-      <div>
-        <Typography variant='h6'>
-          Dataset info
-        </Typography>
-        <div className='tiny-space'/>
-        <Paper className='small-card' variant='outlined'>
-          <Typography variant='body1'>
-            Task:&nbsp;{type}
-          </Typography>
-
-          {inputTrainData.length > 0 ?
-            <div>
-              <div>
-                <Typography>Train file name: {displayFilename}</Typography>
-                <Typography># of train rows: {dataset.numTrainExamples}</Typography>
-                {inputValData ? <Typography># of validation rows: {dataset.numValExamples}</Typography>
-                  : <Typography>No validation data</Typography>}
-                {dataset.classes ?
-                  <Typography>Classes: {dataset.classes.map((x, i) =>
-                    (i < dataset.classes.length - 1 ? x + ", " : x))}</Typography>
-                  : null }
-              </div>
-            </div> : null }
-        </Paper>
-        <div className='medium-space' />
-      </div>
-
-      <div className='horizontal-box full-width'>
-        <div className='horizontal-box'>
+    {loading ?
+      <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+      :
+      <>
+        <div>
           <Typography variant='h6'>
-            View data
+            Dataset info
           </Typography>
-          <IconButton color="primary" onClick={shuffleData}>
-            <BiShuffle />
-          </IconButton>
-        </div>
-        {inputValData ? <ToggleButtonGroup
-          value={trainOrVal}
-          exclusive
-          onChange={reloadDataset}
-        >
-          <ToggleButton value="train">
+          <div className='tiny-space'/>
+          <Paper className='small-card' variant='outlined'>
             <Typography variant='body1'>
-              Train
+              Task:&nbsp;{type}
             </Typography>
-          </ToggleButton>
-          <ToggleButton value="val">
-            <Typography variant='body1'>
-              Validation
-            </Typography>
-          </ToggleButton>
-        </ToggleButtonGroup> : null }
-      </div>
-      <div className='tiny-space' />
 
-      <DataTable headers={headers} rawData={rawData} />
-      <div className='medium-space' />
+            {inputTrainData.length > 0 ?
+              <div>
+                <div>
+                  <Typography>Train file name: {displayFilename}</Typography>
+                  <Typography># of train rows: {dataset.numTrainExamples}</Typography>
+                  {inputValData ? <Typography># of validation rows: {dataset.numValExamples}</Typography>
+                    : <Typography>No validation data</Typography>}
+                  {dataset.classes ?
+                    <Typography>Classes: {dataset.classes.map((x, i) =>
+                      (i < dataset.classes.length - 1 ? x + ", " : x))}</Typography>
+                    : null }
+                </div>
+              </div> : null }
+          </Paper>
+          <div className='medium-space' />
+        </div>
+
+        <div className='horizontal-box full-width'>
+          <div className='horizontal-box'>
+            <Typography variant='h6'>
+              View data
+            </Typography>
+            <IconButton color="primary" onClick={shuffleData}>
+              <BiShuffle />
+            </IconButton>
+          </div>
+          {inputValData ? <ToggleButtonGroup
+            value={trainOrVal}
+            exclusive
+            onChange={reloadDataset}
+          >
+            <ToggleButton value="train">
+              <Typography variant='body1'>
+                Train
+              </Typography>
+            </ToggleButton>
+            <ToggleButton value="val">
+              <Typography variant='body1'>
+                Validation
+              </Typography>
+            </ToggleButton>
+          </ToggleButtonGroup> : null }
+        </div>
+        <div className='tiny-space' />
+
+        <DataTable headers={headers} rawData={rawData} />
+        <div className='medium-space' />
+      </>
+    }
 
       <Dialog
         open={open}

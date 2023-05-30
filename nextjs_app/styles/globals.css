@@ -544,7 +544,7 @@ a {
   justify-content: flex-start;
   align-items: center;
   width: 30%;
-  height: 400px;
+  height: 500px;
   gap: 20px;
   text-align: center;
 }
@@ -576,7 +576,7 @@ a {
 .template-layout {
   display:flex;
   flex-direction: row;
-  height: 400px;
+  height: 500px;
 }
 
 .left-message {
@@ -619,4 +619,9 @@ a {
   padding: 36px;
 }
 
+.border-card {
+  border: 1px solid grey;
+  border-radius: 4px;
+  padding: 16px;
+}
 

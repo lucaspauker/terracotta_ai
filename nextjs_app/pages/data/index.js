@@ -36,7 +36,7 @@ import MenuComponent from "components/MenuComponent";
 const addPercentage = (a, b) => {
   a = Number(a); b = Number(b);
   const percentage = (100 * a) / (a + b);
-  return <>{a}&nbsp;&nbsp; <span style={{color:'grey'}}>({percentage.toFixed(1)}%)</span></>;
+  return <>{a}&nbsp;&nbsp; <span style={{color:'grey'}}>({percentage.toFixed(0)}%)</span></>;
 }
 
 export async function getServerSideProps(context) {

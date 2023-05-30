@@ -16,13 +16,24 @@ const myBucket = new AWS.S3({
   region: REGION,
 });
 
+function shuffle(a) {
+  let j, x, i;
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = a[i];
+    a[i] = a[j];
+    a[j] = x;
+  }
+  return a;
+}
+
 function getRandomSubset(list, N) {
   const subset = [];
   const length = list.length;
   const indices = new Set();
 
-  if (N > length) {
-    throw new Error("Subset size exceeds the length of the list.");
+  if (N >= length) {
+    return (shuffle(list));
   }
 
   while (indices.size < N) {

@@ -80,6 +80,7 @@ export default function AddDataset() {
     }
     setSelectedFile(f);
     Papa.parse(f, { complete: function(results) {
+      console.log("Number of rows:", results.data.length);
       setNumTrainExamples(results.data.length);
       setNumValExamples(parseInt(results.data.length / 5));
       console.log(results);
@@ -128,6 +129,7 @@ export default function AddDataset() {
     formData.append('autoGenerateVal', autoGenerateVal);
     formData.append('numValExamples', numValExamples);
     formData.append('numTrainExamples',numTrainExamples);
+    formData.append('headers',headers);
 
     axios.post("/api/data/add", formData, {
         headers: {
@@ -255,19 +257,25 @@ export default function AddDataset() {
                   </Typography>
                 </div>
               </div>
-              {selectedFile ? 
+              {selectedFile ?
                 <>
                   <div className='medium-space' />
-                  <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
-                  <div className='tiny-space' />
-                  <div className='horizontal-box headers-container'>
-                    <Typography>Headers:&nbsp; </Typography>
-                    {headers.map((h, i) =>
-                      <div className='data-header' key={h}>
-                        <Typography>{h}</Typography>
+                  <div className='border-card'>
+                    <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
+                    <div className='small-space' />
+                    <div className='vertical-box' style={{alignItems:'flex-start'}}>
+                      <Typography>Number of rows:&nbsp; {numTrainExamples}</Typography>
+                      <div className='tiny-space' />
+                      <Typography>Headers&nbsp; ({headers.length} found): </Typography>
+                      <div className='headers-container'>
+                        {headers.map((h, i) =>
+                          <div className='data-header' key={h}>
+                            <Typography>{h}</Typography>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div> 
+                    </div>
+                  </div>
                 </> : null
               }
             </>

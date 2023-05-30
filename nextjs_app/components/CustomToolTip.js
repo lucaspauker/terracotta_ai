@@ -11,10 +11,12 @@ export const CustomTooltip = styled(({ className, ...props }) => (
     backgroundColor: 'white',
     color: 'black',
     boxShadow: theme.shadows[4],
-    fontSize: 16,
+    textAlign: 'center',
+    fontSize: 14,
     maxWidth: 200,
-    padding: 16,
+    padding: 12,
     letterSpacing: 0.5,
+    overflowWrap: 'break-word',
   },
 }));
 

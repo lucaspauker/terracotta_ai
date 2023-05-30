@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import Project from '../../../schemas/Project';  
+import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
 import Dataset from '../../../schemas/Dataset';
 

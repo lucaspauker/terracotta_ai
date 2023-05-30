@@ -134,12 +134,13 @@ export default function ModelPage() {
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
     axios.get("/api/models/" + last).then((res) => {
+      res.data = res.data[0];
       setModel(res.data);
-
       setTemplateString(res.data.templateString);
 
       // Get the evaluations associated with the model
       axios.get("/api/evaluate/model/" + last).then((res) => {
+          console.log(res.data);
           if (res.data.trainingCurve) {
             const labels = res.data.trainingCurve.x;
             setGraphData({
@@ -183,17 +184,13 @@ export default function ModelPage() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box cursor-pointer'>
           <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
           <Typography variant='h4' className='page-main-header'>
-            {model.name}
+            {model && model.name}
           </Typography>
         </div>
         <div>
@@ -202,99 +199,105 @@ export default function ModelPage() {
       </div>
       <div className='medium-space' />
 
-      <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
-        <div>
-          <Typography variant='h6'>
-            Model info
-          </Typography>
-          <div className='tiny-space'/>
-          <Paper className='small-card' variant='outlined'>
-            <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
-            <Typography>Architecture: {model.modelArchitecture}</Typography>
-            <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
-            <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></Typography>
-          </Paper>
-        </div>
-        <div>
-          <Typography variant="h6">Template</Typography>
-          <div className='tiny-space' />
-          <TextField
-            multiline
-            InputProps={{ readOnly: true, }}
-            className="white"
-            value={templateString}
-            sx={{width: '400px'}}
-          />
-        </div>
-      </div>
-      <div className='medium-space' />
-
-      {trainEval || graphData ?
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        :
         <>
-        <Typography variant='h6'>
-          Training evaluation
-        </Typography>
-        <div>
-          <div className='tiny-space'/>
-          <Paper className='card vertical-box' variant='outlined'>
-            {graphData && <Line options={options} plugins={plugins} data={graphData} className='chart'/>}
-            {trainEval &&
-              <div className='horizontal-box-grid'>
-                {trainEval.metrics.map(metric => (
-                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
-                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                      {metricFormat(metric)}
-                    </Typography>
-                    <div className='small-space'/>
-                    <Typography variant='h6'>
-                      {metric === 'accuracy' ?
-                        parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
-                        parseFloat(trainEval.metricResults[metric]).toFixed(2)}
-                    </Typography>
-                  </div>
-                ))}
-              </div>
-            }
-          </Paper>
-        </div>
-        <div className='medium-space' />
-        </>
-        : null }
-
-      {evals.length > 0 ?
-        <>
-        <Typography variant='h6'>
-          Evaluations
-        </Typography>
-        {evals.map(e => (
-          e.status === "succeeded" &&
-          <div key={e._id}>
+        <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
+          <div>
+            <Typography variant='h6'>
+              Model info
+            </Typography>
             <div className='tiny-space'/>
-            <Paper className='card' variant='outlined'>
-              <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></Typography>
-              {e.description ? <Typography>Description: {e.description}</Typography> : null }
-              <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
-              <div className='small-space'/>
-              <div className='horizontal-box-grid'>
-                {e.metrics.map(metric => (
-                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
-                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                      {metricFormat(metric)}
-                    </Typography>
-                    <div className='small-space'/>
-                    <Typography variant='h6'>
-                      {metric === 'accuracy' ?
-                        parseFloat(e.metricResults[metric] * 100).toFixed(0) + " %" :
-                        parseFloat(e.metricResults[metric]).toFixed(2)}
-                    </Typography>
-                  </div>
-                ))}
-              </div>
+            <Paper className='small-card' variant='outlined'>
+              <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
+              <Typography>Architecture: {model.modelArchitecture}</Typography>
+              <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
+              <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status && model.status.toLowerCase()}</span></Typography>
             </Paper>
           </div>
-        ))}
+          <div>
+            <Typography variant="h6">Template</Typography>
+            <div className='tiny-space' />
+            <TextField
+              multiline
+              InputProps={{ readOnly: true, }}
+              className="white"
+              value={templateString}
+              sx={{width: '400px'}}
+            />
+          </div>
+        </div>
+        <div className='medium-space' />
+
+        {trainEval || graphData ?
+          <>
+          <Typography variant='h6'>
+            Training evaluation
+          </Typography>
+          <div>
+            <div className='tiny-space'/>
+            <Paper className='card vertical-box' variant='outlined'>
+              {graphData && <Line options={options} plugins={plugins} data={graphData} className='chart'/>}
+              {trainEval &&
+                <div className='horizontal-box-grid'>
+                  {trainEval.metrics.map(metric => (
+                    <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
+                      <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                        {metricFormat(metric)}
+                      </Typography>
+                      <div className='small-space'/>
+                      <Typography variant='h6'>
+                        {metric === 'accuracy' ?
+                          parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
+                          parseFloat(trainEval.metricResults[metric]).toFixed(2)}
+                      </Typography>
+                    </div>
+                  ))}
+                </div>
+              }
+            </Paper>
+          </div>
+          <div className='medium-space' />
+          </>
+          : null }
+
+        {evals.length > 0 ?
+          <>
+          <Typography variant='h6'>
+            Evaluations
+          </Typography>
+          {evals.map(e => (
+            e.status === "succeeded" &&
+            <div key={e._id}>
+              <div className='tiny-space'/>
+              <Paper className='card' variant='outlined'>
+                <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></Typography>
+                {e.description ? <Typography>Description: {e.description}</Typography> : null }
+                <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
+                <div className='small-space'/>
+                <div className='horizontal-box-grid'>
+                  {e.metrics.map(metric => (
+                    <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
+                      <Typography variant='h6' sx={{fontWeight: 'bold'}}>
+                        {metricFormat(metric)}
+                      </Typography>
+                      <div className='small-space'/>
+                      <Typography variant='h6'>
+                        {metric === 'accuracy' ?
+                          parseFloat(e.metricResults[metric] * 100).toFixed(0) + " %" :
+                          parseFloat(e.metricResults[metric]).toFixed(2)}
+                      </Typography>
+                    </div>
+                  ))}
+                </div>
+              </Paper>
+            </div>
+          ))}
+          </>
+          : null }
         </>
-        : null }
+      }
 
       <Dialog
         open={open}

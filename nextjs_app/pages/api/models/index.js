@@ -2,10 +2,12 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
-import Project from '../../../schemas/Project';  
+import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
+import Dataset from "../../../schemas/Dataset";
 import Model from "../../../schemas/Model";
 import Evaluation from "../../../schemas/Evaluation";
+import Template from "../../../schemas/Template";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -76,7 +78,7 @@ export default async function handler(request, response) {
         select: 'templateString fields classes'
       }
     );
-    
+
     for (let i=0; i<models.length; i++) {
       let model = models[i];
       if (model.status === "imported") {
@@ -112,7 +114,7 @@ export default async function handler(request, response) {
           let metrics = [];
           let metricResults = [];
           if (project.type !== "classification") {
-            // Generative tasks, do something here
+            // Do something here
             makeEval = false;
           } else if (model.templateId.classes.length === 2) {
             const accuracy = splitData[splitData.length - 6].replace(/\s+/g, '');
@@ -139,7 +141,6 @@ export default async function handler(request, response) {
 
           // Create evaluation with training results
           if (makeEval) {
-            console.log("Creating train eval");
             await Evaluation.create({
               name: model.name + " training evaluation",
               projectId: project._id,
@@ -148,6 +149,8 @@ export default async function handler(request, response) {
               metrics: metrics,
               metricResults: metricResults,
               trainingEvaluation: true,
+              status: "succeeded",
+              datasetId: model.datasetId._id,
             })
           }
 
@@ -185,7 +188,7 @@ export default async function handler(request, response) {
         }
 
         // Cost update
-        if (!("cost" in models[i]) && events.length > 1) {
+        if ((models[i].cost === undefined || !("cost" in models[i])) && events.length > 1) {
           const costEvent = events[1];
           if (costEvent["message"].startsWith("Fine-tune costs")) {
             const cost = parseFloat(costEvent["message"].split('$')[1]);
@@ -199,6 +202,7 @@ export default async function handler(request, response) {
     }
     response.status(200).json(models);
   } catch (error) {
+    console.log(error);
     if (!error.status) {
       error = createError(500, 'Error listing models');
     }

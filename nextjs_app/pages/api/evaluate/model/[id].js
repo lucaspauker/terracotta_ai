@@ -37,7 +37,7 @@ export default async function handler(request, response) {
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const model = Model.findById(id);
+    const model = await Model.findById(id);
     if (!model) {
       throw Error('Model not found');
     }
@@ -75,7 +75,8 @@ export default async function handler(request, response) {
       ]);
 
     // Get training curve data if it exists
-    if (model.providerData.resultsFileName) {
+    if (model.providerData && model.providerData.resultsFileName) {
+      model.providerData = model.providerData;
       const params = {
         Bucket: S3_BUCKET,
         Key: model.providerData.resultsFileName,
@@ -116,6 +117,7 @@ export default async function handler(request, response) {
       return;
     }
   } catch (error) {
+    console.log(error);
     if (!error.status) {
       error = createError(500, 'Error creating evaluation');
     }
