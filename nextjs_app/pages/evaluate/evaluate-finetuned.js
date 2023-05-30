@@ -24,7 +24,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import {toTitleCase, metricFormat, classificationMetrics, generationMetrics} from '/components/utils';
+import {toTitleCase, metricFormat, classificationMetrics, multiclassClassificationMetrics, generationMetrics} from '/components/utils';
 
 const steps = ['Select dataset and model', 'Select metrics', 'Review evaluation'];
 
@@ -92,7 +92,7 @@ export default function DoEvaluate() {
         name: name,
         description: description,
         projectName: p,
-        modelName: model,
+        modelName: model.name,
         datasetName: dataset,
         metrics: metrics.filter(x => checked[x]),
       }).then((res) => {
@@ -148,7 +148,7 @@ export default function DoEvaluate() {
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
-      setName(model + " Evaluation");
+      setName(model.name + " Evaluation");
     }
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
@@ -246,10 +246,15 @@ export default function DoEvaluate() {
                         className="wide-select"
                         label="Model"
                         value={model}
-                        onChange={(e) => setModel(e.target.value)}
+                        onChange={(e) => {
+                          if (e.target.value.templateId.classes && e.target.value.templateId.classes.length > 2) {
+                            setMetrics(multiclassClassificationMetrics);
+                          }
+                          setModel(e.target.value);
+                        }}
                       >
                         {models.map((m) => (
-                          <MenuItem key={m._id} value={m.name}>{m.name}</MenuItem>
+                          m.status === "succeeded" && <MenuItem key={m._id} value={m}>{m.name}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -322,7 +327,7 @@ export default function DoEvaluate() {
               <div className='medium-space' />
               <Box sx={{textAlign: 'left'}}>
                 <Typography>Dataset: {dataset}</Typography>
-                <Typography>Model: {model}</Typography>
+                <Typography>Model: {model.name}</Typography>
                 <Typography>Metrics: {metrics.map((m, i) =>
                                         (isChecked(m) ? m + ' ' : null)
                                       )}</Typography>

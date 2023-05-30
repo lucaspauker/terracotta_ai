@@ -26,7 +26,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics} from '/components/utils';
+import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics, multiclassClassificationMetrics} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
 const steps = ['Select dataset and model', 'Choose template', 'Select metrics', 'Review evaluation'];
@@ -58,6 +58,7 @@ export default function DoEvaluate() {
   const [description, setDescription] = useState('');
   const [datasets, setDatasets] = useState([]);
   const [dataset, setDataset] = useState('');
+  const [projectType, setProjectType] = useState('');
   const [checked, setChecked] = useState({});
   const [model, setModel] = useState("");
   const [metrics, setMetrics] = useState([]);
@@ -71,6 +72,7 @@ export default function DoEvaluate() {
   const [stopSequence, setStopSequence] = useState('');
   const [visibleRows, setVisibleRows] = useState(null);
   const [headers, setHeaders] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [evalData, setEvalData] = useState({});
@@ -162,14 +164,16 @@ export default function DoEvaluate() {
       projectName = localStorage.getItem("project");
     }
 
-    // Why we doing this?
     axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
         console.log(res);
         if (res.data.type === "classification") {
           setMetrics(classificationMetrics);
-        } else {
+        } else if (res.data.type === "classification") {
           setMetrics(generationMetrics);
+        } else {
+          setMetrics([]);
         }
+        setProjectType(res.data.type);
       }).catch((error) => {
         console.log(error);
       });
@@ -241,6 +245,24 @@ export default function DoEvaluate() {
       });
       const tempTemplateData = {numTrainWords: numWords, numTrainChars: numChars, numValWords: 0, numValChars: 0};
       setTemplateData(tempTemplateData);
+
+      // Find the number of classes in the output column
+      if (projectType === "classification") {
+        setLoading(true);
+        axios.post("/api/data/get-classes", {
+          datasetId: dataset._id,
+          column: outputColumn,
+        }).then((res) => {
+          setClasses(res.data);
+          if (res.data.length > 2) {
+            setMetrics(multiclassClassificationMetrics);
+          }
+          setLoading(false);
+        }).catch((error) => {
+          console.log(error);
+        });
+      }
+
       //estimateCost(tempTemplateData);
     }
 

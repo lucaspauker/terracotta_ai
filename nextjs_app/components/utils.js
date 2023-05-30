@@ -78,5 +78,6 @@ export const baseModelNamesDict = {
 }
 
 export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];
+export const multiclassClassificationMetrics = ['accuracy', 'weighted f1'];
 export const generationMetrics = ['bleu', 'rougel', 'mauve'];
 

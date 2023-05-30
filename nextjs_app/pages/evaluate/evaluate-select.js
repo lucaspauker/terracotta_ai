@@ -99,10 +99,6 @@ const EvaluateSelect = () => {
     );
   }
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className="main">
       <div className='horizontal-box full-width'>
@@ -114,26 +110,28 @@ const EvaluateSelect = () => {
         </div>
       </div>
       <div className='small-space' />
-      <Grid container spacing={2} justifyContent='center'>
-        <Grid item>
-          <EvaluationBox
-            href="/evaluate/evaluate-base"
-            title="Evaluate base model"
-            description="Click here to evaluate the performance of a base model with a custom prompt."
-            disabled={!user.openAiKey && !user.cohereKey}
-            baseModel={true}
-          />
+      {loading ? <div className='vertical-box' style={{height:500}}><CircularProgress /></div> :
+        <Grid container spacing={10} justifyContent='center'>
+          <Grid item>
+            <EvaluationBox
+              href="/evaluate/evaluate-base"
+              title="Evaluate base model"
+              description="Click here to evaluate the performance of a base model with a custom prompt."
+              disabled={!user.openAiKey && !user.cohereKey}
+              baseModel={true}
+            />
+          </Grid>
+          <Grid item>
+            <EvaluationBox
+              href="/evaluate/evaluate-finetuned"
+              title="Evaluate finetuned model"
+              description="Click here to evaluate the performance of your finetuned model."
+              disabled={!hasSucceededModel}
+              baseModel={false}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <EvaluationBox
-            href="/evaluate/evaluate-finetuned"
-            title="Evaluate finetuned model"
-            description="Click here to evaluate the performance of your finetuned model."
-            disabled={!hasSucceededModel}
-            baseModel={false}
-          />
-        </Grid>
-      </Grid>
+      }
     </div>
   );
 };
