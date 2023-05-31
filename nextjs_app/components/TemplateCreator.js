@@ -56,8 +56,9 @@ function TemplateCreator({
       p = localStorage.getItem("project");
     };
     axios.post("/api/models", {projectName: p}).then((res) => {
+      console.log(dataset._id)
       console.log(res.data);
-      const filteredModels = res.data.filter( (model) => model.datasetId === dataset._id);
+      const filteredModels = res.data.filter( (model) => model.datasetId?._id === dataset._id);
       console.log(filteredModels);
       setModels(filteredModels);
     }).catch((error) => {
@@ -170,7 +171,7 @@ function TemplateCreator({
                 value={templateModel}
                 onChange={(e) => {
                   setTemplateModel(e.target.value);
-                  handleTemplateChange(e.target.value.templateString)
+                  handleTemplateChange(e.target.value.templateId.templateString)
                 }}
               >
                 {models.map((d, i) => (
