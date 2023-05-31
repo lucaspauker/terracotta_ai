@@ -22,6 +22,7 @@ import Grow from '@mui/material/Grow';
 import Modal from '@mui/material/Modal';
 import Backdrop from '@mui/material/Backdrop';
 import axios from 'axios';
+
 import { BiDetail, BiCopy, BiInfoCircle } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { ImWarning } from 'react-icons/im';
@@ -54,6 +55,7 @@ export default function Playground() {
   const [popupTextTitle, setPopupTextTitle] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState({});
+  const [showFinetuned, setShowFinetuned] = useState(false);
 
   const handleTemplateButtonClick = (text, title) => {
     setIsOpen(true);
@@ -65,6 +67,30 @@ export default function Playground() {
     setIsOpen(false);
     setPopupText('');
     setPopupTextTitle('');
+  };
+
+  const handleRandomExample = () => {
+    for (let i=0; i<finetunedModels.length; i++) {
+      let mFinetuned = finetunedModels[i];
+      if (checked[mFinetuned._id]) {
+        axios.get("/api/data/" + mFinetuned.datasetId._id).then((res) => {
+          const dataset = res.data;
+          axios.post("/api/data/file", {
+            fileName: dataset.valFileName,
+            maxLines: 1,
+            shuffle: true,
+            shuffleMaxLines: 50,
+          }).then((res) => {
+            setFinetuneData(res.data[0]);
+          }).catch((error) => {
+            console.log(error);
+          });
+        }).catch((error) => {
+          console.log(error);
+        });
+        break;
+      }
+    }
   };
 
   const storeOutput = (id, text) => {
@@ -149,6 +175,7 @@ export default function Playground() {
     localStorage.setItem("finetunedModelsFields", JSON.stringify([]));
     localStorage.setItem("stripWhitespace", JSON.stringify(true));
     localStorage.setItem("prompt", JSON.stringify(''));
+    localStorage.setItem("showFinetuned", JSON.stringify(false));
     setOutput({});
     setChecked(initialModelState);
     setLoadingDict(initialModelState);
@@ -159,6 +186,7 @@ export default function Playground() {
     setBaseModelsChecked(0);
     setFinetuneData({});
     setFinetunedModelsFields([]);
+    setShowFinetuned(false);
   }
 
   const copyText = (t) => {
@@ -194,9 +222,13 @@ export default function Playground() {
         const updatedFields = [...new Set([...finetunedModelsFields, ...m.templateId.fields])];
         setFinetunedModelsFields(updatedFields);
         localStorage.setItem("finetunedModelsFields", JSON.stringify(updatedFields));
+        setShowFinetuned(true);
+        localStorage.setItem("showFinetuned", true);
       } else {
         localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked + 1));
         setBaseModelsChecked(baseModelsChecked + 1);
+        setShowFinetuned(false);
+        localStorage.setItem("showFinetuned", false);
       }
     } else {  // Will become unchecked
       if (baseOrFinetuned === "finetuned") {
@@ -211,9 +243,17 @@ export default function Playground() {
         const updatedFields = [...new Set(array)];
         setFinetunedModelsFields(updatedFields);
         localStorage.setItem("finetunedModelsFields", JSON.stringify(updatedFields));
+        if (updatedFields.length === 0) {
+          setShowFinetuned(false);
+          localStorage.setItem("showFinetuned", false);
+        }
       } else {
         localStorage.setItem("baseModelsChecked", JSON.stringify(baseModelsChecked - 1));
         setBaseModelsChecked(baseModelsChecked - 1);
+        if (baseModelsChecked - 1 === 0) {
+          setShowFinetuned(true);
+          localStorage.setItem("showFinetuned", true);
+        }
       }
     }
     toggleCheckedById(id);
@@ -296,7 +336,8 @@ export default function Playground() {
     if (finetuneDataLocal !== null) setFinetuneData(finetuneDataLocal);
     const finetunedModelsFieldsLocal = JSON.parse(localStorage.getItem("finetunedModelsFields"));
     if (finetunedModelsFieldsLocal !== null) setFinetunedModelsFields(finetunedModelsFieldsLocal);
-    console.log(finetunedModelsFieldsLocal);
+    const showFinetunedLocal = JSON.parse(localStorage.getItem("showFinetuned"));
+    if (showFinetunedLocal !== null) setShowFinetuned(showFinetunedLocal);
   }, []);
 
   if (loading) {
@@ -323,10 +364,52 @@ export default function Playground() {
 
       <div className='leftright'>
         <div className='left'>
-          {baseModelsChecked ?
-            <>
+          <div className='horizontal-box full-width'>
+            {!baseModelsChecked && !finetunedModelsFields.length ?
+              null
+            : baseModelsChecked && finetunedModelsFields.length ?
+              <Button onClick={() => setShowFinetuned(!showFinetuned)} size='small' variant='contained'>{showFinetuned ? "Edit base prompt" : "Edit finetuned prompt"}</Button>
+              :
+              <Button size='small' variant='contained' disabled>{showFinetuned ? "Edit base prompt" : "Edit finetuned prompt"}</Button>
+            }
+          {baseModelsChecked || finetunedModelsFields.length ?
+            <div>
+              <Button size='small' color='secondary' variant='contained' onClick={clear}>Reset</Button>
+              <Button size='small' className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
+            </div>
+            : null
+          }
+          </div>
+          <div className='tiny-space'/>
+            {showFinetuned ?
+              finetunedModelsFields.length > 0 &&
+              <Paper className='card' variant='outlined'>
+                <div className='horizontal-box space-between'>
+                  <Typography variant="h6">Finetuned prompt variables</Typography>
+                  <Button size='small' variant='outlined' onClick={handleRandomExample}>Random example from dataset</Button>
+                </div>
+                <div className='tiny-space' />
+                {finetunedModelsFields.map((f) => (
+                  <div key={f}>
+                    <div className='tiny-space' />
+                    <div className="horizontal-box space-between">
+                      <Typography>{f}:&nbsp;&nbsp;</Typography>
+                      <TextField
+                        size='small'
+                        sx={{width: '80%'}}
+                        className='white'
+                        label=""
+                        value={finetuneData[f] || ''}
+                        onChange={e => handleFieldChange(f, e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </Paper>
+            : baseModelsChecked ?
+            <Paper className='card' variant='outlined'>
               <Typography variant='h6'>
-                Base model prompt
+                Base prompt
               </Typography>
               <div className='tiny-space' />
               <TextField
@@ -340,47 +423,21 @@ export default function Playground() {
                   localStorage.setItem("prompt", JSON.stringify(e.target.value));
                 }}
               />
-              <div className='small-space' />
-            </> : null}
-          {finetunedModelsFields.length > 0 &&
-            <>
-            <Typography variant="h6">Finetuned prompt inputs</Typography>
-            </>}
-          {finetunedModelsFields.map((f) => (
-            <div key={f}>
-              <div className='tiny-space' />
-              <div className="horizontal-box flex-start">
-                <Typography>{f}:&nbsp;&nbsp;</Typography>
-                <TextField
-                  size='small'
-                  sx={{width: '100%'}}
-                  className='white'
-                  label=""
-                  value={finetuneData[f] || ''}
-                  onChange={e => handleFieldChange(f, e.target.value)}
-                />
-              </div>
-            </div>
-          ))}
+            </Paper>
+            : null
+          }
 
-          {baseModelsChecked || finetunedModelsFields.length ?
-            <>
-              <div className='small-space' />
-              <div className='horizontal-box full-width flex-start'>
-                <Button color='secondary' variant='contained' onClick={clear}>Reset</Button>
-                <Button className='button-margin' variant='contained' color="success" onClick={submit}>Submit</Button>
-              </div>
-              <div className='tiny-space' />
-            </>
-            :
+          {!baseModelsChecked && !finetunedModelsFields.length ?
             <Box className='vertical-box' sx={{height: 500}}>
               <Typography sx={{color:'grey',marginTop:4}} className="horizontal-box">
                 <ImWarning size={20}/>&nbsp;&nbsp; Check a model on the right to get started.
               </Typography>
             </Box>
+            : null
           }
 
           <div className='model-output'>
+            <div className='small-space'/>
             {baseModelsList.map((m, i) => (
               checked[m.completionName] ?
                 <div key={m._id} className="output-box">

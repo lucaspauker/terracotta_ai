@@ -46,6 +46,7 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.8.0",
     "react-select": "^5.7.2",
+    "react-transition-group": "^4.4.5",
     "stream-array": "^1.1.2",
     "tmp": "^0.2.1"
   },

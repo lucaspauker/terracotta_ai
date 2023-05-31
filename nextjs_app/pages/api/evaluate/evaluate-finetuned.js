@@ -99,6 +99,7 @@ export default async function handler(request, response) {
       status: "evaluating",
     })
     newEvaluationId = newEvaluation._id;
+    console.log(newEvaluation);
 
     response.status(200).send();
     didReturn = true;

@@ -1,5 +1,6 @@
 @import 'homepage/index.css';
 @import 'auth/index.css';
+@import 'playground/index.css';
 
 html {
   background-color: #f6f6f4;
@@ -308,8 +309,15 @@ a {
   transition: outline 0.1s;
 }
 
+.evaluation-card {
+  transition: outline 0.1s;
+}
+
 .active-project-card {
-  outline: 5px solid green;
+  outline: 2px solid green;
+}
+.active {
+  outline: 2px solid green;
 }
 
 .card-container {
@@ -418,6 +426,10 @@ a {
 }
 
 .white {
+  background-color: white;
+}
+
+.MuiFilledInput-root {
   background-color: white;
 }
 
@@ -533,6 +545,10 @@ a {
   animation: fade-in 0.5s ease-in;
 }
 
+.fade-in-animation-fast {
+  animation: fade-in 0.5s ease-in;
+}
+
 .template-box {
   width: calc(70% - 20px);
   margin-right: 20px;
@@ -623,5 +639,9 @@ a {
   border: 1px solid grey;
   border-radius: 4px;
   padding: 16px;
+}
+
+.space-between {
+  justify-content: space-between;
 }
 

@@ -65,7 +65,7 @@ export default async function handler(request, response) {
           },
         },
         {
-          $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
+          $unwind: { path: "$dataset", preserveNullAndEmptyArrays: false }
         },
         {
           $unwind: { path: "$model", preserveNullAndEmptyArrays: true }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'
 import axios from 'axios';
-import { CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
+import { Button, CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
 import { FaArrowLeft } from 'react-icons/fa';
 import BarGraph from 'components/BarGraph';
 import {toTitleCase, metricFormat} from 'components/utils';
@@ -9,9 +9,22 @@ import {toTitleCase, metricFormat} from 'components/utils';
 export default function EvaluationDatasetPage() {
   const [loading, setLoading] = useState(false);
   const [evals, setEvals] = useState(null);
+  const [selected, setSelected] = useState({});
+  const [allSelected, setAllSelected] = useState({});
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const router = useRouter();
+
+  const clear = () => {
+    setSelected({});
+  }
+
+  const handleEvaluationCardClick = (id) => {
+    setSelected(selected => {
+      const updated = { ...selected, [id]: !selected[id] };
+      return updated;
+    });
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -20,7 +33,12 @@ export default function EvaluationDatasetPage() {
     axios
       .get("/api/evaluate/by-dataset/" + last)
       .then((res) => {
+        console.log(res.data);
         setEvals(res.data);
+        let newAllSelected = {};
+        res.data.map((e) => {newAllSelected[e._id] = true;});
+        setAllSelected(newAllSelected);
+        setSelected(newAllSelected);
         setLoading(false);
       })
       .catch((error) => {
@@ -28,18 +46,6 @@ export default function EvaluationDatasetPage() {
         setLoading(false);
       });
   }, []);
-
-  if (loading) {
-    return (
-      <div className='main vertical-box'>
-        <CircularProgress />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
 
   return (
     <div className='main'>
@@ -52,19 +58,30 @@ export default function EvaluationDatasetPage() {
         </div>
       </div>
       <div className='medium-space' />
-      {evals && evals.length > 0 ? (
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        : evals && evals.length > 0 ? (
         <div>
-          <Typography variant='h6'>Evaluations:</Typography>
+          <div className='horizontal-box full-width'>
+            <Typography variant='h6'>Evaluations:</Typography>
+            <div>
+              <Button onClick={clear} variant='outlined' size='small'>Select none</Button>
+              <Button onClick={() => setSelected(allSelected)} variant='outlined' size='small' className='button-margin'>Select all</Button>
+            </div>
+          </div>
           <div className='tiny-space'/>
           <Grid container spacing={2}>
             {evals.map((evaluation) => (
               evaluation.status === "succeeded" &&
               <Grid item key={evaluation._id} xs={12} sm={6} md={4} lg={3}>
-                <Card className='evaluation-card'>
+                <Card
+                    className={selected[evaluation._id] ? 'evaluation-card cursor-pointer active' : 'evaluation-card cursor-pointer'}
+                    onClick={() => handleEvaluationCardClick(evaluation._id)}
+                >
                   <CardContent>
                     <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
                     {evaluation.metrics.map((e) => (
-                      <Typography key={e}>{metricFormat(e)}: {evaluation.metricResults[e].toFixed(2)}</Typography>
+                      <Typography key={e}>{metricFormat(e)}: {Number(evaluation.metricResults[e]).toFixed(2)}</Typography>
                     ))}
                   </CardContent>
                 </Card>
@@ -74,7 +91,7 @@ export default function EvaluationDatasetPage() {
           <div className='medium-space'/>
           <Typography variant='h6'>Graphs:</Typography>
           <div className='tiny-space'/>
-          <BarGraph evaluations={evals} />
+          <BarGraph evaluations={evals} selected={selected} />
         </div>
       ) : (
         <Typography>No evaluations available.</Typography>

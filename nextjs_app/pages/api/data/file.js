@@ -64,7 +64,9 @@ export default async function handler(request, response) {
   try {
     const fileName = request.body.fileName;
     const maxLines = request.body.maxLines || 1000;  // Only read 1000 lines ever
-    const shuffle = request.body.shuffle || false;
+    const shuffle = request.body.shuffle || false;  // Shuffle will return maxLines number of inputs
+    const shuffleMaxLines = request.body.shuffleMaxLines || 50;  // How many lines will be read before shuffling.
+                                                                 // This should be bigger than maxLines
 
     const params = {
       Bucket: S3_BUCKET,
@@ -82,7 +84,7 @@ export default async function handler(request, response) {
       stream
         .pipe(csvParser)
         .on('data', (line) => {
-          if (!shuffle && maxLines && lines.length >= maxLines) {
+          if ((!shuffle && maxLines && lines.length >= maxLines) || (shuffle && lines.length >= shuffleMaxLines)) {
             // Stop reading after reaching the specified maxLines
             stream.destroy();
             resolve(lines);
