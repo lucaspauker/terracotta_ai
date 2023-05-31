@@ -9,7 +9,7 @@ import Project from '../../../../schemas/Project';
 import Dataset from '../../../../schemas/Dataset';
 import Model from '../../../../schemas/Model';
 import Evaluation from '../../../../schemas/Evaluation';
-import USer from '../../../../schemas/User';
+import User from '../../../../schemas/User';
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {

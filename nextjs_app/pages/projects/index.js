@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
@@ -35,6 +36,21 @@ import {FaTrash} from "react-icons/fa";
 
 import MenuComponent from "components/MenuComponent";
 
+const CountComponent = ({ type, count }) => {
+  return (
+    <Box className='vertical-box' sx={{width: 75,
+        backgroundColor: type==='dataset' ? '#FFA58F' : type==='model' ? '#F5E6D1' : '#AFC4D9',
+        borderRadius:4, padding: 0.5}}>
+      <Typography sx={{ fontSize: 18, fontWeight: 'bold' }}>
+        {count}
+      </Typography>
+      <Typography sx={{ fontSize: 12 }}>
+        {count === 1 ? type: type + 's'}
+      </Typography>
+    </Box>
+  );
+};
+
 export async function getServerSideProps(context) {
   const session = await getSession(context)
 
@@ -61,6 +77,7 @@ export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [projectIdToDelete, setProjectIdToDelete] = useState([]);
   const [open, setOpen] = useState(false);
+  const [countData, setCountData] = useState({});
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -106,26 +123,40 @@ export default function Projects() {
     window.dispatchEvent(new Event("storage"));
   }
 
-  useEffect(() => {
+  const reload = () => {
     let p = currentProject;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");
       setCurrentProject(localStorage.getItem("project"));
     };
     axios.get("/api/project").then((res) => {
-        if (res.data !== "No data found") {
-          setProjects(res.data);
-        }
+        setProjects(res.data);
         setLoading(false);
 
         // Check if project exists in the user's projects
         let projectMatch = false;
+
+        // Get the counts for each project
+        let newCountData = {}
+        let promises = []
+
         for (let i=0; i < res.data.length; i++) {
+          const promise = axios.get("/api/project/get-counts/" + res.data[i]._id).then(res2 => {
+            newCountData[res.data[i]._id] = res2.data;
+          }).catch(e => console.log(e));
+          promises.push(promise);
+
           if (res.data[i].name === p) {
             console.log(p);
             projectMatch = true;
           }
         }
+
+      Promise.all(promises).then(() => {
+          setCountData(newCountData);
+        }).catch(error => {
+          console.log("Error:", error);
+        });
 
         if (!projectMatch && res.data.length > 0) {
           localStorage.setItem("project", res.data[0].name);
@@ -135,20 +166,12 @@ export default function Projects() {
       }).catch((error) => {
         console.log(error);
       });
+  }
+
+  useEffect(() => {
+    reload();
     window.addEventListener("storage", () => {
-      let p = currentProject;
-      if (localStorage.getItem("project")) {
-        p = localStorage.getItem("project");
-        setCurrentProject(localStorage.getItem("project"));
-      };
-      axios.get("/api/project").then((res) => {
-          if (res.data !== "No data found") {
-            setProjects(res.data);
-          }
-          setLoading(false);
-        }).catch((error) => {
-          console.log(error);
-        });
+      reload();
     });
   }, []);
 
@@ -180,18 +203,27 @@ export default function Projects() {
                     <MenuComponent editFunction={() => handleEdit(project._id)} deleteFunction={() => handleClickOpen(project._id)} />
                   </div>
                   <div className="tiny-space"/>
-                  <Typography>
+                  <Typography color="grey" >
                     Created {timestampToDateTime(project.timeCreated)}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography sx={{fontWeight:'bold'}}>
                     {toTitleCase(project.type)}
                   </Typography>
                 </CardContent>
+                <div className='tiny-space'/>
+                {countData[project._id] ?
+                  <div className='horizontal-box' style={{justifyContent:'space-around'}}>
+                    <CountComponent type='dataset' count={countData[project._id].datasetCount} />
+                    <CountComponent type='model' count={countData[project._id].modelCount} />
+                    <CountComponent type='evaluation' count={countData[project._id].evaluationCount} />
+                  </div>
+                :
+                <div className='horizontal-box'><CircularProgress/></div>}
+                <div className='small-space'/>
                 <CardActions className='vertical-box'>
                   <Button onClick={() => handleProjectChange(project.name)} disabled={project.name===currentProject}>Switch to this project</Button>
                   <div className='tiny-space'/>
                 </CardActions>
-                <div className='small-space'/>
               </Card>
             ))}
           </div>

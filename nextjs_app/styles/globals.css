@@ -304,7 +304,7 @@ a {
 }
 
 .project-card {
-  min-width: 250px;
+  min-width: 300px;
   margin-bottom: 20px;
   transition: outline 0.1s;
 }
@@ -322,7 +322,7 @@ a {
 
 .card-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 250px);
+  grid-template-columns: repeat(auto-fill, 300px);
   grid-gap: 1rem;
   justify-content: space-around;
 }
