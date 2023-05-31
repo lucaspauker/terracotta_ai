@@ -39,3 +39,4 @@ nextjs_app/jsonl_data
 *__pycache__
 
 flask_app/.venv
+flask_app/venv
