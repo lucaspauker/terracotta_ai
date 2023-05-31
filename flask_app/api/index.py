@@ -1,6 +1,6 @@
 import nltk
 import numpy as np
-import mauve
+# import mauve
 import logging
 import json
 
@@ -50,9 +50,9 @@ def nlp_metrics(test=False):
             rouge_score = np.mean(rouge_scores)
             metric_results['rougel'] = rouge_score
 
-        if 'mauve' in metrics:
-            mauve_score = mauve.compute_mauve(p_text=completions, q_text=reference, verbose=False).mauve
-            metric_results['mauve'] = mauve_score
+        #if 'mauve' in metrics:
+        #    mauve_score = mauve.compute_mauve(p_text=completions, q_text=reference, verbose=False).mauve
+        #    metric_results['mauve'] = mauve_score
 
         app.logger.info("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
