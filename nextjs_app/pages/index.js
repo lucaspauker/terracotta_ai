@@ -20,7 +20,7 @@ export default function Home() {
         email: email,
       }).then((res) => {
         setEmailSuccess(true);
-        setTimeout(function() { setEmailSuccess(false); }, 5000);
+        setTimeout(function() { setEmailSuccess(false); }, 2000);
         console.log(res.data);
       }).catch((err) => {
         setEmailSuccess(false);

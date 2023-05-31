@@ -1,11 +1,12 @@
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../auth/[...nextauth]"
+import { authOptions } from "../../auth/[...nextauth]"
 
-import Project from '../../../schemas/Project';
-import User from '../../../schemas/User';
+import User from '@/schemas/User';
+import Model from '@/schemas/Model';
+import Dataset from '@/schemas/Dataset';
+import Evaluation from '@/schemas/Evaluation';
 
 const createError = require('http-errors');
-
 const mongoose = require('mongoose');
 
 export default async function handler(request, response) {
@@ -19,21 +20,22 @@ export default async function handler(request, response) {
     return;
   }
 
+  const { id } = request.query;
+
   try {
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
     const user =  await User.findOne({email: session.user.email});
     if (!user) {
-      throw createError(400,'User not found');
+      throw createError(400, 'User not found');
     }
 
-    const projects = await Project.find({userId: user._id});
-    if (!projects) {
-      throw createError(400,'Projects not found');
-    }
+    const modelCount = await Model.count({projectId: id});
+    const datasetCount = await Dataset.count({projectId: id});
+    const evaluationCount = await Evaluation.count({projectId: id});
 
-    response.status(200).json(projects);
+    response.status(200).json({modelCount: modelCount, datasetCount: datasetCount, evaluationCount: evaluationCount});
   } catch (error) {
     if (!error.status) {
       error = createError(500, 'Error creating project');

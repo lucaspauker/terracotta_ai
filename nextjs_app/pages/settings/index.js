@@ -15,7 +15,41 @@ import Paper from '@mui/material/Paper';
 import { DataGrid } from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { BsCheckLg } from 'react-icons/bs';
 import axios from 'axios';
+
+const InputApiBox = ({provider, apiKey, setKey, showPassword, setShowPassword,
+    updateApiKeys, saveChecked}) => (
+  <div className='horizontal-box'>
+    <TextField
+      label={provider === 'openai' ? "OpenAI API key" : "Cohere API key"}
+      variant="outlined"
+      className='text-label center'
+      value={showPassword ? apiKey : apiKey.substr(0, 24)}
+      onChange={(e) => setKey(e.target.value)}
+      type={showPassword ? "text" : "password"}
+      InputProps={{
+        endAdornment: (
+          <IconButton
+            aria-label="toggle password visibility"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+          </IconButton>
+        )
+      }}
+    />
+    {saveChecked ?
+      <Button onClick={() => updateApiKeys("cohere")} variant='contained' sx={{marginLeft: 1, width: 60}}>
+        <BsCheckLg size={24}/>
+      </Button>
+      :
+      <Button onClick={() => updateApiKeys(provider)} variant='contained' sx={{marginLeft: 1, width: 60}}>
+        Save
+      </Button>
+    }
+  </div>
+);
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
@@ -23,14 +57,20 @@ export default function Settings() {
   const [cohereKey, setCohereKey] = useState('');
   const [showOpenAiPassword, setShowOpenAiPassword] = useState(false);
   const [showCoherePassword, setShowCoherePassword] = useState(false);
+  const [saveOpenAiChecked, setSaveOpenAiChecked] = useState(false);
+  const [saveCohereChecked, setSaveCohereChecked] = useState(false);
 
   const updateApiKeys = (provider) => {
     let body = {};
     if (provider === "openai") {
       console.log("Updating OpenAI API key");
+      setSaveOpenAiChecked(true);
+      setTimeout(function() { setSaveOpenAiChecked(false); }, 2000);
       body = {apiKey: openAiKey, update: "openai"};
     } else if (provider === "cohere") {
       console.log("Updating Cohere API key");
+      setSaveCohereChecked(true);
+      setTimeout(function() { setSaveCohereChecked(false); }, 2000);
       body = {apiKey: cohereKey, update: "cohere"};
     } else {
       console.log("Provider not found, API keys not updated");
@@ -70,49 +110,28 @@ export default function Settings() {
           <Paper className='card vertical-box' variant='outlined'>
             <Typography variant='h6'>API Keys</Typography>
             <div className='small-space'/>
-            <div className='horizontal-box'>
-              <TextField
-                label="OpenAI API key"
-                variant="outlined"
-                className='text-label center'
-                value={showOpenAiPassword ? openAiKey : openAiKey.substr(0, 24)}
-                onChange={(e) => setOpenAiKey(e.target.value)}
-                type={showOpenAiPassword ? "text" : "password"}
-                InputProps={{
-                  endAdornment: (
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowOpenAiPassword(!showOpenAiPassword)}
-                    >
-                      {showOpenAiPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                    </IconButton>
-                  )
-                }}
-              />
-              <Button onClick={() => updateApiKeys("openai")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
-            </div>
             <div className='small-space'/>
-            <div className='horizontal-box'>
-              <TextField
-                label="Cohere API key"
-                variant="outlined"
-                className='text-label center'
-                value={showCoherePassword ? cohereKey: cohereKey.substr(0, 24)}
-                onChange={(e) => setCohereKey(e.target.value)}
-                type={showCoherePassword ? "text" : "password"}
-                InputProps={{
-                  endAdornment: (
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowCoherePassword(!showCoherePassword)}
-                    >
-                      {showCoherePassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                    </IconButton>
-                  )
-                }}
-              />
-              <Button onClick={() => updateApiKeys("cohere")} variant='contained' sx={{marginLeft: 1}}>Save</Button>
-            </div>
+            <InputApiBox
+              provider="openai"
+              apiKey={openAiKey}
+              setKey={setOpenAiKey}
+              showPassword={showOpenAiPassword}
+              setShowPassword={setShowOpenAiPassword}
+              updateApiKeys={updateApiKeys}
+              setChecked={saveOpenAiChecked}
+              saveChecked={saveOpenAiChecked}
+            />
+            <div className='small-space'/>
+            <InputApiBox
+              provider="cohere"
+              apiKey={cohereKey}
+              setKey={setCohereKey}
+              showPassword={showCoherePassword}
+              setShowPassword={setShowCoherePassword}
+              updateApiKeys={updateApiKeys}
+              saveChecked={saveCohereChecked}
+            />
+            <div className='small-space'/>
           </Paper>
         </div>
       }
