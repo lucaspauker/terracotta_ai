@@ -125,7 +125,7 @@ export default function Navbar() {
         <Divider />
         <div className='tiny-space' />
         <div className='horizontal-box'>
-          <FormControl variant="filled">
+          <FormControl variant="filled" size='small'>
             <InputLabel id="project-label">Project</InputLabel>
             <Select
               labelId="project-label"

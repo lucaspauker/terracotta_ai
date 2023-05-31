@@ -1,37 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import {toTitleCase, metricFormat} from 'components/utils';
+import { toTitleCase, metricFormat } from 'components/utils';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
 
-const BarGraph = ({ evaluations }) => {
+const BarGraph = ({ evaluations, selected }) => {
   const labels = evaluations.map((evaluation) => evaluation.name);
   const allMetrics = evaluations.reduce((metrics, evaluation) => {
     return metrics.concat(evaluation.metrics || []);
   }, []);
-
   const uniqueMetrics = [...new Set(allMetrics)];
-
+  const [selectedMetrics, setSelectedMetrics] = useState(uniqueMetrics);
   const colors = ['#6fbdf0', '#339665', '#ed6548', '#853973'];
 
-  const graphComponents = uniqueMetrics.map((metric, index) => {
+  const handleMetricChange = (metric) => {
+    if (selectedMetrics.includes(metric)) {
+      setSelectedMetrics(selectedMetrics.filter((m) => m !== metric));
+    } else {
+      setSelectedMetrics([...selectedMetrics, metric]);
+    }
+  };
+
+  const checkboxes = uniqueMetrics.map((metric) => (
+    <FormControlLabel
+      key={metric}
+      control={
+        <Checkbox
+          checked={selectedMetrics.includes(metric)}
+          onChange={() => handleMetricChange(metric)}
+        />
+      }
+      label={metricFormat(metric)}
+    />
+  ));
+
+  const graphComponents = selectedMetrics.map((metric, index) => {
     const color = colors[index % colors.length];
     const dataset = {
       label: metric,
       backgroundColor: color,
       borderColor: color,
       borderWidth: 1,
-      data: evaluations.filter(e => e.metricResults?.[metric] >= 0).map((evaluation) => {
-        const metricResult = evaluation.metricResults?.[metric];
-        return metricResult !== undefined ? metricResult.toFixed(2) : null;
-      }),
+      data: evaluations
+        .filter(
+          (e) =>
+            selected[e._id] &&
+            e.metricResults?.[metric] >= 0 &&
+            selectedMetrics.includes(metric)
+        )
+        .map((evaluation) => {
+          const metricResult = evaluation.metricResults?.[metric];
+          return metricResult !== undefined ? Number(metricResult).toFixed(2) : null;
+        }),
     };
 
     const data = {
-      labels: evaluations.filter((evaluation) => evaluation.metricResults?.[metric] >= 0).map((e) => e.name),
+      labels: evaluations
+        .filter(
+          (evaluation) =>
+            selected[evaluation._id] &&
+            evaluation.metricResults?.[metric] >= 0 &&
+            selectedMetrics.includes(metric)
+        )
+        .map((e) => e.name),
       datasets: [dataset],
     };
 
@@ -55,13 +92,23 @@ const BarGraph = ({ evaluations }) => {
     return (
       <div key={metric}>
         <Typography>{metricFormat(metric)}</Typography>
-        <Bar data={data} options={options} height={data.labels.length * 16} />
+        <Bar data={data} options={options} height={evaluations.length * 16} />
       </div>
     );
   });
 
-  // Render the graph components
-  return <>{graphComponents}</>;
+  // Render the checkboxes and graphs in separate sections
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={3}>
+        {checkboxes}
+      </Grid>
+      <Grid item xs={12} sm={9}>
+        {graphComponents}
+      </Grid>
+    </Grid>
+  );
 };
 
 export default BarGraph;
+

@@ -86,6 +86,7 @@ def classification_metrics():
         app.logger.info("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
     except Exception as e:
+        print(e);
         app.logger.error(e)
         return jsonify({"error": str(e)})
 

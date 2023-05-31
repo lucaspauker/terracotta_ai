@@ -14,8 +14,8 @@ export const CustomTooltip = styled(({ className, ...props }) => (
     textAlign: 'center',
     fontSize: 14,
     maxWidth: 200,
-    padding: 12,
-    letterSpacing: 0.5,
+    padding: 8,
+    letterSpacing: 0.4,
     overflowWrap: 'break-word',
   },
 }));

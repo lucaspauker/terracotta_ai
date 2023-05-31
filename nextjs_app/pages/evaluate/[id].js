@@ -53,14 +53,11 @@ export default function ModelPage() {
     axios.get("/api/evaluate/" + last).then((res) => {
       setEvaluation(res.data);
       setLoading(false);
+      console.log(res.data);
     }).catch((error) => {
       console.log(error);
     });
   }, []);
-
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
 
   return (
     <div className='main'>
@@ -77,55 +74,63 @@ export default function ModelPage() {
       </div>
       <div className='medium-space' />
 
-      <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
-        <div>
-          <Typography variant='h6'>
-            Evaluation info
-          </Typography>
-          <div className='tiny-space'/>
-          <Paper className='small-card' variant='outlined'>
-            <Typography>
-              Model: {evaluation.modelId ?
-                  <Link className='link' href={'/models/' + evaluation.modelId}>{evaluation.modelName}</Link>
-                  :
-                  baseModelNamesDict[evaluation.completionName]
-              }
+    {loading ?
+      <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+      :
+      <>
+        <div className="horizontal-box full-width" style={{alignItems: 'flex-start'}}>
+          <div>
+            <Typography variant='h6'>
+              Evaluation info
             </Typography>
-            <Typography>Evaluation dataset: <Link className='link' href={'/data/' + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
-          </Paper>
-        </div>
-        <div>
-          <Typography variant="h6">Template</Typography>
-          <div className='tiny-space' />
-          <TextField
-            multiline
-            InputProps={{ readOnly: true, }}
-            className="white"
-            value={evaluation.templateString}
-            sx={{width: '400px'}}
-          />
-        </div>
-      </div>
-      <div className='medium-space' />
-
-      <div>
-          <div className='tiny-space'/>
-          <Paper className='card vertical-box' variant='outlined'>
-            <div className='horizontal-box-grid'>
-              {evaluation.metrics.map(metric => (
-                <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
-                  <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
-                  <div className='small-space'/>
-                  <Typography variant='h6'>
-                    {metric === 'accuracy' ?
-                      parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
-                      parseFloat(evaluation.metricResults[metric]).toFixed(2)}
-                  </Typography>
-                </div>
-              ))}
+            <div className='tiny-space'/>
+            <Paper className='small-card' variant='outlined'>
+              <Typography>
+                Model: {evaluation.modelId ?
+                    <Link className='link' href={'/models/' + evaluation.modelId}>{evaluation.modelName}</Link>
+                    :
+                    baseModelNamesDict[evaluation.completionName]
+                }
+              </Typography>
+              <Typography>Evaluation dataset: <Link className='link' href={'/data/' + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
+            </Paper>
+          </div>
+          {evaluation.templateString &&
+            <div>
+              <Typography variant="h6">Template</Typography>
+              <div className='tiny-space' />
+              <TextField
+                multiline
+                InputProps={{ readOnly: true, }}
+                className="white"
+                value={evaluation.templateString}
+                sx={{width: '400px'}}
+              />
             </div>
-          </Paper>
-    </div>
+          }
+        </div>
+        <div className='medium-space' />
+
+        <div>
+            <div className='tiny-space'/>
+            <Paper className='card vertical-box' variant='outlined'>
+              <div className='horizontal-box-grid'>
+                {evaluation.metrics.map(metric => (
+                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
+                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
+                    <div className='small-space'/>
+                    <Typography variant='h6'>
+                      {metric === 'accuracy' ?
+                        parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
+                        parseFloat(evaluation.metricResults[metric]).toFixed(2)}
+                    </Typography>
+                  </div>
+                ))}
+              </div>
+            </Paper>
+      </div>
+      </>
+      }
 
       <Dialog
         open={open}
