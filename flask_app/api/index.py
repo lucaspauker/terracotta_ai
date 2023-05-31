@@ -9,11 +9,6 @@ from rouge_score import rouge_scorer
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
-if __name__ != '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
-
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
@@ -54,10 +49,10 @@ def nlp_metrics(test=False):
         #    mauve_score = mauve.compute_mauve(p_text=completions, q_text=reference, verbose=False).mauve
         #    metric_results['mauve'] = mauve_score
 
-        app.logger.info("Found metrics: " + json.dumps(metric_results))
+        print("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
     except Exception as e:
-        app.logger.error(e)
+        print(e)
         return jsonify({"error": str(e)})
 
 @app.route('/evaluate_classification', methods=["POST"])
@@ -83,11 +78,10 @@ def classification_metrics():
             weighted_f1 = f1_score(references, completions, zero_division=0, average='weighted')
             metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1}
 
-        app.logger.info("Found metrics: " + json.dumps(metric_results))
+        print("Found metrics: " + json.dumps(metric_results))
         return jsonify({"metric_results": metric_results})
     except Exception as e:
-        print(e);
-        app.logger.error(e)
+        print(e)
         return jsonify({"error": str(e)})
 
 
