@@ -66,7 +66,7 @@ const MenuComponent = ({ editFunction, deleteFunction }) => {
             sx={{ color: 'black' }}
           >
             <EditIcon sx={{ color: 'grey', marginRight: '8px' }} />
-            Edit
+            Rename
           </MenuItem>
         )}
         {deleteFunction && (

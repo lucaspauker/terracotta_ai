@@ -452,7 +452,7 @@ export default function Playground() {
                           <BiCopy size={20} />
                         </IconButton>
                       </Tooltip>
-                      <IconButton className='copy' onClick={() => toggleCheckedById(m.completionName)}>
+                      <IconButton className='copy' onClick={(event) => handlePaperClick(event, m, "base")}>
                         <AiOutlineCloseCircle size={20} />
                       </IconButton>
                     </div>
@@ -495,7 +495,7 @@ export default function Playground() {
                           <BiCopy size={20} />
                         </IconButton>
                       </Tooltip>
-                      <IconButton className='copy' onClick={() => toggleCheckedById(m._id)}>
+                      <IconButton className='copy' onClick={(event) => handlePaperClick(event, m, "finetuned")}>
                         <AiOutlineCloseCircle size={20} />
                       </IconButton>
                     </div>
@@ -652,7 +652,7 @@ export default function Playground() {
                 </Typography>
               </Link>
             : baseModels[provider] ?
-              baseModels[provider].map((m) => (
+              baseModels[provider].sort((a, b) => (a.completionName > b.completionName) ? 1 : -1).map((m) => (
                 <Paper
                   variant='outlined'
                   className='card horizontal-box model-select-box'
@@ -660,9 +660,14 @@ export default function Playground() {
                   key={m._id}
                 >
                   <Checkbox checked={isCheckedById(m.completionName)} />
-                  <Typography>
-                    {baseModelNamesDict[m.completionName]}
-                  </Typography>
+                  <div style={{textAlign:'left'}}>
+                    <Typography>
+                      {baseModelNamesDict[m.completionName]}
+                    </Typography>
+                    <Typography>
+                      <span style={{color: 'grey', fontSize:12}}>{'\n' + m.completionName}</span>
+                    </Typography>
+                  </div>
                 </Paper>
               ))
             : null

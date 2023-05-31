@@ -26,10 +26,15 @@ export default async function handler(request, response) {
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+
     const m = await Model
       .aggregate([
         {
-          $match: { _id: new ObjectId(id) }
+          $match: { _id: new ObjectId(id), userId: user._id }
         },
         {
           $lookup: {
@@ -73,14 +78,14 @@ export default async function handler(request, response) {
     ]);
     console.log(m);
 
-    if (!m) {
+    if (!m || m.length === 0) {
       throw createError(400,'Model not found')
     }
 
-    response.status(200).json(m);
+    response.status(200).json(m[0]);
     return;
   } catch (e) {
-    console.error(e);
+    console.log(e);
     response.status(400).json({ error: e })
   }
 }

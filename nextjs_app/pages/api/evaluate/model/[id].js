@@ -5,6 +5,7 @@ const ObjectId = require('mongodb').ObjectId;
 
 import Evaluation from '../../../../schemas/Evaluation';
 import Model from '../../../../schemas/Model';
+import User from '../../../../schemas/User';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -37,16 +38,21 @@ export default async function handler(request, response) {
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const model = await Model.findById(id);
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+
+    const model = await Model.findOne({_id: id, userId: user._id});
     if (!model) {
-      throw Error('Model not found');
+      throw createError(400, 'Model not found');
     }
 
     // Get evaluations
     const evals = await Evaluation
       .aggregate([
         {
-          $match: { modelId: new ObjectId(id) }
+          $match: { modelId: new ObjectId(id), userId: user._id }
         },
         {
           $lookup: {

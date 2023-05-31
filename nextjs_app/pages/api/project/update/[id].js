@@ -22,7 +22,15 @@ export default async function handler(request, response) {
     await mongoose.connect(process.env.MONGOOSE_URI);
     const name = request.body.name;
 
-    const project = await Project.findByIdAndUpdate(id, {name: name});
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+
+    const project = await Project.updateOne({_id: id, userId: user._id}, {name: name});
+    if (!project) {
+      throw createError(400,'Project not found');
+    }
 
     response.status(200).send(project);
     return;

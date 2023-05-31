@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
+
 import Model from "../../../../schemas/Model";
+import User from "../../../../schemas/User";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -22,7 +24,12 @@ export default async function handler(request, response) {
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    await Model.findByIdAndDelete(id);
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+
+    await Model.deleteOne({_id: id, userId: user._id});
 
     response.status(200).send();
   } catch (error) {

@@ -1,8 +1,11 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import { MongoClient } from 'mongodb';
+
 const ObjectId = require('mongodb').ObjectId;
-const client = new MongoClient(process.env.MONGODB_URI);
+const mongoose = require('mongoose');
+
+import User from '../../../schemas/User';
+import Project from '../../../schemas/Project';
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -18,13 +21,14 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
-    await client.connect();
-    const db = client.db("sharpen");
+    await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const project = await db
-      .collection("projects")
-      .findOne({_id: new ObjectId(id)});
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
 
+    const project = await Project.findOne({_id: id, userId: user._id});
     if (!project) {
       response.status(400).json({error:"Project not found!"});
       return;
