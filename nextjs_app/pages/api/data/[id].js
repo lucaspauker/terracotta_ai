@@ -22,17 +22,25 @@ export default async function handler(request, response) {
   const { id } = request.query;
 
   try {
-
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    const d = await Dataset.findById(id);
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
 
+    const d = await Dataset.findById(id);
     if (!d) {
-      throw createError(400,'Dataset not found')
+      throw createError(400, 'Dataset not found')
+    }
+
+    if (String(d.userId) !== String(user._id)) {
+      throw createError(401, "Not authorized");
     }
 
     response.status(200).json(d);
   } catch (error) {
+    console.log(error);
     if (!error.status) {
       error = createError(500, 'Error creating dataset');
     }

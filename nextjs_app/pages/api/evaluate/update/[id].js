@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
+
 import Evaluation from '../../../../schemas/Evaluation';
+import User from '../../../../schemas/User';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -21,15 +23,14 @@ export default async function handler(request, response) {
 
   try {
     const name = request.body.name;
-
-    console.log(name);
-
     await mongoose.connect(process.env.MONGOOSE_URI);
 
-    console.log("connected");
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
 
-    const e = await Evaluation.findByIdAndUpdate(id,{name:name},{new:true});
-
+    const e = await Evaluation.updateOne({_id: id, userId: user._id},{name:name},{new:true});
     console.log(e);
 
     if (!e) {

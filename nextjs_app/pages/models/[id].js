@@ -134,7 +134,6 @@ export default function ModelPage() {
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
     axios.get("/api/models/" + last).then((res) => {
-      res.data = res.data[0];
       setModel(res.data);
       setTemplateString(res.data.templateString);
 

@@ -66,10 +66,6 @@ export default function EditModelPage() {
     });
   }, []);
 
-  if (loading) {
-    return <div className='main vertical-box'><CircularProgress /></div>
-  }
-
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -85,45 +81,49 @@ export default function EditModelPage() {
       </div>
       <div className='medium-space' />
 
-      <div className="main-content">
-        <Paper className='card vertical-box' variant='outlined'>
-          <Typography variant='h6'>
-            Edit model info
-          </Typography>
-          <div className='medium-space' />
-          <TextField
-            label="Model name"
-            variant="outlined"
-            className='text-label center'
-            value={modelName}
-            onChange={(e) => setModelName(e.target.value)}
-            required
-          />
-          <div className='medium-space' />
-          {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
-          <Button size='large' variant="contained" onClick={save}>Save</Button>
-        </Paper>
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        :
+        <div className="main-content">
+          <Paper className='card vertical-box' variant='outlined'>
+            <Typography variant='h6'>
+              Edit model info
+            </Typography>
+            <div className='medium-space' />
+            <TextField
+              label="Model name"
+              variant="outlined"
+              className='text-label center'
+              value={modelName}
+              onChange={(e) => setModelName(e.target.value)}
+              required
+            />
+            <div className='medium-space' />
+            {errorMessage ? <Typography variant='body2' color='red'>Error: {errorMessage}</Typography> : null}
+            <Button size='large' variant="contained" onClick={save}>Save</Button>
+          </Paper>
 
-        <Dialog
-          open={open}
-          onClose={handleClose}
-        >
-          <DialogTitle id="alert-dialog-title">
-            {"Delete model?"}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              This action is permanent and cannot be reversed.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={doDelete} autoFocus>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
+          <Dialog
+            open={open}
+            onClose={handleClose}
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Delete model?"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                This action is permanent and cannot be reversed.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={doDelete} autoFocus>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </div>
+      }
     </div>
   )
 }

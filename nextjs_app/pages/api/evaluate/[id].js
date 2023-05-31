@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
+
 import Evaluation from '../../../schemas/Evaluation';
+import User from '../../../schemas/User';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -23,10 +25,15 @@ export default async function handler(request, response) {
   try {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
+    const user =  await User.findOne({email: session.user.email});
+    if (!user) {
+      throw createError(400,'User not found');
+    }
+
     const evaluation = await Evaluation
       .aggregate([
         {
-          $match: { _id: new ObjectId(id) }
+          $match: { _id: new ObjectId(id), userId: user._id }
         },
         {
           $lookup: {
@@ -90,8 +97,8 @@ export default async function handler(request, response) {
         }
     ]);
 
-    if (!evaluation) {
-      throw Error('Evaluation not found')
+    if (evaluation.length === 0) {
+      throw createError(400, 'Evaluation not found')
     }
 
     response.status(200).send(evaluation[0]);
