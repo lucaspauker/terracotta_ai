@@ -72,7 +72,8 @@ const evaluationSchema = new Schema({
   timeCreated: {
     type: Date,
     default: Date.now
-  }
+  },
+  cost: Number,
 });
 
 export default models.evaluations || model('evaluations', evaluationSchema);

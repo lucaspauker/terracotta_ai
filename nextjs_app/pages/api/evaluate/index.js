@@ -88,6 +88,7 @@ export default async function handler(request, response) {
             trainingEvaluation: "$trainingEvaluation",
             timeCreated: "$timeCreated",
             status: "$status",
+            cost: "$cost",
           }
         }
       ]).toArray();

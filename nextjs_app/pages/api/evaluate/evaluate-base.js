@@ -189,9 +189,12 @@ export default async function handler(request, response) {
       fields: matchesStrings,
     })
 
+    let totalTokens = 0;
     results.map((completion) => {
       completions.push(completion.data.choices[0].text.trim());
+      totalTokens += completion.data.usage.total_tokens;
     });
+    const cost = totalTokens * providerModel.completionCost / 1000;
 
     let metricResults = {}
     if (project.type === "classification") {
@@ -249,6 +252,7 @@ export default async function handler(request, response) {
       metricResults: metricResults,
       status: "succeeded",
       templateId: template._id,
+      cost: cost,
     })
 
   } catch (error) {

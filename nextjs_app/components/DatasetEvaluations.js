@@ -24,7 +24,7 @@ import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 
 import MenuComponent from "components/MenuComponent";
-import { calculateColor, timestampToDateTimeShort, metricFormat, baseModelNamesDict } from '/components/utils';
+import { getPriceString, calculateColor, timestampToDateTimeShort, metricFormat, baseModelNamesDict } from '/components/utils';
 import { FaArrowRight } from 'react-icons/fa';
 import { BiInfoCircle } from 'react-icons/bi';
 import {CustomTooltip} from 'components/CustomToolTip.js';
@@ -122,6 +122,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                         <TableCell className='table-cell'>Date created</TableCell>
                         <TableCell className='table-cell'>Model name</TableCell>
                         <TableCell className='table-cell'>Dataset name</TableCell>
+                        <TableCell className='table-cell'>Cost</TableCell>
                         <TableCell className='table-cell'>Metrics</TableCell>
                         <TableCell className='table-cell'></TableCell>
                       </TableRow>
@@ -158,6 +159,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                             }
                           </TableCell>
                           <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
+                          <TableCell>{"cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
                           <TableCell>
                             {e.metricResults ?
                               <div className='metrics-cell'>

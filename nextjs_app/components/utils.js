@@ -50,7 +50,7 @@ export const formatTextForTypography = (text) => {
 export const getPriceString = (price) => {
   if (price === null) {
     return "unavailable";
-  } else if (price === 0) {
+  } else if (price < 0.01) {
     return "<$0.01";
   } else {
     return "$" + price.toFixed(2);

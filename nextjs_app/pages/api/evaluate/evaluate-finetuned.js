@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
+
 import {templateTransform} from '../../../utils/template';
+import {finetunedModelCosts} from '../../../utils/evaluate';
 
 import User from '../../../schemas/User';
 import Project from '../../../schemas/Project';
@@ -140,9 +142,12 @@ export default async function handler(request, response) {
     const results = await Promise.all(requests);
     console.log("Retrieved results from OpenAI");
 
+    let totalTokens = 0;
     results.map((completion) => {
       completions.push(completion.data.choices[0].text.trim());
+      totalTokens += completion.data.usage.total_tokens;
     });
+    const cost = totalTokens * finetunedModelCosts[model.modelArchitecture].inference / 1000;
 
     let metricResults = {}
     if (project.type === "classification") {
@@ -198,6 +203,7 @@ export default async function handler(request, response) {
     await Evaluation.findByIdAndUpdate(newEvaluationId, {
       metricResults: metricResults,
       status: "succeeded",
+      cost: cost,
     })
 
   } catch (error) {
