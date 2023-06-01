@@ -27,7 +27,8 @@ export default async function handler(request, response) {
 
       const providerModel = await ProviderModel.findOne({provider: provider, finetuneName: modelArchitecture});
 
-      const estimatedCost = (templateData.numTrainWords + templateData.numValWords)*4/3*epochs/1000*providerModel.trainingCost;
+      // Training cost
+      let estimatedCost = (templateData.numTrainTokens / 1000) * epochs * providerModel.trainingCost;
 
       response.status(200).json({"estimatedCost":estimatedCost.toFixed(2)});
 

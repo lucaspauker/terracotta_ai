@@ -33,7 +33,7 @@ import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
-import { toTitleCase } from '../../components/utils';
+import { toTitleCase, getPriceString } from '../../components/utils';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
@@ -193,21 +193,38 @@ export default function Train() {
       });
     }
     if (activeStep === 2) {
-      let numTrainWords = 0;
-      let numTrainChars = 0;
-      let numValWords = 0;
-      let numValChars = 0;
-      trainData.forEach((row) => {
-        numTrainWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
-        numTrainChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
+      let numTrainTokens = 0;
+      let numValTokens = 0;
+      axios.post("/api/models/finetune/num-tokens", {
+        data: trainData,
+        template: templateString,
+        outputColumn: outputColumn,
+        stopSequence: stopSequence,
+        totalDataPoints: dataset.numTrainExamples,
+      }).then((res) => {
+        numTrainTokens = res.data.numTokens;
+        axios.post("/api/models/finetune/num-tokens", {
+          data: valData,
+          template: templateString,
+          outputColumn: outputColumn,
+          stopSequence: stopSequence,
+          totalDataPoints: dataset.numValExamples,
+        }).then((res) => {
+          numValTokens = res.data.numTokens;
+
+          const tempTemplateData = {
+            numTrainTokens: numTrainTokens,
+            numValTokens: numValTokens,
+          };
+          setTemplateData(tempTemplateData);
+          estimateCost(tempTemplateData);
+
+        }).catch((error) => {
+          console.log(error);
+        });
+      }).catch((error) => {
+        console.log(error);
       });
-      valData.forEach((row) => {
-        numValWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
-        numValChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
-      });
-      const tempTemplateData = {numTrainWords: numTrainWords, numTrainChars: numTrainChars, numValWords: numValWords, numValChars: numValChars};
-      setTemplateData(tempTemplateData);
-      estimateCost(tempTemplateData);
     }
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -444,7 +461,7 @@ export default function Train() {
                 <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
                 <Typography>Architecture: {modelArchitecture}</Typography>
                 <Typography>Dataset: {dataset.name}</Typography>
-                <Typography>Estimated cost: $ {estimatedCost}</Typography>
+                <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
               </Box>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

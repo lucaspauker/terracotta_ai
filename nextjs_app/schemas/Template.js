@@ -1,10 +1,8 @@
 import { Schema, model, models} from 'mongoose';
 
 const templateDataSchema = new Schema({
-  numTrainWords: Number,
-  numValWords: Number,
-  numTrainChars: Number,
-  numValChars: Number
+  numTrainTokens: Number,
+  numValTokens: Number,
 })
 
 const templateSchema = new Schema({
