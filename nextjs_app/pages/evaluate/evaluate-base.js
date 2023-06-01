@@ -168,7 +168,7 @@ export default function DoEvaluate() {
         console.log(res);
         if (res.data.type === "classification") {
           setMetrics(classificationMetrics);
-        } else if (res.data.type === "classification") {
+        } else if (res.data.type === "generative") {
           setMetrics(generationMetrics);
         } else {
           setMetrics([]);

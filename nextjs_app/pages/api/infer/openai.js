@@ -29,7 +29,6 @@ export default async function handler(request, response) {
   }
 
   try {
-    
     await mongoose.connect(process.env.MONGOOSE_URI);
 
     // Get user in order to keep track of history
@@ -48,14 +47,26 @@ export default async function handler(request, response) {
     let temperature = Number(hyperParams.temperature);
 
     if (completionName) {  // Stock OpenAI model
-      const completion = await openai.createCompletion({
-        model: completionName,
-        prompt: prompt,
-        max_tokens: max_tokens,
-        temperature: temperature,
-      });
-      response.status(200).json(completion.data.choices[0].text);
-      return;
+      let completion;
+      if (completionName === 'gpt-3.5-turbo') {
+        completion = await openai.createChatCompletion({
+          model: completionName,
+          messages: [{role: 'user', content: prompt}],
+          max_tokens: max_tokens,
+          temperature: temperature,
+        });
+        response.status(200).json(completion.data.choices[0].message.content);
+        return;
+      } else {
+        completion = await openai.createCompletion({
+          model: completionName,
+          prompt: prompt,
+          max_tokens: max_tokens,
+          temperature: temperature,
+        });
+        response.status(200).json(completion.data.choices[0].text);
+        return;
+      }
     } else {  // Finetuned model
 
       const template = await Template.findById(model.templateId._id);
@@ -76,6 +87,7 @@ export default async function handler(request, response) {
       return;
     }
   } catch (error) {
+    console.log(error);
     if (!error.status) {
       error = createError(500, 'Error retrieving completion');
     }

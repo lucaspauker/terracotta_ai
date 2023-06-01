@@ -149,14 +149,27 @@ export default async function handler(request, response) {
 
     let requests = [];
     let references = [];
+    console.log(json_output.length);
     for (let i=0; i<json_output.length; i++) {
-      const r = openai.createCompletion({
-        model: completionName,
-        prompt: templateTransform(templateString, json_output[i]),
-        max_tokens: project.type === "classification" ? 10 : 100,
-        temperature: 0,
-        stop: stopSequence,
-      });
+      let r;
+      if (completionName === 'gpt-3.5-turbo') {
+        r = await openai.createChatCompletion({
+          model: completionName,
+          messages: [{role: 'user', content: templateTransform(templateString, json_output[i])}],
+          max_tokens: 100,
+          temperature: 0,
+          stop: stopSequence,
+        });
+      } else {
+        r = await openai.createCompletion({
+          model: completionName,
+          prompt: templateTransform(templateString, json_output[i]),
+          max_tokens: project.type === "classification" ? 10 : 100,
+          temperature: 0,
+          stop: stopSequence,
+        });
+      }
+
       requests.push(r);
       references.push(json_output[i][outputColumn]);
     }

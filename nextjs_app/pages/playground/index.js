@@ -94,8 +94,11 @@ export default function Playground() {
   };
 
   const storeOutput = (id, text) => {
-    setOutput({...output, [id]: text});
-    setLoadingDict(loadingDict => ({...loadingDict, [id]: false}));
+    setOutput((prevOutput) => {
+      const newOutput = { ...prevOutput, [id]: text };
+      setLoadingDict((prevLoadingDict) => ({ ...prevLoadingDict, [id]: false }));
+      return newOutput;
+    });
   }
 
   const submit = () => {
@@ -118,8 +121,8 @@ export default function Playground() {
         x[m._id] = true;
       }
     }
-
     setLoadingDict(x);
+
     for (let i=0; i<baseModelsList.length; i++) {
       let m = baseModelsList[i];
       if (checked[m.completionName]) {
