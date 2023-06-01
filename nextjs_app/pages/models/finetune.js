@@ -165,7 +165,7 @@ export default function Train() {
   // Functions for the stepper
   const handleNext = () => {
     if (activeStep === 0) {
-      setModelName(toTitleCase(modelArchitecture) + "_" + dataset.name);
+      setModelName(provider + '-' + modelArchitecture + "_" + dataset.name.replace(/ /g, "-"));
       axios.post("/api/data/file", {
         fileName: dataset.trainFileName,
         maxLines: 50,

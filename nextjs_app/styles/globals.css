@@ -311,6 +311,8 @@ a {
 
 .evaluation-card {
   transition: outline 0.1s;
+  max-height: 200px;
+  overflow: auto;
 }
 
 .active-project-card {
@@ -643,5 +645,25 @@ a {
 
 .space-between {
   justify-content: space-between;
+}
+
+.horizontal-scroll-box::-webkit-scrollbar {
+  width: 0px;
+  height: 12px;
+}
+
+.horizontal-scroll-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.horizontal-scroll-box::-webkit-scrollbar-thumb {
+  background: lightgrey;
+  border-radius: 3px; /* Add border radius */
+}
+.horizontal-scroll-box {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  padding: 4px;
 }
 

@@ -148,7 +148,7 @@ export default function DoEvaluate() {
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
-      setName(model.name + " Evaluation");
+      setName(model.name.replace(/ /g, "-") + ' on ' + dataset.replace(/ /g, "-"));
     }
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());

@@ -76,7 +76,6 @@ export default function DoEvaluate() {
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [evalData, setEvalData] = useState({});
-  const [provider, setProvider] = useState('');
   const [templateData, setTemplateData] = useState({});
 
   const templateTransform = (row) => {
@@ -236,7 +235,7 @@ export default function DoEvaluate() {
     }
 
     if (activeStep === 1) {
-      setName(baseModelNamesDict[model] + " Evaluation");
+      setName(baseModelNamesDict[model].replace(/ /g, "-") + " on " + dataset.name.replace(/ /g, "-"));
       let numWords = 0;
       let numChars = 0;
       evalData.forEach((row) => {

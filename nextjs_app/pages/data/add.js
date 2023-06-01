@@ -158,6 +158,9 @@ export default function AddDataset() {
   };
 
   const handleNext = () => {
+    if (activeStep === 1) {
+      setName(selectedFile.name.substring(0, selectedFile.name.length - 4));
+    }
     let newSkipped = skipped;
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());

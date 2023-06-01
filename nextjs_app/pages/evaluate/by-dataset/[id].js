@@ -70,13 +70,14 @@ export default function EvaluationDatasetPage() {
             </div>
           </div>
           <div className='tiny-space'/>
-          <Grid container spacing={2}>
+          <div className='horizontal-scroll-box small-scrollbar'>
             {evals.map((evaluation) => (
               evaluation.status === "succeeded" &&
-              <Grid item key={evaluation._id} xs={12} sm={6} md={4} lg={3}>
+              <div key={evaluation._id}>
                 <Card
-                    className={selected[evaluation._id] ? 'evaluation-card cursor-pointer active' : 'evaluation-card cursor-pointer'}
-                    onClick={() => handleEvaluationCardClick(evaluation._id)}
+                  className={selected[evaluation._id] ? 'evaluation-card cursor-pointer active' : 'evaluation-card cursor-pointer'}
+                  onClick={() => handleEvaluationCardClick(evaluation._id)}
+                  style={{width: 250, marginRight: 10, marginTop: 4, marginLeft: 4}}
                 >
                   <CardContent>
                     <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
@@ -85,11 +86,11 @@ export default function EvaluationDatasetPage() {
                     ))}
                   </CardContent>
                 </Card>
-              </Grid>
+              </div>
             ))}
-          </Grid>
+          </div>
           <div className='medium-space'/>
-          <Typography variant='h6'>Graphs:</Typography>
+          <Typography variant='h6'>Metrics:</Typography>
           <div className='tiny-space'/>
           <BarGraph evaluations={evals} selected={selected} />
         </div>
