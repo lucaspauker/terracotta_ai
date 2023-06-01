@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import {templateTransform} from '../../../utils/template';
 
-import Project from '../../../schemas/Project';  
 import User from '../../../schemas/User';
 import Template from '../../../schemas/Template';
 
@@ -20,7 +19,6 @@ export default async function handler(request, response) {
   const prompt = request.body.prompt;
   const model = request.body.model;
   let completionName = request.body.completionName;
-  let projectName = request.body.projectName;
   let hyperParams = request.body.hyperParams;
   let finetuneInputData = request.body.finetuneInputData;
 
@@ -60,12 +58,7 @@ export default async function handler(request, response) {
       return;
     } else {  // Finetuned model
 
-      const project = await Project.findOne({userId: user._id, name: projectName});
-      if (!project) {
-        throw createError(400,'Project not found');
-      }
-
-      const template = await Template.findById(model.templateId);
+      const template = await Template.findById(model.templateId._id);
       if (!template) {
         throw createError(400,'Template not found');
       }
