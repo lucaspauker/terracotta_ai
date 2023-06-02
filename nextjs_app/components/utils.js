@@ -84,3 +84,19 @@ export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];
 export const multiclassClassificationMetrics = ['accuracy', 'weighted f1'];
 export const generationMetrics = ['bleu', 'rougel'];
 
+export function testElementsInList(A, B) {
+  console.log(A,B);
+  // Convert list B to a Set for efficient lookup
+  const setB = new Set(B);
+
+  // Check if each element in list A is in list B
+  for (let i = 0; i < A.length; i++) {
+    if (!setB.has(A[i])) {
+      return false; // Element not found in list B
+    }
+  }
+
+  return true; // All elements in list A are in list B
+}
+
+

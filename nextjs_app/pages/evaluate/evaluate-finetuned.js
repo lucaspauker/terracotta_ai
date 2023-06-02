@@ -24,7 +24,14 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 
-import {toTitleCase, metricFormat, classificationMetrics, multiclassClassificationMetrics, generationMetrics} from '/components/utils';
+import {
+  testElementsInList,
+  toTitleCase,
+  metricFormat,
+  classificationMetrics,
+  multiclassClassificationMetrics,
+  generationMetrics
+} from '/components/utils';
 
 const steps = ['Select dataset and model', 'Select metrics', 'Review evaluation'];
 
@@ -53,6 +60,7 @@ export default function DoEvaluate() {
   const [skipped, setSkipped] = useState(new Set());
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [allDatasets, setAllDatasets] = useState([]);
   const [datasets, setDatasets] = useState([]);
   const [dataset, setDataset] = useState('');
   const [checked, setChecked] = useState({});
@@ -126,7 +134,7 @@ export default function DoEvaluate() {
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       setModels(res.data);
       axios.post("/api/data/list", {projectName: projectName}).then((res) => {
-        setDatasets(res.data);
+        setAllDatasets(res.data);
         setLoading(false);
       }).catch((error) => {
         console.log(error);
@@ -193,6 +201,17 @@ export default function DoEvaluate() {
     setActiveStep(0);
   };
 
+  const handleModelChange = (e) => {
+    if (e.target.value.templateId.classes && e.target.value.templateId.classes.length > 2) {
+      setMetrics(multiclassClassificationMetrics);
+    }
+    setModel(e.target.value);
+    if (e.target.value.templateId.fields) {
+      let newDatasets = allDatasets.filter((d) => testElementsInList(e.target.value.templateId.fields, d.headers));
+      setDatasets(newDatasets);
+    }
+  }
+
   return (
     <div className='main'>
       <div className='horizontal-box full-width'>
@@ -246,12 +265,7 @@ export default function DoEvaluate() {
                         className="wide-select"
                         label="Model"
                         value={model}
-                        onChange={(e) => {
-                          if (e.target.value.templateId.classes && e.target.value.templateId.classes.length > 2) {
-                            setMetrics(multiclassClassificationMetrics);
-                          }
-                          setModel(e.target.value);
-                        }}
+                        onChange={(e) => handleModelChange(e)}
                       >
                         {models.map((m) => (
                           m.status === "succeeded" && <MenuItem key={m._id} value={m}>{m.name}</MenuItem>
@@ -267,6 +281,7 @@ export default function DoEvaluate() {
                         label="Dataset"
                         value={dataset}
                         onChange={(e) => setDataset(e.target.value)}
+                        disabled={datasets.length === 0}
                       >
                         {datasets.map((d) => (
                           <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
