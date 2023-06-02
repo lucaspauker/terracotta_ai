@@ -25,7 +25,6 @@ const templateSchema = new Schema({
   },
   stopSequence: {
     type: String,
-    required: true
   },
   fields: {
     type: [String]

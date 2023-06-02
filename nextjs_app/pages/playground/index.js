@@ -556,7 +556,7 @@ export default function Playground() {
             <div className='vertical-box full-width'>
               <div className='horizontal-box'>
                 <Typography>Temperature: {temperature.toFixed(2)}</Typography>
-                {createCustomTooltip("Higher temperature means more random output while lower temperature means more accurate output")}
+                {createCustomTooltip("Higher temperature means more random output while lower temperature means more deterministic output")}
               </div>
               <div className='horizontal-box full-width'>
                 <Typography sx={{marginRight:2}}>0</Typography>

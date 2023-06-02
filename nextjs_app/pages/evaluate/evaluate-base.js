@@ -25,11 +25,12 @@ import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
 
 import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics, multiclassClassificationMetrics} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
-const steps = ['Select dataset and model', 'Choose template', 'Select metrics', 'Review evaluation'];
+const steps = ['Select dataset and model', 'Choose template', 'Select generation parameters','Select metrics', 'Review evaluation'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -54,7 +55,7 @@ export default function DoEvaluate() {
   const [numRows, setNumRows] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set());
-  const [name, setName] = useState('');
+  const [name, setName] = useState(''); 
   const [description, setDescription] = useState('');
   const [datasets, setDatasets] = useState([]);
   const [dataset, setDataset] = useState('');
@@ -65,6 +66,9 @@ export default function DoEvaluate() {
   const [estimatedCost, setEstimatedCost] = useState(0);
   const { data: session } = useSession();
   const router = useRouter()
+
+  const [maxTokens, setMaxTokens] = useState(50);
+  const [temperature, setTemperature] = useState(0.5);
 
   // Variables for the template
   const [templateString, setTemplateString] = useState('');
@@ -146,6 +150,8 @@ export default function DoEvaluate() {
       templateData: templateData,
       outputColumn: outputColumn,
       stopSequence: stopSequence,
+      maxTokens: maxTokens,
+      temperature: temperature,
     }).then((res) => {
       console.log(res.data);
       setError();
@@ -297,11 +303,9 @@ export default function DoEvaluate() {
     if (i === 0) {
       return  !dataset || !model;
     } else if (i === 1) {
-      return false;
-    } else if (i === 2) {
-      return name === '';
-    }
-    return true;
+      return outputColumn === "";
+    } 
+    return false;
   }
 
   const handleReset = () => {
@@ -418,7 +422,40 @@ export default function DoEvaluate() {
             </>
             :null}
 
-          {activeStep === 2 ?
+            {activeStep === 2 ?
+              <>
+                <Typography variant='h6'>
+                  Specify generation parameters
+                </Typography>
+                <div className='medium-space' />
+                <div className='vertical-box'>
+                  <div className='horizontal-box'>
+                  <TextField
+                    label="Max tokens"
+                    variant="outlined"
+                    className='text-label'
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(e.target.value)}
+                  />
+                  {createCustomTooltip("The maximum number of tokens to generate per prediction")}
+                  </div>
+                  <div className='small-space' />
+                  <div className='horizontal-box'>
+                  <TextField
+                    label="Temperature"
+                    variant="outlined"
+                    className='text-label'
+                    value={temperature}
+                    onChange={(e) => setTemperature(e.target.value)}
+                  />
+                  {createCustomTooltip("Higher temperature means more random output while lower temperature means more deterministic output")}
+                  </div>
+                </div>
+              </>
+            : null}   
+          
+
+          {activeStep === 3 ?
             <>
               <Typography variant='h6'>
                 Metrics
@@ -435,7 +472,7 @@ export default function DoEvaluate() {
             </>
             : null}
 
-          {activeStep === 3 ?
+          {activeStep === 4 ?
             <>
               <Typography variant='h6'>
                 Review your evaluation
