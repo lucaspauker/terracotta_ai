@@ -75,9 +75,9 @@ export const baseModelNamesDict = {
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
   'generate-medium': 'Generate Medium',
   'generate-xlarge': 'Generate X-Large',
-  'classify-small': 'Classify Small',
-  'classify-large': 'Classify Large',
-  'classify-multilingual': 'Classify Multilingual',
+  //'classify-small': 'Classify Small',
+  //'classify-large': 'Classify Large',
+  //'classify-multilingual': 'Classify Multilingual',
 }
 
 export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];

@@ -8,6 +8,7 @@ import Evaluation from '../../../schemas/Evaluation';
 import Dataset from "../../../schemas/Dataset";
 import Template from "../../../schemas/Template";
 import ProviderModel from "../../../schemas/ProviderModel";
+import e from "cors";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -18,6 +19,7 @@ const REGION = process.env.PUBLIC_S3_REGION;
 const ObjectId = require('mongodb').ObjectId;
 
 const { Configuration, OpenAIApi } = require("openai");
+const cohere = require('cohere-ai');
 
 AWS.config.update({
   accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
@@ -54,6 +56,8 @@ export default async function handler(request, response) {
     const templateData = request.body.templateData;
     const outputColumn = request.body.outputColumn;
     const stopSequence = request.body.stopSequence;
+    let maxTokens = request.body.maxTokens;
+    let temperature = request.body.temperature;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -62,15 +66,13 @@ export default async function handler(request, response) {
       throw createError(400,'User not found');
     }
 
-    const configuration = new Configuration({
-      apiKey: user.openAiKey,
-    });
-    const openai = new OpenAIApi(configuration);
-
     const project = await Project.findOne({userId: user._id, name: projectName});
     if (!project) {
       throw createError(400,'Project not found');
     }
+
+    maxTokens = project.type === "classification" ? 10 : maxTokens;
+    temperature = project.type === "classification" ? 0.0 : temperature;
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
 
@@ -86,6 +88,17 @@ export default async function handler(request, response) {
 
     const providerModel = await ProviderModel.findOne({completionName: completionName});
 
+    let openai;
+
+    if (providerModel.provider === "openai") {
+      const configuration = new Configuration({
+        apiKey: user.openAiKey,
+      });
+      openai = new OpenAIApi(configuration);
+    } else {
+      cohere.init(user.cohereKey);
+    }
+
     console.log(providerModel);
 
     const newEvaluation = await Evaluation.create({
@@ -100,6 +113,10 @@ export default async function handler(request, response) {
       metricResults: null,
       trainingEvaluation: false,
       status: "evaluating",
+      parameters: {
+        maxTokens: maxTokens,
+        temperature: temperature,
+      }
     })
 
     newEvaluationId = newEvaluation._id;
@@ -145,40 +162,72 @@ export default async function handler(request, response) {
     const stream = myBucket.getObject(params).createReadStream();
     const json_output = await csv().fromStream(stream);
 
-    let completions = [];
-
     let requests = [];
     let references = [];
+    let completions = [];
     console.log(json_output.length);
-    for (let i=0; i<json_output.length; i++) {
-      let r;
-      if (completionName === 'gpt-3.5-turbo') {
-        r = await openai.createChatCompletion({
-          model: completionName,
-          messages: [{role: 'user', content: templateTransform(templateString, json_output[i])}],
-          max_tokens: 100,
-          temperature: 0,
-          stop: stopSequence,
-        });
-      } else {
-        r = await openai.createCompletion({
-          model: completionName,
-          prompt: templateTransform(templateString, json_output[i]),
-          max_tokens: project.type === "classification" ? 10 : 100,
-          temperature: 0,
-          stop: stopSequence,
-        });
-      }
 
-      requests.push(r);
-      references.push(json_output[i][outputColumn]);
+    // Openai base models
+    if (providerModel.provider === "openai") {
+      for (let i=0; i<json_output.length; i++) {
+        let r;
+        if (completionName === 'gpt-3.5-turbo') {
+          r = openai.createChatCompletion({
+            model: completionName,
+            messages: [{role: 'user', content: templateTransform(templateString, json_output[i])}],
+            max_tokens: maxTokens,
+            temperature: temperature,
+            stop: stopSequence,
+          });
+        } else {
+          r = openai.createCompletion({
+            model: completionName,
+            prompt: templateTransform(templateString, json_output[i]),
+            max_tokens: maxTokens,
+            temperature: temperature,
+            stop: stopSequence,
+          });
+        }
+        requests.push(r);
+        references.push(json_output[i][outputColumn]);
+      }
+    } else { // Cohere models
+      for (let i=0; i<json_output.length; i++) {
+        const generateResponse = cohere.generate({
+          prompt: templateTransform(templateString, json_output[i]),
+          max_tokens: maxTokens,
+          model: completionName.split('-')[1],
+          temperature: temperature,
+        });
+
+        requests.push(generateResponse);
+        references.push(json_output[i][outputColumn]);
+      }
     }
 
     const results = await Promise.all(requests);
-    console.log("Retrieved results from OpenAI");
+
+    let totalTokens = 0;
+    let cost;
+    
+    if (providerModel.provider === "openai") {
+      results.map((completion) => {
+        completions.push(completion.data.choices[0].text.trim());
+        totalTokens += completion.data.usage.total_tokens;
+      });
+      cost = totalTokens * providerModel.completionCost / 1000;
+    } else {
+      results.map((completion) => {
+        completions.push(completion.body.generations[0].text.trim());
+      });
+    }
+
+    console.log("Retrieved results from provider");
 
     classes = Array.from(classes);
 
+
+    // move this to after evaluation?
     const template = await Template.create({
       templateString: templateString,
       templateData: templateData,
@@ -189,12 +238,8 @@ export default async function handler(request, response) {
       fields: matchesStrings,
     })
 
-    let totalTokens = 0;
-    results.map((completion) => {
-      completions.push(completion.data.choices[0].text.trim());
-      totalTokens += completion.data.usage.total_tokens;
-    });
-    const cost = totalTokens * providerModel.completionCost / 1000;
+    console.log(completions);
+    console.log(references);
 
     let metricResults = {}
     if (project.type === "classification") {

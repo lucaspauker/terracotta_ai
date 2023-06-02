@@ -73,6 +73,9 @@ const evaluationSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  parameters: {
+    type: Schema.Types.Mixed,
+  },
   cost: Number,
 });
 
