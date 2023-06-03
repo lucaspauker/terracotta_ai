@@ -64,6 +64,7 @@ export const metricFormat = (metric) => {
   if (metric === 'bleu') return 'BLEU';
   if (metric === 'rougel') return 'RougeL';
   if (metric === 'mauve') return 'MAUVE';
+  if (metric === 'confusion') return 'Confusion Matrix';
   return toTitleCase(metric);
 }
 
@@ -81,7 +82,7 @@ export const baseModelNamesDict = {
 }
 
 export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];
-export const multiclassClassificationMetrics = ['accuracy', 'weighted f1'];
+export const multiclassClassificationMetrics = ['accuracy', 'weighted f1', 'confusion'];
 export const generationMetrics = ['bleu', 'rougel'];
 
 export function testElementsInList(A, B) {
@@ -99,4 +100,10 @@ export function testElementsInList(A, B) {
   return true; // All elements in list A are in list B
 }
 
+export const calculateMonochromeColor = (inputValue) => {
+  const red = Math.round((1 - inputValue) * 255);
+  const green = 255;
+  const blue = Math.round((1 - inputValue) * 255);
+  return `rgb(${red}, ${green}, ${blue})`;
+};
 
