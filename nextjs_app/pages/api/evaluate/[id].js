@@ -54,7 +54,7 @@ export default async function handler(request, response) {
       metricResults: evaluation.metricResults,
       trainingEvaluation: evaluation.trainingEvaluation,
       templateString: template && template.templateString,
-      classes: modelTemplate && modelTemplate.classes || template.classes,
+      classes: modelTemplate && modelTemplate.classes || template && template.classes,
       completionName: providerModel && providerModel.completionName,
     }
 
