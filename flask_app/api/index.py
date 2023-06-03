@@ -68,8 +68,6 @@ def classification_metrics():
         references = json_data['references']
         classes = json_data['classes']
 
-        print(classes)
-
         metric_results = {}
         if len(classes) == 2: # Binary classification
             accuracy = accuracy_score(references, completions)
