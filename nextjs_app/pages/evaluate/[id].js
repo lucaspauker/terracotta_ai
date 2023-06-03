@@ -19,7 +19,48 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
-import { calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
+import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
+
+function ConfusionMatrix({ evaluation }) {
+  const rowSums = evaluation.metricResults['confusion'].map(row => row.reduce((partialSum, a) => partialSum + a, 0));
+
+  return (
+    <div>
+      <div className='confusion-matrix'>
+        <div className="grid-row header-row">
+          <div className="grid-cell header-cell" />
+          {evaluation.classes.map((item, columnIndex) => (
+            <div key={columnIndex} className="grid-cell header-cell">
+              <Typography>{item}</Typography>
+            </div>
+          ))}
+          {evaluation.metricResults['confusion'].length > evaluation.classes.length &&
+            <div className="grid-cell header-cell">
+              <Typography>Misc</Typography>
+            </div>
+          }
+        </div>
+        {evaluation.metricResults['confusion'].map((row, rowIndex) => (
+          <div key={rowIndex} className="grid-row">
+            <div className="grid-cell header-cell">
+              {rowIndex >= evaluation.classes.length ?
+                <Typography>Misc</Typography>
+                :
+                <Typography>{evaluation.classes[rowIndex]}</Typography>
+              }
+            </div>
+            {row.map((item, columnIndex) => (
+              <div key={columnIndex} className="grid-cell"
+                style={{backgroundColor: calculateMonochromeColor(rowSums[rowIndex] ? item / rowSums[rowIndex] : 0)}}>
+                <Typography>{item}</Typography>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ModelPage() {
   const [loading, setLoading] = useState(true);
@@ -111,24 +152,30 @@ export default function ModelPage() {
         </div>
         <div className='medium-space' />
 
-        <div>
-            <div className='tiny-space'/>
-            <Paper className='card vertical-box' variant='outlined'>
-              <div className='horizontal-box-grid'>
-                {evaluation.metrics && evaluation.metrics.map(metric => (
-                  <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
-                    <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
-                    <div className='small-space'/>
-                    <Typography variant='h6'>
-                      {metric === 'accuracy' ?
-                        parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
-                        parseFloat(evaluation.metricResults[metric]).toFixed(2)}
-                    </Typography>
-                  </div>
-                ))}
-              </div>
-            </Paper>
-      </div>
+        <div className='horizontal-box-grid'>
+          {evaluation.metrics && evaluation.metrics.map(metric => (metric !== 'confusion') && (  // Handle conf matrix separately
+            <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
+              <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
+              <div className='small-space'/>
+              <Typography variant='h6'>
+                {metric === 'accuracy' ?
+                  parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
+                  parseFloat(evaluation.metricResults[metric]).toFixed(2)}
+              </Typography>
+            </div>
+          ))}
+        </div>
+        <div className='medium-space' />
+
+        {evaluation.metrics.includes('confusion') &&
+          <div className='confusion-lr'>
+            <Typography sx={{fontWeight: 'bold', marginTop: '100px'}}>True labels</Typography>
+            <div className='confusion-right'>
+              <Typography sx={{fontWeight: 'bold', marginLeft: '100px'}}>Predicted labels</Typography>
+              <ConfusionMatrix evaluation={evaluation} />
+            </div>
+          </div>
+        }
       </>
       }
 
