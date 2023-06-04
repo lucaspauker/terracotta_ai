@@ -30,7 +30,7 @@ import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics, multiclassClassificationMetrics} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
-const steps = ['Select dataset and model', 'Choose template', 'Select generation parameters','Select metrics', 'Review evaluation'];
+const steps = ['Select Dataset and Model', 'Create Template', 'Select Generation Parameters','Select Metrics', 'Review'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -497,13 +497,14 @@ export default function DoEvaluate() {
                 onChange={(e) => setDescription(e.target.value)}
               />
               <div className='medium-space' />
-              <Box sx={{textAlign: 'left'}}>
+              <div className='light-background-card'>
                 <Typography>Dataset: {dataset.name}</Typography>
                 <Typography>Model: {baseModelNamesDict[model]}</Typography>
                 <Typography>Metrics: {metrics.map((m, i) =>
-                                        (isChecked(m) ? m + ' ' : null)
+                                        (isChecked(m) ? metricFormat(m) : '') +
+                                        (i !== metrics.length - 1 ? ', ' : '')
                                       )}</Typography>
-              </Box>
+              </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
               <div className='vertical-box'>

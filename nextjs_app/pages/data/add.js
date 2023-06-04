@@ -30,7 +30,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 
-const steps = ['Training data', 'Validation data', 'Review'];
+const steps = ['Upload Training Data', 'Choose Validation Data', 'Review'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -160,6 +160,9 @@ export default function AddDataset() {
   const handleNext = () => {
     if (activeStep === 1) {
       setName(selectedFile.name.substring(0, selectedFile.name.length - 4));
+      if (!autoGenerateVal) {
+        setNumValExamples(0);
+      }
     }
     let newSkipped = skipped;
     if (isStepSkipped(activeStep)) {
@@ -369,10 +372,12 @@ export default function AddDataset() {
                 />
               </div>
               <div className='medium-space' />
-              <Box sx={{textAlign: 'left'}}>
+              <div className='light-background-card'>
                 <Typography>Train file name: {selectedFile.name}</Typography>
                 <Typography>Number of rows: {numTrainExamples}</Typography>
-              </Box>
+                <Typography>Number of train rows: {numTrainExamples - numValExamples}</Typography>
+                <Typography>Number of validation rows: {numValExamples}</Typography>
+              </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
               <div className='vertical-box'>
@@ -392,11 +397,6 @@ export default function AddDataset() {
               Back
             </Button>
             <Box sx={{ flex: '1 1 auto' }} />
-            {isStepOptional(activeStep) && (
-              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                Skip
-              </Button>
-            )}
 
             {activeStep === steps.length - 1 ? null :
               <Button color="secondary" variant="contained" onClick={handleNext} disabled={isNextDisabled(activeStep)}>Next</Button>

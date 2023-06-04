@@ -55,7 +55,7 @@ export async function getServerSideProps(context) {
 }
 
 export default function Train() {
-  const [provider, setProvider] = useState('');
+  const [provider, setProvider] = useState('openai');
   const [modelArchitecture, setModelArchitecture] = useState('');
   const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState('');
@@ -160,6 +160,20 @@ export default function Train() {
     } else {
       return "";
     }
+  }
+
+  const shuffleData = () => {
+    setDatasetLoading(true);
+    axios.post("/api/data/file", {
+      fileName: dataset.trainFileName,
+      maxLines: 50,
+      shuffle: true,
+    }).then((json_data) => {
+      setTrainData(json_data.data);
+      setDatasetLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
   }
 
   // Functions for the stepper
@@ -296,7 +310,6 @@ export default function Train() {
                   required
                 >
                   <MenuItem value={'openai'}>OpenAI</MenuItem>
-                  <MenuItem value={'cohere'}>Cohere</MenuItem>
                 </Select>
               </FormControl>
               <div className='small-space' />
@@ -358,7 +371,7 @@ export default function Train() {
               </Box>
               <div className='small-space' />
               {datasetLoading ?
-                <div className="horizontal-box"><CircularProgress /></div>
+                <div className="horizontal-box" style={{height: 500}}><CircularProgress /></div>
                 :
                 <TemplateCreator
                   templateString={templateString}
@@ -373,6 +386,7 @@ export default function Train() {
                   headers={headers}
                   initialVisibleRows={visibleRows}
                   dataset={dataset}
+                  shuffleData={shuffleData}
                 />
               }
             </>
@@ -457,12 +471,12 @@ export default function Train() {
                 onChange={(e) => setDescription(e.target.value)}
               />
               <div className='medium-space' />
-              <Box sx={{textAlign: 'left'}}>
+              <div className='light-background-card'>
                 <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
                 <Typography>Architecture: {modelArchitecture}</Typography>
                 <Typography>Dataset: {dataset.name}</Typography>
                 <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
-              </Box>
+              </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
               <Button size='large' variant='contained' color="primary" onClick={handleFinetune} 
