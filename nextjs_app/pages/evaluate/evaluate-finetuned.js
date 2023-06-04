@@ -67,6 +67,7 @@ export default function DoEvaluate() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState('');
   const [metrics, setMetrics] = useState([]);
+  const [estimatedCost, setEstimatedCost] = useState('')
   const { data: session } = useSession();
   const router = useRouter()
 
@@ -157,6 +158,8 @@ export default function DoEvaluate() {
     let newSkipped = skipped;
     if (activeStep === 0) {
       setName(model.name.replace(/ /g, "-") + ' on ' + dataset.replace(/ /g, "-"));
+
+      // TODO: Get the estimated cost for the evaluation
     }
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
