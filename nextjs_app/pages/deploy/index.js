@@ -53,6 +53,7 @@ export default function Deploy() {
   const [loading, setLoading] = useState(true);
   const [models, setModels] = useState([]);
   const [model, setModel] = useState('');
+  const [cost, setCost] = useState('');
   const [library, setLibrary] = useState('curl');
   const [prompt, setPrompt] = useState('input your prompt here');
   const router = useRouter()
@@ -111,19 +112,28 @@ const response = await openai.createCompletion({
     }
   }
 
-  const handleModelChange = (newModelName) => {
-    setModel(newModelName);
-    setApiCode(getApiCode(newModelName, library, prompt));
+  const getModelCost = (m) => {
+    // Call provider models API to get the finetune inference cost
+    axios.get("/api/providermodels/by-model/" + m._id).then((res) => {
+      setCost(res.data.finetuneCompletionCost);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  const handleModelChange = (newModel) => {
+    setApiCode(getApiCode(newModel.providerData.modelId, library, prompt));
+    getModelCost(newModel);
   }
 
   const handleLibraryChange = (newLibraryName) => {
     setLibrary(newLibraryName);
-    setApiCode(getApiCode(model, newLibraryName, prompt));
+    setApiCode(getApiCode(model.providerData.modelId, newLibraryName, prompt));
   }
 
   const handlePromptChange = (newPrompt) => {
     setPrompt(newPrompt);
-    setApiCode(getApiCode(model, library, newPrompt));
+    setApiCode(getApiCode(model.providerData.modelId, library, newPrompt));
   }
 
   const refresh = () => {
@@ -135,9 +145,10 @@ const response = await openai.createCompletion({
     axios.post("/api/models", {projectName: projectName}).then((res) => {
       setModels(res.data);
       if (res.data[0]) {
-        const m = res.data[0].providerData.modelId;
+        const m = res.data[0];
         setModel(m);
-        setApiCode(getApiCode(m, library, prompt));
+        getModelCost(m);
+        setApiCode(getApiCode(m.providerData.modelId, library, prompt));
         setLoading(false);
       }
     }).catch((error) => {
@@ -177,7 +188,7 @@ const response = await openai.createCompletion({
                   onChange={(e) => handleModelChange(e.target.value)}
                 >
                   {models.map((m) => (
-                    <MenuItem key={m._id} value={m.providerData.modelId}>{m.name}</MenuItem>
+                    <MenuItem key={m._id} value={m}>{m.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -218,6 +229,10 @@ const response = await openai.createCompletion({
               className="output-text-box output-code-box"
               value={apiCode}
             />
+            <div className='tiny-space' />
+            <div className='horizontal-box full-width'>
+              <Typography>Inference cost: ${cost} per 1000 tokens</Typography>
+            </div>
           </Paper>
         </div>
       }

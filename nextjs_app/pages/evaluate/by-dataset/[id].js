@@ -81,7 +81,7 @@ export default function EvaluationDatasetPage() {
                 >
                   <CardContent>
                     <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>
-                    {evaluation.metrics.map((e) => (
+                    {evaluation.metrics.map((e) => (e !== 'confusion') && (
                       <Typography key={e}>{metricFormat(e)}: {Number(evaluation.metricResults[e]).toFixed(2)}</Typography>
                     ))}
                   </CardContent>

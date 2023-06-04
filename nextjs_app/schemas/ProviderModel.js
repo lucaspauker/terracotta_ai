@@ -17,6 +17,9 @@ const providerModelSchema = new Schema({
   },
   completionCost: {
     type: Number,
+  },
+  finetuneCompletionCost: {
+    type: Number,
   }
 },
 { collection: 'providerModels' });

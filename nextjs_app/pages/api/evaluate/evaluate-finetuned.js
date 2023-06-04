@@ -3,14 +3,14 @@ import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
 import {templateTransform} from '../../../utils/template';
-import {finetunedModelCosts} from '../../../utils/evaluate';
 
-import User from '../../../schemas/User';
-import Project from '../../../schemas/Project';
-import Evaluation from '../../../schemas/Evaluation';
-import Dataset from "../../../schemas/Dataset";
-import Template from "../../../schemas/Template";
+import User from '@/schemas/User';
+import Project from '@/schemas/Project';
+import Evaluation from '@/schemas/Evaluation';
+import Dataset from "@/schemas/Dataset";
+import Template from "@/schemas/Template";
 import Model from "@/schemas/Model";
+import ProviderModel from "@/schemas/ProviderModel";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -72,13 +72,11 @@ export default async function handler(request, response) {
     }
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
-
     if (prev) {
       throw createError(400,'Evaluation name already exists, pick a unique name.');
     }
 
     const dataset = await Dataset.findOne({userId: user._id, name: datasetName});
-
     if (!dataset) {
       throw createError(400,'Dataset not found')
     }
@@ -86,6 +84,11 @@ export default async function handler(request, response) {
     const model = await Model.findOne({userId: user._id, name: modelName});
     if (!model) {
       throw createError(400,'Model not found');
+    }
+
+    const pmodel = await ProviderModel.findOne({finetuneName: model.modelArchitecture});
+    if (!pmodel) {
+      throw createError(400, 'Provider model not found');
     }
 
     const newEvaluation = await Evaluation.create({
@@ -147,7 +150,7 @@ export default async function handler(request, response) {
       completions.push(completion.data.choices[0].text.trim());
       totalTokens += completion.data.usage.total_tokens;
     });
-    const cost = totalTokens * finetunedModelCosts[model.modelArchitecture].inference / 1000;
+    const cost = totalTokens * pmodel.finetuneCompletionCost / 1000;
 
     let metricResults = {}
     if (project.type === "classification") {

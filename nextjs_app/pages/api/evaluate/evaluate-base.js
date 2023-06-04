@@ -71,8 +71,8 @@ export default async function handler(request, response) {
       throw createError(400,'Project not found');
     }
 
-    maxTokens = project.type === "classification" ? 10 : maxTokens;
-    temperature = project.type === "classification" ? 0.0 : temperature;
+    //maxTokens = project.type === "classification" ? 10 : maxTokens;
+    //temperature = project.type === "classification" ? 0.0 : temperature;
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
 
@@ -237,9 +237,6 @@ export default async function handler(request, response) {
       stopSequence: stopSequence,
       fields: matchesStrings,
     })
-
-    console.log(completions);
-    console.log(references);
 
     let metricResults = {}
     if (project.type === "classification") {
