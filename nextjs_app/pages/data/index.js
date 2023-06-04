@@ -159,14 +159,9 @@ export default function Data() {
         <Typography variant='h4' className='page-main-header'>
           Datasets
         </Typography>
-        <div>
-          <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/data/create">
-            + Create CSV
-          </Button>
-          <Button variant='contained' color="secondary" component={Link} href="/data/add">
-            + Upload CSV
-          </Button>
-        </div>
+        <Button variant='contained' color="secondary" component={Link} href="/data/add">
+          + Upload CSV
+        </Button>
       </div>
       <div className='tiny-space' />
 

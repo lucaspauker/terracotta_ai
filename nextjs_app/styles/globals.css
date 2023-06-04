@@ -667,3 +667,14 @@ a {
   padding: 4px;
 }
 
+.light-background-card {
+  background-color: lightgrey;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.template-layout-left {
+  display: flex;
+  flex-direction: column
+}
+

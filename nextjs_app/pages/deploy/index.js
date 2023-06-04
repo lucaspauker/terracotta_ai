@@ -25,8 +25,9 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaCopy } from 'react-icons/fa';
 import { BiCopy } from 'react-icons/bi';
-import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import { BiInfoCircle } from 'react-icons/bi';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
+import {getPriceString} from '../../components/utils.js';
 
 const steps = ['Dataset and model', 'Metrics', 'Review'];
 
@@ -231,7 +232,10 @@ const response = await openai.createCompletion({
             />
             <div className='tiny-space' />
             <div className='horizontal-box full-width'>
-              <Typography>Inference cost: ${cost} per 1000 tokens</Typography>
+              <div>
+                <Typography>{getPriceString(cost)} per 1,000 tokens</Typography>
+                <Typography>{getPriceString(cost*1000)} per 1,000,000 tokens</Typography>
+              </div>
             </div>
           </Paper>
         </div>

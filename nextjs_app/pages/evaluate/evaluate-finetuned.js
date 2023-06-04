@@ -33,7 +33,7 @@ import {
   generationMetrics
 } from '/components/utils';
 
-const steps = ['Select dataset and model', 'Select metrics', 'Review evaluation'];
+const steps = ['Select Dataset and Model', 'Select Metrics', 'Review'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -340,13 +340,14 @@ export default function DoEvaluate() {
                 onChange={(e) => setDescription(e.target.value)}
               />
               <div className='medium-space' />
-              <Box sx={{textAlign: 'left'}}>
+              <div className='light-background-card'>
                 <Typography>Dataset: {dataset}</Typography>
                 <Typography>Model: {model.name}</Typography>
                 <Typography>Metrics: {metrics.map((m, i) =>
-                                        (isChecked(m) ? m + ' ' : null)
+                                        (isChecked(m) ? metricFormat(m) : '') +
+                                        (i !== metrics.length - 1 ? ', ' : '')
                                       )}</Typography>
-              </Box>
+              </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
               <div className='vertical-box'>

@@ -14,9 +14,7 @@ import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
-import { FaArrowLeft } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
-import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,6 +24,8 @@ import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { FaArrowLeft } from 'react-icons/fa';
+import { BiShuffle, BiCopy, BiInfoCircle } from 'react-icons/bi';
 
 import { formatTextForTypography } from './utils';
 
@@ -42,6 +42,7 @@ function TemplateCreator({
       headers,
       initialVisibleRows,
       dataset,
+      shuffleData,
     }) {
 
   const [page, setPage] = useState(0);
@@ -49,22 +50,6 @@ function TemplateCreator({
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [models, setModels] = useState([]);
   const [templateModel, setTemplateModel] = useState('');
-
-  useEffect(() => {
-    let p = '';
-    if (localStorage.getItem("project")) {
-      p = localStorage.getItem("project");
-    };
-    axios.post("/api/models", {projectName: p}).then((res) => {
-      console.log(dataset._id)
-      console.log(res.data);
-      const filteredModels = res.data.filter( (model) => model.datasetId?._id === dataset._id);
-      console.log(filteredModels);
-      setModels(filteredModels);
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
 
   const handleChangePage = useCallback(
     (event, newPage) => {
@@ -137,6 +122,28 @@ function TemplateCreator({
     }
   }
 
+  useEffect(() => {
+    let p = '';
+    if (localStorage.getItem("project")) {
+      p = localStorage.getItem("project");
+    };
+    axios.post("/api/models", {projectName: p}).then((res) => {
+      console.log(dataset._id)
+      console.log(res.data);
+      const filteredModels = res.data.filter( (model) => model.datasetId?._id === dataset._id);
+      console.log(filteredModels);
+      setModels(filteredModels);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, []);
+
+  useEffect(() => {
+    setPage(0);
+    const updatedRows = trainData.slice(0, rowsPerPage);
+    setVisibleRows(updatedRows);
+  }, [trainData])
+
   return (
     <div className="full-width">
       <div className= "left-message">
@@ -175,7 +182,7 @@ function TemplateCreator({
                 }}
               >
                 {models.map((d, i) => (
-                    <MenuItem value={d} key={i}>{d.name}</MenuItem>
+                  <MenuItem value={d} key={i}>{d.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -222,6 +229,9 @@ function TemplateCreator({
           </div>
         </div>
       </div>
+        <IconButton color="primary" onClick={shuffleData}>
+          <BiShuffle />
+        </IconButton>
         <div className="shadow">
           <TableContainer>
             <Table stickyHeader sx={{ minWidth: 650}}>
