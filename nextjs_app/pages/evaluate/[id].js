@@ -20,6 +20,7 @@ import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
 import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
+import DataTable from '../../components/DataTable';
 
 function ConfusionMatrix({ evaluation }) {
   const rowSums = evaluation.metricResults['confusion'].map(row => row.reduce((partialSum, a) => partialSum + a, 0));
@@ -67,6 +68,8 @@ export default function ModelPage() {
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [evaluation, setEvaluation] = useState([]);
+  const [headers, setHeaders] = useState([]);
+  const [predictionData, setPredictionData] = useState('');
   const router = useRouter();
   const { model_id } = router.query;
 
@@ -95,6 +98,17 @@ export default function ModelPage() {
       setEvaluation(res.data);
       setLoading(false);
       console.log(res.data);
+    }).catch((error) => {
+      console.log(error);
+    });
+
+    axios.post("/api/data/file", {
+      fileName: last + '.csv',
+      maxLines: 50,
+      s3Folder: "predictions"
+    }).then((json_data) => {
+      setPredictionData(json_data.data);
+      setHeaders(Object.keys(json_data.data[0]));
     }).catch((error) => {
       console.log(error);
     });
@@ -176,6 +190,14 @@ export default function ModelPage() {
             </div>
           </div>
         }
+
+        {predictionData? 
+          <DataTable 
+            headers={headers} 
+            rawData={predictionData} 
+            downloadId={"predictions/" + window.location.href.split('/').pop() + ".csv"}
+            downloadName = {evaluation.name + "_predictions.csv"}
+          /> : null}
       </>
       }
 

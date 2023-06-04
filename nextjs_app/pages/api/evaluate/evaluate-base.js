@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
+import {templateTransform} from '../../../utils/template';
+
 import User from '../../../schemas/User';
 import Project from '../../../schemas/Project';
 import Evaluation from '../../../schemas/Evaluation';
@@ -56,8 +58,8 @@ export default async function handler(request, response) {
     const templateData = request.body.templateData;
     const outputColumn = request.body.outputColumn;
     const stopSequence = request.body.stopSequence;
-    let maxTokens = request.body.maxTokens;
-    let temperature = request.body.temperature;
+    const maxTokens = request.body.maxTokens;
+    const temperature = request.body.temperature;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -70,9 +72,6 @@ export default async function handler(request, response) {
     if (!project) {
       throw createError(400,'Project not found');
     }
-
-    //maxTokens = project.type === "classification" ? 10 : maxTokens;
-    //temperature = project.type === "classification" ? 0.0 : temperature;
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
 
@@ -129,25 +128,6 @@ export default async function handler(request, response) {
     const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
 
     let classes = new Set();
-
-    const templateTransform = (templateString, finetuneInputData) => {
-        const regex = /{{.*}}/g;
-        const matches = templateString.match(regex);
-        if (project.type === "classification") {
-            classes.add(finetuneInputData[outputColumn]);
-        }
-
-        let result = templateString;
-        matches.forEach((match) => {
-          const strippedMatch = match.substring(2, match.length - 2);
-          if (strippedMatch in finetuneInputData) {
-            result = result.replace(match, finetuneInputData[strippedMatch]);
-          } else {
-            result = result.replace(match, '');
-          }
-        });
-        return result;
-    }
 
     let fileName;
     if (dataset.valFileName) {

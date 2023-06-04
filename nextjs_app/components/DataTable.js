@@ -8,8 +8,14 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TablePagination from '@mui/material/TablePagination';
 import Divider from '@mui/material/Divider';
+import DownloadIcon from '@mui/icons-material/GetApp';
+import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import axios from 'axios';
+import { saveAs } from 'file-saver';
 
-function DataTable({ headers, rawData }) {
+function DataTable({ headers, rawData, downloadId, downloadName}) {
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(rawData.slice(0, 5));
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -27,6 +33,20 @@ function DataTable({ headers, rawData }) {
     const updatedRows = rawData.slice(0 * updatedRowsPerPage, 0 * updatedRowsPerPage + updatedRowsPerPage);
     setVisibleRows(updatedRows);
   }, [rawData]);
+
+  const handleDownload = () => {
+    axios.post('/api/download', {downloadId: downloadId, downloadName: downloadName})
+      .then((response) => {
+        const downloadUrl = response.data.downloadUrl;
+        console.log("downloadUrl: ", downloadUrl);
+        //saveAs(response.data, (downloadName + '.csv'));
+        window.open(downloadUrl, '_blank');
+      })
+      .catch((error) => {
+        console.error('Error downloading file:', error);
+        // Handle the error appropriately (e.g., show an error message)
+      })
+  }
 
   useEffect(() => {
     setVisibleRows(rawData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage));
@@ -84,15 +104,25 @@ function DataTable({ headers, rawData }) {
         </Table>
       </TableContainer>
       <Divider />
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={rawData.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      <Box style = {{display: 'flex', flexDirection: 'row-reverse', alignItems:'center',justifyContent:'space-between'}}>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={rawData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+        {downloadId &&
+        <div className = 'horizontal-box'>
+          <IconButton color="primary" onClick = {handleDownload}>
+            <DownloadIcon />
+            <Typography> Download </Typography>
+          </IconButton>
+        </div>
+        }
+      </Box>
     </Paper>
   );
 }
