@@ -2,13 +2,15 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
+import {templateTransform} from '../../../utils/template';
+
 import User from '../../../schemas/User';
 import Project from '../../../schemas/Project';
 import Evaluation from '../../../schemas/Evaluation';
 import Dataset from "../../../schemas/Dataset";
 import Template from "../../../schemas/Template";
 import ProviderModel from "../../../schemas/ProviderModel";
-import e from "cors";
+import { stringify } from 'csv-stringify';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -56,8 +58,8 @@ export default async function handler(request, response) {
     const templateData = request.body.templateData;
     const outputColumn = request.body.outputColumn;
     const stopSequence = request.body.stopSequence;
-    let maxTokens = request.body.maxTokens;
-    let temperature = request.body.temperature;
+    const maxTokens = request.body.maxTokens;
+    const temperature = request.body.temperature;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -70,9 +72,6 @@ export default async function handler(request, response) {
     if (!project) {
       throw createError(400,'Project not found');
     }
-
-    //maxTokens = project.type === "classification" ? 10 : maxTokens;
-    //temperature = project.type === "classification" ? 0.0 : temperature;
 
     const prev = await Evaluation.findOne({name: name, projectId: project._id});
 
@@ -130,25 +129,6 @@ export default async function handler(request, response) {
 
     let classes = new Set();
 
-    const templateTransform = (templateString, finetuneInputData) => {
-        const regex = /{{.*}}/g;
-        const matches = templateString.match(regex);
-        if (project.type === "classification") {
-            classes.add(finetuneInputData[outputColumn]);
-        }
-
-        let result = templateString;
-        matches.forEach((match) => {
-          const strippedMatch = match.substring(2, match.length - 2);
-          if (strippedMatch in finetuneInputData) {
-            result = result.replace(match, finetuneInputData[strippedMatch]);
-          } else {
-            result = result.replace(match, '');
-          }
-        });
-        return result;
-    }
-
     let fileName;
     if (dataset.valFileName) {
       fileName = dataset.valFileName;
@@ -165,16 +145,18 @@ export default async function handler(request, response) {
     let requests = [];
     let references = [];
     let completions = [];
+    let uploadData = [["input","label","prediction"]];
     console.log(json_output.length);
 
     // Openai base models
     if (providerModel.provider === "openai") {
       for (let i=0; i<json_output.length; i++) {
         let r;
+        const prompt = templateTransform(templateString, json_output[i]);
         if (completionName === 'gpt-3.5-turbo') {
           r = openai.createChatCompletion({
             model: completionName,
-            messages: [{role: 'user', content: templateTransform(templateString, json_output[i])}],
+            messages: [{role: 'user', content: prompt}],
             max_tokens: maxTokens,
             temperature: temperature,
             stop: stopSequence,
@@ -182,24 +164,26 @@ export default async function handler(request, response) {
         } else {
           r = openai.createCompletion({
             model: completionName,
-            prompt: templateTransform(templateString, json_output[i]),
+            prompt: prompt,
             max_tokens: maxTokens,
             temperature: temperature,
             stop: stopSequence,
           });
         }
+        uploadData.push([prompt, json_output[i][outputColumn],''])
         requests.push(r);
         references.push(json_output[i][outputColumn]);
       }
     } else { // Cohere models
       for (let i=0; i<json_output.length; i++) {
+        const prompt = templateTransform(templateString, json_output[i]);
         const generateResponse = cohere.generate({
           prompt: templateTransform(templateString, json_output[i]),
           max_tokens: maxTokens,
           model: completionName.split('-')[1],
           temperature: temperature,
         });
-
+        uploadData.push([prompt, json_output[i][outputColumn],''])
         requests.push(generateResponse);
         references.push(json_output[i][outputColumn]);
       }
@@ -207,22 +191,50 @@ export default async function handler(request, response) {
 
     const results = await Promise.all(requests);
 
+    console.log("Retrieved results from provider");
+
     let totalTokens = 0;
     let cost;
     
     if (providerModel.provider === "openai") {
-      results.map((completion) => {
-        completions.push(completion.data.choices[0].text.trim());
+      results.map((completion, i) => {
+        const completionText = completion.data.choices[0].text.trim()
+        completions.push(completionText);
         totalTokens += completion.data.usage.total_tokens;
+        uploadData[i+1][2] = completionText;
       });
       cost = totalTokens * providerModel.completionCost / 1000;
     } else {
-      results.map((completion) => {
-        completions.push(completion.body.generations[0].text.trim());
+      results.map((completion, i) => {
+        const completionText = completion.body.generations[0].text.trim()
+        completions.push(completionText);
+        uploadData[i+1][2] = completionText;
       });
     }
 
-    console.log("Retrieved results from provider");
+
+    stringify(uploadData, function (err, csvContent) {
+      if (err) {
+        console.log('Error converting data to CSV:', err);
+        return;
+      }
+      
+      const uploadParams = {
+        ACL: 'public-read',
+        Body: csvContent,
+        Bucket: S3_BUCKET,
+        Key: 'predictions/' + String(newEvaluationId) + '.csv',
+      };
+
+      myBucket.upload(uploadParams, function (err, data) {
+        if (err) {
+          console.log('Error uploading file:', err);
+        } else {
+          console.log('File uploaded successfully. File location:', data.Location);
+        }
+      });
+      
+    });
 
     classes = Array.from(classes);
 
@@ -299,6 +311,7 @@ export default async function handler(request, response) {
 
   } catch (error) {
     console.error(error);
+    // TODO: update so that this is only done if there was an error in calculating metrics
     if (didReturn) {
       await Evaluation.findByIdAndUpdate(newEvaluationId, {
         status: "failed"
