@@ -50,6 +50,7 @@ export async function getServerSideProps(context) {
 }
 
 export default function AddDataset() {
+  const [uploadError, setUploadError] = useState('');
   const [error, setError] = useState();
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileVal, setSelectedFileVal] = useState(null);
@@ -70,27 +71,38 @@ export default function AddDataset() {
   const handleFileInput = (e) => {
     console.log(e.target.files[0]);
     const f = e.target.files[0];
-    const reader = new FileReader();
-    reader.readAsText(f);
-    reader.onload = function(event) {
-      const data = event.target.result;
-      // Get the headers by splitting first row of CSV
-      let h = data.split('\n')[0].split(',');
-      setHeaders(h);
+    if (f.size > 1 * 1024 * 1024) {
+      setUploadError('File size exceeds the limit of 256 MB');
+    } else {
+      setUploadError('');
+      const reader = new FileReader();
+      reader.readAsText(f);
+      reader.onload = function(event) {
+        const data = event.target.result;
+        // Get the headers by splitting first row of CSV
+        let h = data.split('\n')[0].split(',');
+        setHeaders(h);
+      }
+      setSelectedFile(f);
+      Papa.parse(f, { complete: function(results) {
+        console.log("Number of rows:", results.data.length);
+        setNumTrainExamples(results.data.length);
+        setNumValExamples(parseInt(results.data.length / 5));
+        console.log(results);
+      }, header: true, skipEmptyLines: true});
+      uploadFile(f);
     }
-    setSelectedFile(f);
-    Papa.parse(f, { complete: function(results) {
-      console.log("Number of rows:", results.data.length);
-      setNumTrainExamples(results.data.length);
-      setNumValExamples(parseInt(results.data.length / 5));
-      console.log(results);
-    }, header: true, skipEmptyLines: true});
-    uploadFile(f);
   }
 
   const handleFileInputVal = (e) => {
-    setSelectedFileVal(e.target.files[0]);
-    uploadFileVal(e.target.files[0]);
+    const f = e.target.files[0];
+    if (f.size > 256 * 1024 * 1024) {
+      setUploadError('File size exceeds the limit of 256 MB');
+    } else {
+      setUploadError('');
+      setSelectedFileVal(f);
+      uploadFileVal(f);
+    }
   }
 
   const uploadFile = (file) => {
@@ -251,6 +263,7 @@ export default function AddDataset() {
               <div className='medium-space' />
               <div className="file-input">
                 <div className='vertical-box'>
+                  {uploadError ? <Typography variant='body2' color='red'>Error: {uploadError}</Typography> : null}
                   <div className='horizontal-box'>
                     <Button variant="outlined" color="primary" component="label">
                       Upload training data
@@ -294,6 +307,7 @@ export default function AddDataset() {
               <div className='medium-space' />
               <div className="file-input">
                 <div className='vertical-box'>
+                {uploadError ? <Typography variant='body2' color='red'>Error: {uploadError}</Typography> : null}
                   <Button variant="outlined" color="primary" component="label" disabled={autoGenerateVal}>
                     Upload validation data
                     <input type="file" accept=".csv, .json" onChange={handleFileInputVal}  hidden/>
