@@ -3,6 +3,10 @@ import { authOptions } from "../auth/[...nextauth]"
 
 import Evaluation from '../../../schemas/Evaluation';
 import User from '../../../schemas/User';
+import Dataset from '../../../schemas/Dataset';
+import Model from '../../../schemas/Model';
+import Template from '../../../schemas/Template';
+import ProviderModel from '../../../schemas/ProviderModel';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -26,84 +30,37 @@ export default async function handler(request, response) {
     await mongoose.connect(process.env.MONGOOSE_URI);
 
     const user =  await User.findOne({email: session.user.email});
-    if (!user) {
-      throw createError(400,'User not found');
+    if (!user) { throw createError(400, 'User not found'); }
+
+    const evaluation =  await Evaluation.findOne({_id: id, userId: user._id});
+    if (!evaluation) { throw createError(400, 'Evaluation not found'); }
+
+    const dataset =  await Dataset.findOne({_id: evaluation.datasetId});
+    const model =  await Model.findOne({_id: evaluation.modelId});
+    let modelTemplate;
+    if (model) modelTemplate =  await Template.findOne({_id: model.templateId});
+    const template =  await Template.findOne({_id: evaluation.templateId});
+    const providerModel =  await ProviderModel.findOne({_id: evaluation.providerModelId});
+
+    const ret = {
+      _id: evaluation._id,
+      name: evaluation.name,
+      description: evaluation.description,
+      datasetId: evaluation.datasetId,
+      modelId: evaluation.modelId,
+      datasetName: dataset.name,
+      modelName: model && model.name,
+      metrics: evaluation.metrics,
+      metricResults: evaluation.metricResults,
+      trainingEvaluation: evaluation.trainingEvaluation,
+      templateString: template && template.templateString,
+      classes: modelTemplate && modelTemplate.classes || template && template.classes,
+      completionName: providerModel && providerModel.completionName,
     }
 
-    const evaluation = await Evaluation
-      .aggregate([
-        {
-          $match: { _id: new ObjectId(id), userId: user._id }
-        },
-        {
-          $lookup: {
-            from: "datasets",
-            localField: "datasetId",
-            foreignField: "_id",
-            as: "dataset"
-          }
-        },
-        {
-          $lookup: {
-            from: "models",
-            localField: "modelId",
-            foreignField: "_id",
-            as: "model"
-          }
-        },
-        {
-          $lookup: {
-            from: "templates",
-            localField: "templateId",
-            foreignField: "_id",
-            as: "template"
-          }
-        },
-        {
-          $lookup: {
-            from: "providerModels",
-            localField: "providerModelId",
-            foreignField: "_id",
-            as: "providerModel"
-          }
-        },
-        {
-          $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
-        },
-        {
-          $unwind: { path: "$model", preserveNullAndEmptyArrays: true }
-        },
-        {
-          $unwind: { path: "$template", preserveNullAndEmptyArrays: true }
-        },
-        {
-          $unwind: { path: "$providerModel", preserveNullAndEmptyArrays: true }
-        },
-        {
-          $project: {
-            _id: "$_id",
-            name: "$name",
-            datasetId: "$datasetId",
-            datasetName: "$dataset.name",
-            modelId: "$modelId",
-            modelName: "$model.name",
-            description: "$description",
-            metrics: "$metrics",
-            metricResults: "$metricResults",
-            trainingEvaluation: "$trainingEvaluation",
-            templateString: "$template.templateString",
-            completionName: "$providerModel.completionName",
-          }
-        }
-    ]);
-
-    if (evaluation.length === 0) {
-      throw createError(400, 'Evaluation not found')
-    }
-
-    response.status(200).send(evaluation[0]);
-    return;
+    response.status(200).send(ret);
   } catch (error) {
+    console.log(error);
     if (!error.status) {
       error = createError(500, 'Error creating evaluation');
     }

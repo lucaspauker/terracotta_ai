@@ -227,9 +227,8 @@ export default function Data() {
               What is a dataset?
             </Typography>
             <Typography variant='body1'>
-              A dataset is your data that you can use to finetune a large language model (LLM).
-              Datasets consist of two columns: <span className='italic'>input</span> and
-              <span className='italic'>output</span>.
+              A dataset is used to finetune a large language model (LLM).
+              Each dataset must be uploaded as a CSV file.
             </Typography>
             <div className='medium-space'/>
 

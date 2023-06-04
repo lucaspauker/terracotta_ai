@@ -15,7 +15,8 @@ const BarGraph = ({ evaluations, selected }) => {
   const allMetrics = evaluations.reduce((metrics, evaluation) => {
     return metrics.concat(evaluation.metrics || []);
   }, []);
-  const uniqueMetrics = [...new Set(allMetrics)];
+  let uniqueMetrics = [...new Set(allMetrics)];
+  uniqueMetrics = uniqueMetrics.filter(m => m !== 'confusion');
   const [selectedMetrics, setSelectedMetrics] = useState(uniqueMetrics);
   const colors = ['#6fbdf0', '#339665', '#ed6548', '#853973'];
 
@@ -72,6 +73,8 @@ const BarGraph = ({ evaluations, selected }) => {
       datasets: [dataset],
     };
 
+    console.log(data);
+
     const options = {
       indexAxis: 'y', // Display bars horizontally
       responsive: true,
@@ -92,7 +95,7 @@ const BarGraph = ({ evaluations, selected }) => {
     return (
       <div key={metric}>
         <Typography>{metricFormat(metric)}</Typography>
-        <Bar data={data} options={options} height={evaluations.length * 16} />
+        <Bar data={data} options={options} height={evaluations.length * 32} />
       </div>
     );
   });

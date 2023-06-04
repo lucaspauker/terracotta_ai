@@ -276,7 +276,7 @@ export default function ModelPage() {
                 <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
                 <div className='small-space'/>
                 <div className='horizontal-box-grid'>
-                  {e.metrics.map(metric => (
+                  {e.metrics.map(metric => (metric !== 'confusion') && (
                     <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
                       <Typography variant='h6' sx={{fontWeight: 'bold'}}>
                         {metricFormat(metric)}

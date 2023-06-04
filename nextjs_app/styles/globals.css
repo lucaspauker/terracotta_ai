@@ -1,5 +1,6 @@
 @import 'homepage/index.css';
 @import 'auth/index.css';
+@import 'evaluate/index.css';
 @import 'playground/index.css';
 
 html {
@@ -469,7 +470,6 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fill, 200px);
   grid-gap: 1em;
-  justify-content: center;
   width: 100%;
 }
 
