@@ -23,6 +23,7 @@ import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
+import {createCustomTooltip} from '../../components/CustomToolTip.js';
 
 import {
   testElementsInList,
@@ -33,7 +34,7 @@ import {
   generationMetrics
 } from '/components/utils';
 
-const steps = ['Select Dataset and Model', 'Select Metrics', 'Review'];
+const steps = ['Select Dataset and Model', 'Select Generation Parameters', 'Select Metrics', 'Review'];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -67,6 +68,8 @@ export default function DoEvaluate() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState('');
   const [metrics, setMetrics] = useState([]);
+  const [maxTokens, setMaxTokens] = useState(50);
+  const [temperature, setTemperature] = useState(0.5);
   const { data: session } = useSession();
   const router = useRouter()
 
@@ -189,12 +192,12 @@ export default function DoEvaluate() {
   const isNextDisabled = (i) => {
     if (i === 0) {
       return  !dataset || !model;
-    } else if (i === 1) {
-      return false;
     } else if (i === 2) {
+      return false;
+    } else if (i === 3) {
       return name === '';
     }
-    return true;
+    return false;
   }
 
   const handleReset = () => {
@@ -299,6 +302,38 @@ export default function DoEvaluate() {
           : null}
 
           {activeStep === 1 ?
+              <>
+                <Typography variant='h6'>
+                  Specify generation parameters
+                </Typography>
+                <div className='medium-space' />
+                <div className='vertical-box'>
+                  <div className='horizontal-box'>
+                  <TextField
+                    label="Max tokens"
+                    variant="outlined"
+                    className='text-label'
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(e.target.value)}
+                  />
+                  {createCustomTooltip("The maximum number of tokens to generate per prediction")}
+                  </div>
+                  <div className='small-space' />
+                  <div className='horizontal-box'>
+                  <TextField
+                    label="Temperature"
+                    variant="outlined"
+                    className='text-label'
+                    value={temperature}
+                    onChange={(e) => setTemperature(e.target.value)}
+                  />
+                  {createCustomTooltip("Higher temperature means more random output while lower temperature means more deterministic output")}
+                  </div>
+                </div>
+              </>
+            : null}
+
+          {activeStep === 2 ?
             <>
               <Typography variant='h6'>
                 Metrics
@@ -315,7 +350,7 @@ export default function DoEvaluate() {
             </>
           : null}
 
-          {activeStep === 2 ?
+          {activeStep === 3 ?
             <>
               <Typography variant='h6'>
                 Review your evaluation

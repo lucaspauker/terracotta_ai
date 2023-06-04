@@ -67,10 +67,11 @@ export default async function handler(request, response) {
     const shuffle = request.body.shuffle || false;  // Shuffle will return maxLines number of inputs
     const shuffleMaxLines = request.body.shuffleMaxLines || 50;  // How many lines will be read before shuffling.
                                                                  // This should be bigger than maxLines
+    const s3Folder = request.body.s3Folder || 'raw_data';
 
     const params = {
       Bucket: S3_BUCKET,
-      Key: 'raw_data/' + fileName,
+      Key: s3Folder + '/' + fileName,
     };
 
     console.log("Retrieving file: " + 'raw_finetune_data/' + request.body.fileName);

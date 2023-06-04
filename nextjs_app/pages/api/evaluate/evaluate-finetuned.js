@@ -11,6 +11,7 @@ import Dataset from "@/schemas/Dataset";
 import Template from "@/schemas/Template";
 import Model from "@/schemas/Model";
 import ProviderModel from "@/schemas/ProviderModel";
+import { stringify } from 'csv-stringify';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -52,6 +53,8 @@ export default async function handler(request, response) {
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;
     const metrics = request.body.metrics;
+    const maxTokens = request.body.maxTokens;
+    const temperature = request.body.temperature;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -102,6 +105,10 @@ export default async function handler(request, response) {
       metricResults: null,
       trainingEvaluation: false,
       status: "evaluating",
+      parameters: {
+        maxTokens: maxTokens,
+        temperature: temperature,
+      }
     })
     newEvaluationId = newEvaluation._id;
     console.log(newEvaluation);
@@ -123,21 +130,26 @@ export default async function handler(request, response) {
     const stream = myBucket.getObject(params).createReadStream();
     const json_output = await csv().fromStream(stream);
 
-    let completions = [];
+    
 
     const template = await Template.findById(model.templateId);
+    const templateString = template.templateString;
 
+    let completions = [];
     let requests = [];
     let references = [];
-    const templateString = template.templateString;
+    let uploadData = [["Input","Label","Prediction"]];
+
     for (let i=0; i<json_output.length; i++) {
+      const prompt = templateTransform(templateString, json_output[i]);
       const r = openai.createCompletion({
         model: model.providerData.modelId,
-        prompt: templateTransform(templateString, json_output[i]),
-        max_tokens: project.type === "classification" ? 10 : 100,
-        temperature: 0,
+        prompt: prompt,
+        max_tokens: maxTokens,
+        temperature: temperature,
         stop: template.stopSequence,
       });
+      uploadData.push([prompt, json_output[i][template.outputColumn],''])
       requests.push(r);
       references.push(json_output[i][template.outputColumn]);
     }
@@ -146,11 +158,36 @@ export default async function handler(request, response) {
     console.log("Retrieved results from OpenAI");
 
     let totalTokens = 0;
-    results.map((completion) => {
-      completions.push(completion.data.choices[0].text.trim());
+    results.map((completion, i) => {
+      const completionText = completion.data.choices[0].text.trim();
+      completions.push(completionText);
       totalTokens += completion.data.usage.total_tokens;
+      uploadData[i+1][2] = completionText;
     });
     const cost = totalTokens * pmodel.finetuneCompletionCost / 1000;
+
+    stringify(uploadData, function (err, csvContent) {
+      if (err) {
+        console.log('Error converting data to CSV:', err);
+        return;
+      }
+      
+      const uploadParams = {
+        ACL: 'public-read',
+        Body: csvContent,
+        Bucket: S3_BUCKET,
+        Key: 'predictions/' + String(newEvaluationId) + '.csv',
+      };
+
+      myBucket.upload(uploadParams, function (err, data) {
+        if (err) {
+          console.log('Error uploading file:', err);
+        } else {
+          console.log('File uploaded successfully. File location:', data.Location);
+        }
+      });
+      
+    });
 
     let metricResults = {}
     if (project.type === "classification") {
