@@ -60,6 +60,7 @@ export default async function handler(request, response) {
     const stopSequence = request.body.stopSequence;
     const maxTokens = request.body.maxTokens;
     const temperature = request.body.temperature;
+    const classes = request.body.classes;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -126,8 +127,6 @@ export default async function handler(request, response) {
     const regex = /{{.*}}/g;
     const matches = templateString.match(regex);
     const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
-
-    let classes = new Set();
 
     let fileName;
     if (dataset.valFileName) {
@@ -218,7 +217,7 @@ export default async function handler(request, response) {
         console.log('Error converting data to CSV:', err);
         return;
       }
-      
+
       const uploadParams = {
         ACL: 'public-read',
         Body: csvContent,
@@ -233,11 +232,7 @@ export default async function handler(request, response) {
           console.log('File uploaded successfully. File location:', data.Location);
         }
       });
-      
     });
-
-    classes = Array.from(classes);
-
 
     // move this to after evaluation?
     const template = await Template.create({

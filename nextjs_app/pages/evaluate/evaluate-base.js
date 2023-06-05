@@ -27,7 +27,15 @@ import { useRouter } from 'next/router'
 import { FaArrowLeft } from 'react-icons/fa';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';
 
-import {toTitleCase, baseModelNamesDict, metricFormat, classificationMetrics, generationMetrics, multiclassClassificationMetrics} from '/components/utils';
+import {
+  getPriceString,
+  toTitleCase,
+  baseModelNamesDict,
+  metricFormat,
+  classificationMetrics,
+  generationMetrics,
+  multiclassClassificationMetrics
+} from '/components/utils';
 import TemplateCreator from '../../components/TemplateCreator.js';
 
 const steps = ['Select Dataset and Model', 'Create Template', 'Select Generation Parameters','Select Metrics', 'Review'];
@@ -63,12 +71,12 @@ export default function DoEvaluate() {
   const [checked, setChecked] = useState({});
   const [model, setModel] = useState("");
   const [metrics, setMetrics] = useState([]);
-  const [estimatedCost, setEstimatedCost] = useState(0);
+  const [estimatedCost, setEstimatedCost] = useState('');
   const { data: session } = useSession();
   const router = useRouter()
 
   const [maxTokens, setMaxTokens] = useState(50);
-  const [temperature, setTemperature] = useState(0.5);
+  const [temperature, setTemperature] = useState(0);
 
   // Variables for the template
   const [templateString, setTemplateString] = useState('');
@@ -81,37 +89,6 @@ export default function DoEvaluate() {
   const [errorMessage, setErrorMessage] = useState('')
   const [evalData, setEvalData] = useState({});
   const [templateData, setTemplateData] = useState({});
-
-  const templateTransform = (row) => {
-    if (templateString !== '' && errorMessage === '') {
-      const regex = /{{.*}}/g;
-      const matches = templateString.match(regex);
-      let result = templateString;
-      matches.forEach((match) => {
-        result = result.replace(match, row[match.replace('{{','').replace('}}','')]);
-      });
-      return result;
-    } else {
-      return "";
-    }
-  }
-
-  const estimateCost = (tempTemplateData) => {
-    axios.post("/api/models/finetune/cost", {
-        provider: provider,
-        modelArchitecture: modelArchitecture,
-        epochs: hyperParams["n_epochs"],
-        templateData: tempTemplateData,
-      }).then((res) => {
-        setEstimatedCost(res.data.estimatedCost);
-        console.log("response data")
-        console.log(res.data);
-        setError();
-      }).catch((error) => {
-        console.log(error);
-        setError(error.response.data);
-      });
-  }
 
   const toggleChecked = (id) => {
     let updatedChecked = Object.assign({}, checked);
@@ -152,6 +129,7 @@ export default function DoEvaluate() {
       stopSequence: stopSequence,
       maxTokens: maxTokens,
       temperature: temperature,
+      classes: classes,
     }).then((res) => {
       console.log(res.data);
       setError();
@@ -200,6 +178,17 @@ export default function DoEvaluate() {
     return skipped.has(step);
   };
 
+  const estimateCost = (tempTemplateData) => {
+    axios.post("/api/evaluate/base-cost", {
+        modelName: model,
+        templateData: tempTemplateData,
+      }).then((res) => {
+        setEstimatedCost(res.data.estimatedCost);
+      }).catch((err) => {
+        setEstimatedCost('Unavailable')
+      });
+  }
+
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
@@ -242,14 +231,24 @@ export default function DoEvaluate() {
 
     if (activeStep === 1) {
       setName(baseModelNamesDict[model].replace(/ /g, "-") + " on " + dataset.name.replace(/ /g, "-"));
-      let numWords = 0;
-      let numChars = 0;
-      evalData.forEach((row) => {
-        numWords += templateTransform(row).split(" ").length + row[outputColumn].split(" ").length;
-        numChars += templateTransform(row).length + row[outputColumn].length + stopSequence.length;
+
+      axios.post("/api/models/finetune/num-tokens", {
+        data: evalData,
+        template: templateString,
+        outputColumn: outputColumn,
+        stopSequence: stopSequence,
+        totalDataPoints: dataset.valFileName ? dataset.numValExamples : dataset.numTrainExamples,
+      }).then((res) => {
+        const numValTokens = res.data.numTokens;
+
+        const tempTemplateData = {
+          numValTokens: numValTokens,
+        };
+        setTemplateData(tempTemplateData);
+        estimateCost(tempTemplateData);
+      }).catch((error) => {
+        console.log(error);
       });
-      const tempTemplateData = {numTrainWords: numWords, numTrainChars: numChars, numValWords: 0, numValChars: 0};
-      setTemplateData(tempTemplateData);
 
       // Find the number of classes in the output column
       if (projectType === "classification") {
@@ -267,8 +266,6 @@ export default function DoEvaluate() {
           console.log(error);
         });
       }
-
-      //estimateCost(tempTemplateData);
     }
 
     if (isStepSkipped(activeStep)) {
@@ -452,8 +449,7 @@ export default function DoEvaluate() {
                   </div>
                 </div>
               </>
-            : null}   
-          
+            : null}
 
           {activeStep === 3 ?
             <>
@@ -504,6 +500,7 @@ export default function DoEvaluate() {
                                         (isChecked(m) ? metricFormat(m) : '') +
                                         (i !== metrics.length - 1 ? ', ' : '')
                                       )}</Typography>
+                <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
