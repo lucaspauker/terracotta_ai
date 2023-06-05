@@ -26,6 +26,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';
 
 import {
+  getPriceString,
   testElementsInList,
   toTitleCase,
   metricFormat,
@@ -69,7 +70,8 @@ export default function DoEvaluate() {
   const [model, setModel] = useState('');
   const [metrics, setMetrics] = useState([]);
   const [maxTokens, setMaxTokens] = useState(50);
-  const [temperature, setTemperature] = useState(0.5);
+  const [temperature, setTemperature] = useState(0);
+  const [estimatedCost, setEstimatedCost] = useState('')
   const { data: session } = useSession();
   const router = useRouter()
 
@@ -159,7 +161,19 @@ export default function DoEvaluate() {
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
-      setName(model.name.replace(/ /g, "-") + ' on ' + dataset.replace(/ /g, "-"));
+      setName(model.name.replace(/ /g, "-") + ' on ' + dataset.name.replace(/ /g, "-"));
+
+      // Get evaluation cost
+      console.log(model._id);
+      console.log(dataset._id);
+      axios.post("/api/evaluate/finetune-cost", {
+        modelId: model._id,
+        datasetId: dataset._id,
+      }).then((res) => {
+        setEstimatedCost(res.data);
+      }).catch((error) => {
+        console.log(error);
+      });
     }
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
@@ -287,7 +301,7 @@ export default function DoEvaluate() {
                         disabled={datasets.length === 0}
                       >
                         {datasets.map((d) => (
-                          <MenuItem key={d._id} value={d.name}>{d.name}</MenuItem>
+                          <MenuItem key={d._id} value={d}>{d.name}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -376,12 +390,13 @@ export default function DoEvaluate() {
               />
               <div className='medium-space' />
               <div className='light-background-card'>
-                <Typography>Dataset: {dataset}</Typography>
+                <Typography>Dataset: {dataset.name}</Typography>
                 <Typography>Model: {model.name}</Typography>
                 <Typography>Metrics: {metrics.map((m, i) =>
                                         (isChecked(m) ? metricFormat(m) : '') +
                                         (i !== metrics.length - 1 ? ', ' : '')
                                       )}</Typography>
+                <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

@@ -3,7 +3,6 @@ import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
 const csv = require('csvtojson');
-// const client = new MongoClient(process.env.MONGODB_URI);
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 
@@ -74,7 +73,7 @@ export default async function handler(request, response) {
       Key: s3Folder + '/' + fileName,
     };
 
-    console.log("Retrieving file: " + 'raw_finetune_data/' + request.body.fileName);
+    console.log("Retrieving file: " + 'raw_data/' + request.body.fileName);
 
     const stream = myBucket.getObject(params).createReadStream();
 

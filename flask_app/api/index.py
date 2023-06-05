@@ -99,6 +99,7 @@ def classification_metrics():
             else:
                 cm_classes = classes
             cm = confusion_matrix(references, completions, labels=cm_classes).tolist()
+            if is_misc_class: cm = cm[:-1]
 
             metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1, 'confusion': cm}
 

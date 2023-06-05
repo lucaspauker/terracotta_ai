@@ -5,7 +5,7 @@ import User from "../../../../schemas/User";
 
 import {templateTransform} from "../../../../utils/template";
 const createError = require('http-errors');
-const {encode, decode} = require('gpt-3-encoder')
+const {encode} = require('gpt-3-encoder')
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
