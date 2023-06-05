@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import axios from 'axios';
+
 import { saveAs } from 'file-saver';
 
 function DataTable({ headers, rawData, downloadId, downloadName}) {
@@ -94,7 +95,9 @@ function DataTable({ headers, rawData, downloadId, downloadName}) {
                     }}
                   >
                     <div className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                      {row[header]}
+                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
+                        {row[header]}
+                      </Typography>
                     </div>
                   </TableCell>
                 ))}
@@ -116,10 +119,10 @@ function DataTable({ headers, rawData, downloadId, downloadName}) {
         />
         {downloadId &&
         <div className = 'horizontal-box'>
-          <IconButton color="primary" onClick = {handleDownload}>
+          <IconButton sx={{color: 'black'}} onClick={handleDownload} className='button-margin' >
             <DownloadIcon />
-            <Typography> Download </Typography>
           </IconButton>
+          <Typography> Download </Typography>
         </div>
         }
       </Box>

@@ -54,7 +54,7 @@ export default async function handler(request, response) {
     const projectName = request.body.projectName;
     const metrics = request.body.metrics;
     const maxTokens = request.body.maxTokens;
-    const temperature = request.body.temperature;
+    const temperature = Number(request.body.temperature);
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -129,8 +129,6 @@ export default async function handler(request, response) {
     };
     const stream = myBucket.getObject(params).createReadStream();
     const json_output = await csv().fromStream(stream);
-
-    
 
     const template = await Template.findById(model.templateId);
     const templateString = template.templateString;

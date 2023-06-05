@@ -119,12 +119,7 @@ export default async function handler(request, response) {
 
     console.log(numTokens + ' tokens found');
 
-    let estimatedCost;
-    if (isFinetuned) {
-      estimatedCost = (numTokens / 1000) * providerModel.finetuneCompletionCost;
-    } else {
-      estimatedCost = (numTokens / 1000) * providerModel.completionCost;
-    }
+    const estimatedCost = (numTokens / 1000) * providerModel.finetuneCompletionCost;
 
     console.log('Estimated cost: ' + estimatedCost);
 

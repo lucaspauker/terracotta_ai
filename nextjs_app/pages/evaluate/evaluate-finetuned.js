@@ -106,8 +106,10 @@ export default function DoEvaluate() {
         description: description,
         projectName: p,
         modelName: model.name,
-        datasetName: dataset,
+        datasetName: dataset.name,
         metrics: metrics.filter(x => checked[x]),
+        temperature: temperature,
+        maxTokens: maxTokens,
       }).then((res) => {
         console.log(res.data);
         setError();

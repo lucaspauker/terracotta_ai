@@ -3,6 +3,14 @@
   flex-direction: column;
 }
 
+.confusion-outer {
+  display: flex;
+  justify-content: center;
+  border: 1px solid grey;
+  border-radius: 4px;
+  padding: 50px;
+}
+
 .confusion-lr {
   display: flex;
   flex-direction: row;

@@ -27,8 +27,6 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { FaArrowLeft } from 'react-icons/fa';
 import { BiShuffle, BiCopy, BiInfoCircle } from 'react-icons/bi';
 
-import { formatTextForTypography } from './utils';
-
 function TemplateCreator({
       templateString,
       stopSequence,
