@@ -298,6 +298,17 @@ a {
   border-radius: 3px; /* Add border radius */
 }
 
+.dark-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: grey;
+  border-radius: 3px; /* Add border radius */
+}
+
 
 .form-label {
   max-width: 500px;

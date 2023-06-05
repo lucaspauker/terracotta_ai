@@ -28,7 +28,9 @@ export default async function handler(request, response) {
       throw createError(400,'User not found');
     }
 
-    const projects = await Project.find({userId: user._id});
+    const projects = await Project
+      .find({userId: user._id})
+      .sort({timeCreated: -1});
     if (!projects) {
       throw createError(400,'Projects not found');
     }

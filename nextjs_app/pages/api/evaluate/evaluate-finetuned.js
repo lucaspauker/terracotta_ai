@@ -53,7 +53,7 @@ export default async function handler(request, response) {
     const modelName = request.body.modelName;
     const projectName = request.body.projectName;
     const metrics = request.body.metrics;
-    const maxTokens = request.body.maxTokens;
+    const maxTokens = Number(request.body.maxTokens);
     const temperature = Number(request.body.temperature);
 
     await mongoose.connect(process.env.MONGOOSE_URI);

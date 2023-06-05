@@ -75,7 +75,7 @@ export default function EvaluationDatasetPage() {
               evaluation.status === "succeeded" &&
               <div key={evaluation._id}>
                 <Card
-                  className={selected[evaluation._id] ? 'evaluation-card cursor-pointer active' : 'evaluation-card cursor-pointer'}
+                  className={selected[evaluation._id] ? 'dark-scrollbar evaluation-card cursor-pointer active' : 'dark-scrollbar evaluation-card cursor-pointer'}
                   onClick={() => handleEvaluationCardClick(evaluation._id)}
                   style={{width: 250, marginRight: 10, marginTop: 4, marginLeft: 4}}
                 >

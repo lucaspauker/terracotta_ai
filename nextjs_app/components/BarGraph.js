@@ -29,16 +29,18 @@ const BarGraph = ({ evaluations, selected }) => {
   };
 
   const checkboxes = uniqueMetrics.map((metric) => (
-    <FormControlLabel
-      key={metric}
-      control={
-        <Checkbox
-          checked={selectedMetrics.includes(metric)}
-          onChange={() => handleMetricChange(metric)}
-        />
-      }
-      label={metricFormat(metric)}
-    />
+    <div>
+      <FormControlLabel
+        key={metric}
+        control={
+          <Checkbox
+            checked={selectedMetrics.includes(metric)}
+            onChange={() => handleMetricChange(metric)}
+          />
+        }
+        label={metricFormat(metric)}
+      />
+    </div>
   ));
 
   const graphComponents = selectedMetrics.map((metric, index) => {
@@ -95,7 +97,7 @@ const BarGraph = ({ evaluations, selected }) => {
     return (
       <div key={metric}>
         <Typography>{metricFormat(metric)}</Typography>
-        <Bar data={data} options={options} height={evaluations.length * 32} />
+        <Bar data={data} options={options} height={evaluations.length * 28} />
       </div>
     );
   });

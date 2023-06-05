@@ -22,6 +22,7 @@ const InputApiBox = ({provider, apiKey, setKey, showPassword, setShowPassword,
     updateApiKeys, saveChecked}) => (
   <div className='horizontal-box'>
     <TextField
+      size='small'
       label={provider === 'openai' ? "OpenAI API key" : "Cohere API key"}
       variant="outlined"
       className='text-label center'
@@ -121,7 +122,7 @@ export default function Settings() {
               setChecked={saveOpenAiChecked}
               saveChecked={saveOpenAiChecked}
             />
-            <div className='small-space'/>
+            <div className='medium-space'/>
             <InputApiBox
               provider="cohere"
               apiKey={cohereKey}

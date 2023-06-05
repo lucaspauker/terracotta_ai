@@ -263,7 +263,7 @@ export default function ModelPage() {
               rawData={predictionData}
               downloadId={"predictions/" + window.location.href.split('/').pop() + ".csv"}
               downloadName = {evaluation.name + "_predictions.csv"}
-            /> : <CircularProgress />}
+            /> : <div className='horizontal-box'><CircularProgress /></div>}
         </TabPanel>
       </>
       }
