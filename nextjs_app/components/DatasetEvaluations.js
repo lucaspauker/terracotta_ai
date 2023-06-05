@@ -27,6 +27,7 @@ import MenuComponent from "components/MenuComponent";
 import { getPriceString, calculateColor, timestampToDateTimeShort, metricFormat, baseModelNamesDict } from '/components/utils';
 import { FaArrowRight } from 'react-icons/fa';
 import { BiInfoCircle } from 'react-icons/bi';
+import { BsFillCircleFill } from 'react-icons/bs';
 import {CustomTooltip} from 'components/CustomToolTip.js';
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
@@ -106,7 +107,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                 Compare evaluations&nbsp;&nbsp; <FaArrowRight />
               </Button>
               {evaluations[datasetDataPoint.name].length <= 1 &&
-                <CustomTooltip title="💡 Create another evaluation to compare evaluations.">
+                <CustomTooltip title="💡 Create another evaluation with the same dataset to compare evaluations.">
                   <IconButton disableRipple={true}>
                     <BiInfoCircle size={16} color='#9C2315'/>
                   </IconButton>
@@ -163,19 +164,16 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                           <TableCell>
                             {e.metricResults ?
                               <div className='metrics-cell'>
-                                {e.metrics.map(m => <div key={m} className='metric-in-table'>
-                                  <span className='metric-in-table-text' style={{backgroundColor: calculateColor(e.metricResults[m])}}>
-                                    {metricFormat(m)}
-                                </span></div>)}
+                                {e.metrics.map(m => (m !== 'confusion') &&
+                                  <div key={m} className='horizontal-box flex-start'>
+                                    <BsFillCircleFill  style={{color: calculateColor(e.metricResults[m]), marginTop: 1}} />
+                                    <span className='metric-in-table-text'>
+                                      {metricFormat(m)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                              :
-                              <div className='metrics-cell'>
-                                {e.metrics.map(m => <div key={m} className='metric-in-table'>
-                                  <span className='metric-in-table-text'>
-                                    {metricFormat(m)}
-                                  </span></div>)}
-                              </div>
-                            }
+                              : null }
                           </TableCell>
                           <TableCell>
                             <MenuComponent

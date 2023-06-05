@@ -169,7 +169,7 @@ export default async function handler(request, response) {
         console.log('Error converting data to CSV:', err);
         return;
       }
-      
+
       const uploadParams = {
         ACL: 'public-read',
         Body: csvContent,
@@ -184,7 +184,6 @@ export default async function handler(request, response) {
           console.log('File uploaded successfully. File location:', data.Location);
         }
       });
-      
     });
 
     let metricResults = {}
@@ -211,6 +210,7 @@ export default async function handler(request, response) {
           throw new Error("Metric type not supported");
         }
       }
+      metricResults['confusion'] = tempMetricResults['confusion'];
     } else if (project.type === "generative") {
       // Call flask app
       let url = process.env.FLASK_URL + "/evaluate_nlp";
@@ -255,7 +255,7 @@ export default async function handler(request, response) {
         error = createError(500, 'Error creating evaluation');
       }
       response.status(error.status).json({ error: error.message });
-    } 
+    }
   }
 }
 

@@ -22,6 +22,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
+import ReactSpeedometer from "react-d3-speedometer/slim"
 import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
 import DataTable from '../../components/DataTable';
 
@@ -69,7 +70,7 @@ function ConfusionMatrix({ evaluation }) {
               <Typography>{item}</Typography>
             </div>
           ))}
-          {evaluation.metricResults['confusion'].length > evaluation.classes.length &&
+          {evaluation.metricResults['confusion'][0].length > evaluation.classes.length &&
             <div className="grid-cell header-cell">
               <Typography>Misc</Typography>
             </div>
@@ -102,15 +103,24 @@ function EvaluationsTab({ evaluation }) {
     <div>
       <div className='horizontal-box-grid'>
         {evaluation.metrics && evaluation.metrics.map(metric => (metric !== 'confusion') && (  // Handle conf matrix separately
-          <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(evaluation.metricResults[metric])}}>
+          <Paper className="metric-box" key={metric}>
             <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
             <div className='small-space'/>
-            <Typography variant='h6'>
-              {metric === 'accuracy' ?
-                parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
-                parseFloat(evaluation.metricResults[metric]).toFixed(2)}
-            </Typography>
-          </div>
+            <div className='vertical-box'>
+              <Typography variant='h6'>
+                {metric === 'accuracy' ?
+                  parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
+                  parseFloat(evaluation.metricResults[metric]).toFixed(2)}
+              </Typography>
+              <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
+                segments={5}
+                value={Number(evaluation.metricResults[metric].toFixed(2))}
+                needleColor={'black'} textColor={'black'}
+                currentValueText={''} segmentValueFormatter={(x) => ''}
+                textColor={'white'}
+              />
+            </div>
+          </Paper>
         ))}
       </div>
     </div>
@@ -234,7 +244,7 @@ export default function ModelPage() {
           <EvaluationsTab evaluation={evaluation}/>
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
-          {evaluation.metrics.includes('confusion') &&
+          {'confusion' in evaluation.metricResults &&
             <div className='confusion-outer'>
               <div className='confusion-lr'>
                 <Typography sx={{fontWeight: 'bold', marginTop: '100px'}}>True labels</Typography>

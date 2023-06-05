@@ -194,7 +194,7 @@ export default async function handler(request, response) {
 
     let totalTokens = 0;
     let cost;
-    
+
     if (providerModel.provider === "openai") {
       results.map((completion, i) => {
         const completionText = completion.data.choices[0].text.trim()
@@ -269,6 +269,7 @@ export default async function handler(request, response) {
           throw new Error("Metric type not supported");
         }
       }
+      metricResults['confusion'] = tempMetricResults['confusion'];
     } else if (project.type === "generative") {
       // Call flask app
       let url = process.env.FLASK_URL + "/evaluate_nlp";

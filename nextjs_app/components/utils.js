@@ -30,10 +30,16 @@ export function toTitleCase(str) {
 }
 
 export const calculateColor = (inputValue) => {
-  const red = Math.round((1 - inputValue) * 255);
-  const green = Math.round(inputValue * 255);
-  const blue = Math.min(120, Math.round(inputValue * 255));
-  return `rgb(${red}, ${green}, ${blue})`;
+  const colors = [
+      "#57bb8a", "#63b682", "#73b87e", "#84bb7b", "#94bd77",
+      "#a4c073", "#b0be6e", "#c4c56d", "#d4c86a", "#e2c965",
+      "#f5ce62", "#f3c563", "#e9b861", "#e6ad61", "#ecac67",
+      "#e9a268", "#e79a69", "#e5926b", "#e2886c", "#e0816d",
+      "#dd776e"
+    ];
+
+  const index = Math.round((1 - inputValue) * (colors.length - 1));
+  return colors[index];
 };
 
 export const formatTextForTypography = (text) => {
@@ -82,7 +88,7 @@ export const baseModelNamesDict = {
 }
 
 export const classificationMetrics = ['accuracy', 'precision', 'recall', 'f1'];
-export const multiclassClassificationMetrics = ['accuracy', 'weighted f1', 'confusion'];
+export const multiclassClassificationMetrics = ['accuracy', 'weighted f1'];
 export const generationMetrics = ['bleu', 'rougel'];
 
 export function testElementsInList(A, B) {
