@@ -115,7 +115,7 @@ function EvaluationsTab({ evaluation }) {
               <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
                 segments={5}
                 value={Number(evaluation.metricResults[metric].toFixed(2))}
-                needleColor={'black'} textColor={'black'}
+                needleColor={'black'}
                 currentValueText={''} segmentValueFormatter={(x) => ''}
                 textColor={'white'}
               />
