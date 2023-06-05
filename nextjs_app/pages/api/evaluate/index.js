@@ -91,7 +91,9 @@ export default async function handler(request, response) {
             cost: "$cost",
           }
         }
-      ]).toArray();
+      ])
+      .sort({timeCreated: -1})
+      .toArray();
 
     response.status(200).json(evals);
   } catch (e) {

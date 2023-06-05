@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 const createError = require('http-errors');
 const mongoose = require('mongoose');
-import Project from '../../../schemas/Project';  
+import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
 import Dataset from '../../../schemas/Dataset';
 
@@ -34,7 +34,9 @@ export default async function handler(request, response) {
       throw createError(400,'Project not found');
     }
 
-    const datasets = await Dataset.find({userId: userId, projectId: project._id});
+    const datasets = await Dataset
+      .find({userId: userId, projectId: project._id})
+      .sort({timeCreated: -1});
 
     response.status(200).json(datasets);
   } catch (error) {

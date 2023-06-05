@@ -68,16 +68,17 @@ export default async function handler(request, response) {
 
 
     let models = await Model.find({userId: userId, projectId: projectId}).populate(
-      {
-        path: 'datasetId',
-        select: 'name',
-      }
-    ).populate(
-      {
-        path: 'templateId',
-        select: 'templateString fields classes'
-      }
-    );
+        {
+          path: 'datasetId',
+          select: 'name',
+        }
+      ).populate(
+        {
+          path: 'templateId',
+          select: 'templateString fields classes'
+        }
+      )
+      .sort({timeCreated: -1});
 
     for (let i=0; i<models.length; i++) {
       let model = models[i];
