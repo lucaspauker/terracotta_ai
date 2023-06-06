@@ -71,7 +71,7 @@ export default function AddDataset() {
   const handleFileInput = (e) => {
     console.log(e.target.files[0]);
     const f = e.target.files[0];
-    if (f.size > 1 * 1024 * 1024) {
+    if (f.size > 256 * 1024 * 1024) {
       setUploadError('File size exceeds the limit of 256 MB');
     } else {
       setUploadError('');

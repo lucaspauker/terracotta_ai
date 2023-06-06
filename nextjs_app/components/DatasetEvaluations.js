@@ -94,7 +94,11 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
             defaultExpanded={true}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">{datasetDataPoint.name}&nbsp;&nbsp;&nbsp;&nbsp;</Typography>
+              <Typography variant="h6" onClick={e => e.stopPropagation()}>
+                <Link className='link' href={"/data/" + datasetDataPoint.id}>
+                  {datasetDataPoint.name}&nbsp;&nbsp;&nbsp;&nbsp;
+                </Link>
+              </Typography>
               <Button
                 size="small"
                 variant='outlined'
@@ -122,7 +126,6 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                         <TableCell className='table-cell'>Name</TableCell>
                         <TableCell className='table-cell'>Date created</TableCell>
                         <TableCell className='table-cell'>Model name</TableCell>
-                        <TableCell className='table-cell'>Dataset name</TableCell>
                         <TableCell className='table-cell'>Cost</TableCell>
                         <TableCell className='table-cell'>Metrics</TableCell>
                         <TableCell className='table-cell'></TableCell>
@@ -159,7 +162,6 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                               <>{baseModelNamesDict[e.providerCompletionName]}</>
                             }
                           </TableCell>
-                          <TableCell><Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></TableCell>
                           <TableCell>{"cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
                           <TableCell>
                             {e.metricResults ?

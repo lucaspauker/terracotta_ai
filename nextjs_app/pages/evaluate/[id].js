@@ -234,8 +234,8 @@ export default function ModelPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabIndex} onChange={(e, v) => setTabIndex(v)} aria-label="tabs" centered>
             <Tab label="Metrics" {...a11yProps(0)} />
-            {'confusion' in evaluation.metricResults ?  <Tab label="Confusion Matrix" {...a11yProps(1)} /> : null}
-            <Tab label="Completions" {...a11yProps(2)} />
+            <Tab label="Completions" {...a11yProps(1)} />
+            {'confusion' in evaluation.metricResults ?  <Tab label="Confusion Matrix" {...a11yProps(2)} /> : null}
           </Tabs>
         </Box>
         <div className='small-space' />
@@ -244,6 +244,15 @@ export default function ModelPage() {
           <EvaluationsTab evaluation={evaluation}/>
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
+          {predictionData?
+            <DataTable
+              headers={headers}
+              rawData={predictionData}
+              downloadId={"predictions/" + window.location.href.split('/').pop() + ".csv"}
+              downloadName = {evaluation.name + "_predictions.csv"}
+            /> : <div className='horizontal-box'><CircularProgress /></div>}
+        </TabPanel>
+        <TabPanel value={tabIndex} index={2}>
           {'confusion' in evaluation.metricResults && evaluation.metricResults['confusion'] &&
             <div className='confusion-outer'>
               <div className='confusion-lr'>
@@ -255,15 +264,6 @@ export default function ModelPage() {
               </div>
             </div>
           }
-        </TabPanel>
-        <TabPanel value={tabIndex} index={2}>
-          {predictionData?
-            <DataTable
-              headers={headers}
-              rawData={predictionData}
-              downloadId={"predictions/" + window.location.href.split('/').pop() + ".csv"}
-              downloadName = {evaluation.name + "_predictions.csv"}
-            /> : <div className='horizontal-box'><CircularProgress /></div>}
         </TabPanel>
       </>
       }

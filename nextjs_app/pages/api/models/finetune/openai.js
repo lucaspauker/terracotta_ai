@@ -289,7 +289,7 @@ export default async function handler(request, response) {
     response.status(200).send();
 
   } catch (error) {
-    console.error(error);
+    console.log(error);
     if (error.code === 11000) {
       error = createError(400, 'Another model with the same name exists in this project');
       response.status(error.status).json({ error: error.message });

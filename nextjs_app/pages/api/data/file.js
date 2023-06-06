@@ -73,7 +73,7 @@ export default async function handler(request, response) {
       Key: s3Folder + '/' + fileName,
     };
 
-    console.log("Retrieving file: " + 'raw_data/' + request.body.fileName);
+    console.log("Retrieving file: " + s3Folder + '/' + fileName);
 
     const stream = myBucket.getObject(params).createReadStream();
 

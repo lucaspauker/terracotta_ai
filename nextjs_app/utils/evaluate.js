@@ -25,6 +25,7 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
       const delay = (remainingTokens / maxTokensPerMinute) * 60000;
 
       await new Promise(resolve => setTimeout(resolve, delay));
+      tokensUsed -= promptTokens;
     }
 
     requestQueue.push({ prompt, timestamp: currentTimestamp });
@@ -39,12 +40,13 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
         await new Promise(resolve => setTimeout(resolve, delay));
 
         requestQueue.shift();
+        tokensUsed -= promptTokens;
       }
     }
   }
 
 
-  const batchSize = 8;  // Number of parallel requests
+  const batchSize = 32;  // Number of parallel requests
   const numBatches = Math.ceil(prompts.length / batchSize);
   const results = [];
   const numRequestRetries = 3; // Maximum number of request retries
@@ -62,7 +64,6 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
 
       while (retryCount <= numRequestRetries) {
         try {
-          console.log("Sending request");
           if (model === 'gpt-3.5-turbo') {
             result = openai.createChatCompletion({
               model: model,

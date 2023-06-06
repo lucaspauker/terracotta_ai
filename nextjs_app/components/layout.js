@@ -29,15 +29,19 @@ const theme = createTheme({
     },
     h1: {
       fontFamily: bebas.style.fontFamily,
+      letterSpacing: '2px',
     },
     h2: {
       fontFamily: bebas.style.fontFamily,
+      letterSpacing: '2px',
     },
     h3: {
       fontFamily: bebas.style.fontFamily,
+      letterSpacing: '1px',
     },
     h4: {
       fontFamily: bebas.style.fontFamily,
+      letterSpacing: '1px',
     },
   },
   palette: {

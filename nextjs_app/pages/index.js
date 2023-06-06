@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -8,6 +10,9 @@ import { Layout, SimpleLayout } from '../components/layout'
 import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
 import { GiClayBrick } from 'react-icons/gi';
 import { BsCheckLg } from 'react-icons/bs';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import CalculateIcon from '@mui/icons-material/Calculate';
 import axios from 'axios';
 
 export default function Home() {
@@ -42,7 +47,9 @@ export default function Home() {
 
         <div className='main-box'>
           <Typography className='main-box-header'>Finetune large language models fast and easily</Typography>
-          <Typography className='main-box-subheader'>With Terracotta, quickly finetune powerful models such as GPT-3</Typography>
+          <Typography className='main-box-subheader'>
+            With Terracotta, supercharge your LLM development workflow through our easy-to-use platform.
+          </Typography>
         </div>
       </div>
       <div className='information'>
@@ -51,19 +58,103 @@ export default function Home() {
           <Typography variant="h3" className='part-header'>Manage many models</Typography>
           <Typography className='part-subtext'>Manage all your finetuned models in one place.</Typography>
         </div>
-
         <div className='information-element'>
           <FlashOn className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Iterate quickly</Typography>
           <Typography className='part-subtext'>Improve models with easy qualitative and quantitative evaluation.</Typography>
         </div>
-
         <div className='information-element'>
           <Cloud className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Multiple providers</Typography>
           <Typography className='part-subtext'>Connect to OpenAI and Cohere.</Typography>
         </div>
       </div>
+
+      <Divider className='homepage-divider' />
+
+      <Typography variant='h2' className="homepage-subtitle">How does Terracotta work?</Typography>
+      <div className='workflow-boxes'>
+        <div className='workflow-box'>
+          <div className="screenshot-container">
+            <Box
+              component='img'
+              src='view_data_screenshot.png'
+              alt='Data view screenshot'
+              className='homepage-screenshot'
+            />
+          </div>
+          <div className='screenshot-text-container'>
+            <div className='vertical-box flex-start'>
+              <div className='medium-space'/>
+              <Typography variant='h3' className='horizontal-box'>
+                <CloudUploadIcon sx={{fontSize: 64, marginRight: 2, marginBottom: 1}} />
+                Upload your data
+              </Typography>
+              <div className='small-space' />
+              <Typography variant='body1' className='workflow-body'>
+                The first step in the process of finetuning a large language model
+                is to upload your data.
+                At the core of good models is good data.
+                Use Terracotta to securely store your data to later use for fine-tuning a model.
+              </Typography>
+            </div>
+          </div>
+        </div>
+        <div className='workflow-box'>
+          <div className='screenshot-text-container'>
+            <div className='vertical-box flex-start'>
+              <Typography variant='h3' className='horizontal-box'>
+                <RocketLaunchIcon sx={{fontSize: 64, marginRight: 2, marginBottom: 1}} />
+                Finetune models
+              </Typography>
+              <div className='small-space' />
+              <Typography variant='body1' className='workflow-body'>
+                Finetune models on your data for both classification and text
+                generation.
+                We make the process of finetuning a model as easy as a few clicks.
+              </Typography>
+            </div>
+          </div>
+          <div className="screenshot-container">
+            <Box
+              component='img'
+              src='model_screenshot.png'
+              alt='Models view screenshot'
+              className='homepage-screenshot-left'
+            />
+          </div>
+        </div>
+        <div className='workflow-box'>
+          <div className="screenshot-container">
+            <div className='offset-box'>
+              <Box
+                component='img'
+                src='evaluation_screenshot.png'
+                alt='Evaluation view screenshot'
+                className='homepage-screenshot'
+              />
+            </div>
+          </div>
+          <div className='screenshot-text-container'>
+            <div className='vertical-box flex-start'>
+              <Typography variant='h3' className='horizontal-box'>
+                <CalculateIcon sx={{fontSize: 64, marginRight: 2, marginBottom: 1}} />
+                Create evaluations
+              </Typography>
+              <div className='small-space' />
+              <Typography variant='body1' className='workflow-body'>
+                Compare your models both qualitatively and quantitatively. For
+                qualitative evaluation, feed prompts to various models at the same
+                time and compare the model outputs. For quantitative evaluation, use
+                our tool to evaluate models on datasets with a variety of evaluation
+                metrics including accuracy, BLEU, and confusion matrices.
+              </Typography>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Divider className='homepage-divider' />
 
       <div className='email-list-form'>
         <div className='vertical-box' style={{alignItems:'flex-start'}}>
