@@ -2,14 +2,15 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
-import {templateTransform} from '../../../utils/template';
+import {templateTransform} from '@/utils/template';
+import {dispatchOpenAIRequests} from '@/utils/evaluate';
 
-import User from '../../../schemas/User';
-import Project from '../../../schemas/Project';
-import Evaluation from '../../../schemas/Evaluation';
-import Dataset from "../../../schemas/Dataset";
-import Template from "../../../schemas/Template";
-import ProviderModel from "../../../schemas/ProviderModel";
+import User from '@/schemas/User';
+import Project from '@/schemas/Project';
+import Evaluation from '@/schemas/Evaluation';
+import Dataset from "@/schemas/Dataset";
+import Template from "@/schemas/Template";
+import ProviderModel from "@/schemas/ProviderModel";
 import { stringify } from 'csv-stringify';
 
 const createError = require('http-errors');
@@ -148,31 +149,17 @@ export default async function handler(request, response) {
     console.log(json_output.length);
 
     // Openai base models
+    let results;
     if (providerModel.provider === "openai") {
+      let inputPrompts = [];
       for (let i=0; i<json_output.length; i++) {
-        let r;
         const prompt = templateTransform(templateString, json_output[i]);
-        if (completionName === 'gpt-3.5-turbo') {
-          r = openai.createChatCompletion({
-            model: completionName,
-            messages: [{role: 'user', content: prompt}],
-            max_tokens: maxTokens,
-            temperature: temperature,
-            stop: stopSequence,
-          });
-        } else {
-          r = openai.createCompletion({
-            model: completionName,
-            prompt: prompt,
-            max_tokens: maxTokens,
-            temperature: temperature,
-            stop: stopSequence,
-          });
-        }
+        inputPrompts.push(prompt);
         uploadData.push([prompt, json_output[i][outputColumn],''])
-        requests.push(r);
         references.push(json_output[i][outputColumn]);
       }
+      results = await dispatchOpenAIRequests(openai, inputPrompts, completionName,
+                                             maxTokens, temperature, stopSequence);
     } else { // Cohere models
       for (let i=0; i<json_output.length; i++) {
         const prompt = templateTransform(templateString, json_output[i]);
@@ -186,9 +173,8 @@ export default async function handler(request, response) {
         requests.push(generateResponse);
         references.push(json_output[i][outputColumn]);
       }
+      results = await Promise.all(requests);
     }
-
-    const results = await Promise.all(requests);
 
     console.log("Retrieved results from provider");
 
@@ -196,12 +182,21 @@ export default async function handler(request, response) {
     let cost;
 
     if (providerModel.provider === "openai") {
-      results.map((completion, i) => {
-        const completionText = completion.data.choices[0].text.trim()
-        completions.push(completionText);
-        totalTokens += completion.data.usage.total_tokens;
-        uploadData[i+1][2] = completionText;
-      });
+      if (completionName === 'gpt-3.5-turbo') {
+        results.map((completion, i) => {
+          const completionText = completion.data.choices[0].message.content.trim()
+          completions.push(completionText);
+          totalTokens += completion.data.usage.total_tokens;
+          uploadData[i+1][2] = completionText;
+        });
+      } else {
+        results.map((completion, i) => {
+          const completionText = completion.data.choices[0].text.trim()
+          completions.push(completionText);
+          totalTokens += completion.data.usage.total_tokens;
+          uploadData[i+1][2] = completionText;
+        });
+      }
       cost = totalTokens * providerModel.completionCost / 1000;
     } else {
       results.map((completion, i) => {
@@ -210,7 +205,6 @@ export default async function handler(request, response) {
         uploadData[i+1][2] = completionText;
       });
     }
-
 
     stringify(uploadData, function (err, csvContent) {
       if (err) {
