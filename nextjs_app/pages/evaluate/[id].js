@@ -104,9 +104,9 @@ function EvaluationsTab({ evaluation }) {
       <div className='horizontal-box-grid'>
         {evaluation.metrics && evaluation.metrics.map(metric => (metric !== 'confusion') && (  // Handle conf matrix separately
           <Paper className="metric-box" key={metric}>
-            <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
-            <div className='small-space'/>
             <div className='vertical-box'>
+              <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
+              <div className='small-space'/>
               <Typography variant='h6'>
                 {metric === 'accuracy' ?
                   parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
@@ -244,7 +244,7 @@ export default function ModelPage() {
           <EvaluationsTab evaluation={evaluation}/>
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
-          {'confusion' in evaluation.metricResults &&
+          {'confusion' in evaluation.metricResults && evaluation.metricResults['confusion'] &&
             <div className='confusion-outer'>
               <div className='confusion-lr'>
                 <Typography sx={{fontWeight: 'bold', marginTop: '100px'}}>True labels</Typography>

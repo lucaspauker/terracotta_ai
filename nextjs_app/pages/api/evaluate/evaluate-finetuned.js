@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
 
-import {templateTransform} from '../../../utils/template';
+import {templateTransform} from '@/utils/template';
+import {dispatchOpenAIRequests} from '@/utils/evaluate';
 
 import User from '@/schemas/User';
 import Project from '@/schemas/Project';
@@ -15,12 +16,11 @@ import { stringify } from 'csv-stringify';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
-
+const { Configuration, OpenAIApi } = require("openai");
 const csv = require('csvtojson');
+
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
-
-const { Configuration, OpenAIApi } = require("openai");
 
 AWS.config.update({
   accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
@@ -138,21 +138,16 @@ export default async function handler(request, response) {
     let references = [];
     let uploadData = [["Input","Label","Prediction"]];
 
+    let inputPrompts = [];
     for (let i=0; i<json_output.length; i++) {
       const prompt = templateTransform(templateString, json_output[i]);
-      const r = openai.createCompletion({
-        model: model.providerData.modelId,
-        prompt: prompt,
-        max_tokens: maxTokens,
-        temperature: temperature,
-        stop: template.stopSequence,
-      });
+      inputPrompts.push(prompt);
       uploadData.push([prompt, json_output[i][template.outputColumn],''])
-      requests.push(r);
       references.push(json_output[i][template.outputColumn]);
     }
 
-    const results = await Promise.all(requests);
+    const results = await dispatchOpenAIRequests(openai, inputPrompts, model.providerData.modelId,
+                                                 maxTokens, temperature, template.stopSequence);
     console.log("Retrieved results from OpenAI");
 
     let totalTokens = 0;
