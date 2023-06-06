@@ -29,9 +29,8 @@ const BarGraph = ({ evaluations, selected }) => {
   };
 
   const checkboxes = uniqueMetrics.map((metric) => (
-    <div>
+    <div key={metric}>
       <FormControlLabel
-        key={metric}
         control={
           <Checkbox
             checked={selectedMetrics.includes(metric)}
