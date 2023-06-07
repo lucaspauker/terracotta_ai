@@ -163,14 +163,12 @@ export default function Train() {
   }
 
   const shuffleData = () => {
-    setDatasetLoading(true);
     axios.post("/api/data/file", {
       fileName: dataset.trainFileName,
       maxLines: 50,
       shuffle: true,
     }).then((json_data) => {
       setTrainData(json_data.data);
-      setDatasetLoading(false);
     }).catch((error) => {
       console.log(error);
     });

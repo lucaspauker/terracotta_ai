@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getSession, useSession } from "next-auth/react"
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -51,6 +52,23 @@ const InputApiBox = ({provider, apiKey, setKey, showPassword, setShowPassword,
     }
   </div>
 );
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);

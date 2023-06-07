@@ -18,6 +18,23 @@ import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { calculateColor } from '/components/utils';
 
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
 export default function EditModelPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

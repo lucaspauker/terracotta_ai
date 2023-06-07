@@ -31,8 +31,26 @@ import axios from 'axios';
 
 import DataTable from '../../components/DataTable';
 
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
 export default function DataPage() {
   const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [dataset, setDataset] = useState({name: '', type: 'classification'});
   const [error, setError] = useState('');
   const [type, setType] = useState('classification');
@@ -76,7 +94,7 @@ export default function DataPage() {
   }
 
   const shuffleData = () => {
-    setLoading(true);
+    setDataLoading(true);
     if (trainOrVal === 'train') {
       // Get train file from S3
       axios.post("/api/data/file", {
@@ -86,7 +104,7 @@ export default function DataPage() {
         }).then((json_data) => {
           setRawData(json_data.data);
           setInputTrainData(json_data.data);
-          setLoading(false);
+          setDataLoading(false);
         }).catch((error) => {
           console.log(error);
         });
@@ -99,7 +117,7 @@ export default function DataPage() {
         }).then((json_data) => {
           setRawData(json_data.data);
           setInputValData(json_data.data);
-          setLoading(false);
+          setDataLoading(false);
         }).catch((error) => {
           console.log(error);
         });
@@ -122,6 +140,7 @@ export default function DataPage() {
           setInputTrainData(json_data.data);
           setHeaders(Object.keys(json_data.data[0]));
           setLoading(false);
+          setDataLoading(false);
         }).catch((error) => {
           console.log(error);
         });
@@ -189,14 +208,9 @@ export default function DataPage() {
         </div>
 
         <div className='horizontal-box full-width'>
-          <div className='horizontal-box'>
-            <Typography variant='h6'>
-              View data
-            </Typography>
-            <IconButton color="primary" onClick={shuffleData}>
-              <BiShuffle />
-            </IconButton>
-          </div>
+          <IconButton color="primary" onClick={shuffleData}>
+            <BiShuffle />
+          </IconButton>
           {inputValData ? <ToggleButtonGroup
             value={trainOrVal}
             exclusive
@@ -216,7 +230,11 @@ export default function DataPage() {
         </div>
         <div className='tiny-space' />
 
-        <DataTable headers={headers} rawData={rawData} />
+        {dataLoading ?
+          <div className='horizontal-box'><CircularProgress /></div>
+          :
+          <DataTable headers={headers} rawData={rawData} />
+        }
         <div className='medium-space' />
       </>
     }

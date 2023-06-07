@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { styled } from '@mui/material/styles';
+import { getSession, useSession } from "next-auth/react"
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -33,6 +34,23 @@ import {baseModelNamesDict} from '/components/utils';
 const providers = ['openai', 'cohere'];
 const providerNameDict = {'openai':'OpenAI','cohere':'Cohere'}
 const initialModelState = {};
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 export default function Playground() {
   const [provider, setProvider] = useState('openai');

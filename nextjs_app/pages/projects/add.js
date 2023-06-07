@@ -13,7 +13,6 @@ import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-
 export async function getServerSideProps(context) {
   const session = await getSession(context)
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
@@ -21,6 +22,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
+import { BiShuffle } from 'react-icons/bi';
 import { Line } from 'react-chartjs-2';
 import ReactSpeedometer from "react-d3-speedometer/slim"
 import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
@@ -127,8 +129,26 @@ function EvaluationsTab({ evaluation }) {
   );
 }
 
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
 export default function ModelPage() {
   const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [evaluation, setEvaluation] = useState([]);
@@ -156,6 +176,23 @@ export default function ModelPage() {
     });
   }
 
+  const shuffleData = () => {
+    setDataLoading(true);
+    const last = window.location.href.split('/').pop();  // This is a hack
+    axios.post("/api/data/file", {
+      fileName: last + '.csv',
+      maxLines: 50,
+      s3Folder: "predictions",
+      shuffle: true,
+    }).then((json_data) => {
+      setPredictionData(json_data.data);
+      setHeaders(Object.keys(json_data.data[0]));
+      setDataLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
 
@@ -175,6 +212,7 @@ export default function ModelPage() {
     }).then((json_data) => {
       setPredictionData(json_data.data);
       setHeaders(Object.keys(json_data.data[0]));
+      setDataLoading(false);
     }).catch((error) => {
       console.log(error);
     });
@@ -245,7 +283,10 @@ export default function ModelPage() {
           <EvaluationsTab evaluation={evaluation}/>
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
-          {predictionData?
+          <IconButton color="primary" onClick={shuffleData}>
+            <BiShuffle />
+          </IconButton>
+          {!dataLoading && predictionData ?
             <DataTable
               headers={headers}
               rawData={predictionData}

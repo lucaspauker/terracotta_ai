@@ -48,6 +48,7 @@ function TemplateCreator({
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [models, setModels] = useState([]);
   const [templateModel, setTemplateModel] = useState('');
+  const [datasetLoading, setDatasetLoading] = useState(true);
 
   const handleChangePage = useCallback(
     (event, newPage) => {
@@ -137,9 +138,11 @@ function TemplateCreator({
   }, []);
 
   useEffect(() => {
+    setDatasetLoading(true);
     setPage(0);
     const updatedRows = trainData.slice(0, rowsPerPage);
     setVisibleRows(updatedRows);
+    setDatasetLoading(false);
   }, [trainData])
 
   return (
@@ -227,81 +230,88 @@ function TemplateCreator({
           </div>
         </div>
       </div>
-        <IconButton color="primary" onClick={shuffleData}>
+        <IconButton color="primary" onClick={() => {
+              setDatasetLoading(true);
+              shuffleData();
+            }}>
           <BiShuffle />
         </IconButton>
-        <div className="shadow">
-          <TableContainer>
-            <Table stickyHeader sx={{ minWidth: 650}}>
-              <TableHead>
-                <TableRow>
-                  {["Input Prompt", "Completion"].map((header, i) => (
-                    <TableCell
-                      key={i}
-                      align="center"
-                      style={{
-                        borderRight: i === headers.length - 1 ? 'none' : '1px dashed lightgrey',
-                        borderBottom: '3px solid #9C2315',
-                        borderTop: 'none',
-                        fontSize: '16px', // Increase font size for the header row
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {visibleRows.map((row,i) => (
-                  <TableRow
-                    key={i}
-                    sx={{
-                      '&:last-child td, &:last-child th': { border: 0 },
-                      overflow: 'auto',
-                    }}
-                  >
-                    <TableCell
-                      style={{
-                        borderRight: '1px dashed lightgrey',
-                        borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
-                      }}
-                      className = "half-table-cell"
-                    >
-                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
-                      {
-                        templateTransform(row)
-                      }
-                      </Typography>
-                    </TableCell>
-                    <TableCell
-                      style={{
-                        borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
-                        verticalAlign: 'top',
-                      }}
-                      className = "half-table-cell"
-                    >
-                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
-                      {outputColumn? row[outputColumn] : ""}
-                      {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
-                      </Typography>
-                    </TableCell>
+        {datasetLoading ?
+          <div className='horizontal-box'><CircularProgress /></div>
+          :
+          <div className="shadow">
+            <TableContainer>
+              <Table stickyHeader sx={{ minWidth: 650}}>
+                <TableHead>
+                  <TableRow>
+                    {["Input Prompt", "Completion"].map((header, i) => (
+                      <TableCell
+                        key={i}
+                        align="center"
+                        style={{
+                          borderRight: i === headers.length - 1 ? 'none' : '1px dashed lightgrey',
+                          borderBottom: '3px solid #9C2315',
+                          borderTop: 'none',
+                          fontSize: '16px', // Increase font size for the header row
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {header}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <Divider/>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={trainData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </div>
+                </TableHead>
+                <TableBody>
+                  {visibleRows.map((row,i) => (
+                    <TableRow
+                      key={i}
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        overflow: 'auto',
+                      }}
+                    >
+                      <TableCell
+                        style={{
+                          borderRight: '1px dashed lightgrey',
+                          borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                        }}
+                        className = "half-table-cell"
+                      >
+                        <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
+                        {
+                          templateTransform(row)
+                        }
+                        </Typography>
+                      </TableCell>
+                      <TableCell
+                        style={{
+                          borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                          verticalAlign: 'top',
+                        }}
+                        className = "half-table-cell"
+                      >
+                        <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
+                        {outputColumn? row[outputColumn] : ""}
+                        {outputColumn? <span style={{color:'lightgrey'}}>{stopSequence}</span>: null}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Divider/>
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={trainData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </div>
+        }
     </div>
   );
 }

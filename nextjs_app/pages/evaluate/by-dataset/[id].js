@@ -1,10 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'
+import { getSession, useSession } from "next-auth/react"
 import axios from 'axios';
 import { Button, CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
 import { FaArrowLeft } from 'react-icons/fa';
 import BarGraph from 'components/BarGraph';
 import {toTitleCase, metricFormat} from 'components/utils';
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 export default function EvaluationDatasetPage() {
   const [loading, setLoading] = useState(false);

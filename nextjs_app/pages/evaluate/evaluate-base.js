@@ -189,6 +189,18 @@ export default function DoEvaluate() {
       });
   }
 
+  const shuffleData = () => {
+    axios.post("/api/data/file", {
+      fileName: dataset.trainFileName,
+      maxLines: 50,
+      shuffle: true,
+    }).then((json_data) => {
+      setEvalData(json_data.data);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
   const handleNext = () => {
     let newSkipped = skipped;
     if (activeStep === 0) {
@@ -414,6 +426,7 @@ export default function DoEvaluate() {
                   headers={headers}
                   initialVisibleRows={visibleRows}
                   dataset={dataset}
+                  shuffleData={shuffleData}
                 />
               }
             </>

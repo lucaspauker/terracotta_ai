@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { getSession, useSession } from "next-auth/react"
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -12,6 +13,23 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 
 import {CustomTooltip} from '/components/CustomToolTip.js';
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
 
 const EvaluateSelect = () => {
   const router = useRouter();
