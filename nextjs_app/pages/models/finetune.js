@@ -475,7 +475,7 @@ export default function Train() {
                 <Typography>Provider: {provider === 'openai' ? 'OpenAI' : provider}</Typography>
                 <Typography>Architecture: {modelArchitecture}</Typography>
                 <Typography>Dataset: {dataset.name}</Typography>
-                <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
+                <Typography>Estimated cost: {estimatedCost === '' ? 'loading...' : getPriceString(Number(estimatedCost))}</Typography>
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

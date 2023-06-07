@@ -31,7 +31,7 @@ export default async function handler(request, response) {
       throw createError(400,'User not found');
     }
 
-    const model = await Model.updateOne({_id: id, userId: user_id}, {name: name});
+    const model = await Model.updateOne({_id: id, userId: user._id}, {name: name});
     if (!model) {
       response.status(400).json({error:"Model not found!"});
       return;
@@ -40,6 +40,7 @@ export default async function handler(request, response) {
     response.status(200).send(model);
     return;
   } catch (error) {
+    console.log(error);
     if (error.code === 11000) {
       error = createError(400, 'Another model with the same name exists in this project');
     } else if (!error.status) {

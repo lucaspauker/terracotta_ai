@@ -91,6 +91,13 @@ a {
   background: linear-gradient(to top left, RGB(254, 206, 168, 0.9), RGB(156, 45, 31, 0.9)), url('https://images.pexels.com/photos/207142/pexels-photo-207142.jpeg?cs=srgb&dl=pexels-pixabay-207142.jpg&fm=jpg') center/cover;
 }
 
+@media (max-width: 768px) {
+  .hero-image {
+    width: 100%;
+    border-bottom-left-radius: 0px;
+  }
+}
+
 .icon {
   width: 60px;
   height: 60px;

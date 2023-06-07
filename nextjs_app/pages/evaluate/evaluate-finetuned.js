@@ -398,7 +398,7 @@ export default function DoEvaluate() {
                                         (isChecked(m) ? metricFormat(m) : '') +
                                         (i !== metrics.length - 1 ? ', ' : '')
                                       )}</Typography>
-                <Typography>Estimated cost: {getPriceString(Number(estimatedCost))}</Typography>
+                <Typography>Estimated cost: {estimatedCost === '' ? 'loading...' : getPriceString(Number(estimatedCost))}</Typography>
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}

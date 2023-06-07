@@ -136,7 +136,7 @@ export default function ModelPage() {
   const [predictionData, setPredictionData] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
   const router = useRouter();
-  const { model_id } = router.query;
+  const { id } = router.query;
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -147,9 +147,10 @@ export default function ModelPage() {
   };
 
   const doDelete = () => {
-    axios.post("/api/models/delete/" + model_id).then((res) => {
+    const last = window.location.href.split('/').pop();  // This is a hack
+    axios.post("/api/evaluate/delete/" + last).then((res) => {
       console.log(res.data);
-      router.push('/models');
+      router.push('/evaluate');
     }).catch((error) => {
       console.log(error);
     });
@@ -273,7 +274,7 @@ export default function ModelPage() {
         onClose={handleClose}
       >
         <DialogTitle id="alert-dialog-title">
-          {"Delete model?"}
+          {"Delete evaluation?"}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">

@@ -68,45 +68,57 @@ def classification_metrics():
         references = json_data['references']
         classes = json_data['classes']
 
+        completions_with_misc = []
+        # We will have a "misc" class that represents any completion that is not in one of the
+        # input classes. This will make doing F1 and confusion matrix make more sense.
+        misc_class_name = "NULL"
+        if misc_class_name in classes: pass # Edge case
+
+        # Note: we assume that the references are well formed (ie in the classes)
+        is_misc_class = False
+        for i in range(len(completions)):
+            if completions[i] not in classes:
+                completions_with_misc.append(misc_class_name)
+                is_misc_class = True
+            else:
+                completions_with_misc.append(completions[i])
+
         metric_results = {}
         if len(classes) == 2: # Binary classification
             accuracy = accuracy_score(references, completions)
-
-            # Change all completions to be in the classes for recall, precision, and F1
-            completions = [x if x == classes[0] else classes[1] for x in completions]
-            recall = recall_score(references, completions, pos_label=classes[0], zero_division=0)
-            precision = precision_score(references, completions, pos_label=classes[0], zero_division=0)
-            f1 = f1_score(references, completions, pos_label=classes[0], zero_division=0)
-            metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall, 'precision': precision}
-        else: # Multiclass classification
-            accuracy = accuracy_score(references, completions)
-
-            # We will have a "misc" class that represents any completion that is not in one of the
-            # input classes. This will make doing F1 and confusion matrix make more sense.
-            misc_class_name = "NULL"
-            if misc_class_name in classes: pass # Edge case
 
             # Note: we assume that the references are well formed (ie in the classes)
             is_misc_class = False
             for i in range(len(completions)):
                 if completions[i] not in classes:
-                    completions[i] = misc_class_name
+                    completions[i] = classes[1]
                     is_misc_class = True
 
-            weighted_f1 = f1_score(references, completions, zero_division=0, average='weighted')
-            if is_misc_class:
-                cm_classes = classes + [misc_class_name]
-            else:
-                cm_classes = classes
-            cm = confusion_matrix(references, completions, labels=cm_classes).tolist()
+            recall = recall_score(references, completions, pos_label=classes[0], zero_division=0)
+            precision = precision_score(references, completions, pos_label=classes[0], zero_division=0)
+            f1 = f1_score(references, completions, pos_label=classes[0], zero_division=0)
+
+            if is_misc_class: classes = classes + [misc_class_name]
+            cm = confusion_matrix(references, completions_with_misc, labels=classes).tolist()
+            if is_misc_class: cm = cm[:-1]
+
+            metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall, 'precision': precision, 'confusion': cm}
+        else: # Multiclass classification
+
+            if is_misc_class: classes = classes + [misc_class_name]
+
+            accuracy = accuracy_score(references, completions)
+            weighted_f1 = f1_score(references, completions_with_misc, zero_division=0, average='weighted')
+
+            cm = confusion_matrix(references, completions_with_misc, labels=classes).tolist()
             if is_misc_class: cm = cm[:-1]
 
             metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1, 'confusion': cm}
 
         app.logger.info("Found metrics: " + json.dumps(metric_results))
+        print(metric_results)
         return jsonify({"metric_results": metric_results})
     except Exception as e:
-        print(e);
         app.logger.error(e)
         return jsonify({"error": str(e)})
 
