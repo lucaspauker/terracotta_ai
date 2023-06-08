@@ -2,7 +2,7 @@ import { IncomingForm } from 'formidable'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 import AWS from 'aws-sdk'
-import Project from '../../../schemas/Project';  
+import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
 import Dataset from '../../../schemas/Dataset';
 
@@ -104,7 +104,7 @@ export default async function handler(request, response) {
       // FIRST case: Automatically generate validation data from training data
       console.log("Generating val file with this many entries: " + numValExamples);
 
-      const inputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      const inputTrainFileDataJson = await csv({trim:false}).fromFile(inputData.files.trainFileData.filepath);
       const shuffled = inputTrainFileDataJson.sort(() => 0.5 - Math.random());
       let outputValFileDataJson = shuffled.slice(0, numValExamples);
       let outputTrainFileDataJson = shuffled.slice(numValExamples, shuffled.length);
@@ -118,7 +118,7 @@ export default async function handler(request, response) {
       // SECOND case: No validation file specified, so set entries to null in the database
       console.log("No validation file specified");
 
-      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      let outputTrainFileDataJson = await csv({trim:false}).fromFile(inputData.files.trainFileData.filepath);
       trainFileData = await jsonexport(outputTrainFileDataJson);
 
       valFileName = null;
@@ -127,22 +127,20 @@ export default async function handler(request, response) {
       // THIRD case: Both train and val files are specified
       console.log("Both train and validation files are specified");
 
-      let outputTrainFileDataJson = await csv().fromFile(inputData.files.trainFileData.filepath);
+      let outputTrainFileDataJson = await csv({trim:false}).fromFile(inputData.files.trainFileData.filepath);
       trainFileData = await jsonexport(outputTrainFileDataJson);
 
-      let outputValFileDataJson = await csv().fromFile(inputData.files.valFileData.filepath);
+      let outputValFileDataJson = await csv({trim:false}).fromFile(inputData.files.valFileData.filepath);
       valFileData = await jsonexport(outputValFileDataJson);
       numValExamples = outputValFileDataJson.length;
     }
 
     const trainParams = {
-      ACL: 'public-read',
       Body: trainFileData,
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + trainFileName,
     };
     const valParams = {
-      ACL: 'public-read',
       Body: valFileData,
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + valFileName,

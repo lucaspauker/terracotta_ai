@@ -90,16 +90,14 @@ export default function Evaluate() {
         projectName: p,
       }).then((res) => {
         console.log(res.data);
-        if (res.data !== "No data found") {
-          setEvals(groupByDatasets(res.data));
-          setPage(0);
-          const newPage = 0;
-          const updatedRows = res.data.slice(
-            newPage * rowsPerPage,
-            newPage * rowsPerPage + rowsPerPage,
-          );
-          setVisibleRows(updatedRows);
-        }
+        setEvals(groupByDatasets(res.data));
+        setPage(0);
+        const newPage = 0;
+        const updatedRows = res.data.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
         setLoading(false);
       }).catch((error) => {
         console.log(error);

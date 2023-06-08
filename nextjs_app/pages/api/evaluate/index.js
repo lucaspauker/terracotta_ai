@@ -38,7 +38,7 @@ export default async function handler(request, response) {
     const evals = await db.collection("evaluations")
       .aggregate([
         {
-          $match: { userId: userId, projectId: projectId, trainingEvaluation: false}
+          $match: { userId: userId, projectId: projectId }
         },
         {
           $lookup: {

@@ -77,7 +77,7 @@ export default async function handler(request, response) {
 
     const stream = myBucket.getObject(params).createReadStream();
 
-    const csvParser = csv();
+    const csvParser = csv({trim:false});
     let lines = [];
 
     const processStream = new Promise((resolve, reject) => {

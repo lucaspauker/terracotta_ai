@@ -79,7 +79,7 @@ export default async function handler(request, response) {
 
     let lines = [];
     const maxLines = 50;
-    const csvParser = csv();
+    const csvParser = csv({trim:false});
     const stream = myBucket.getObject(params).createReadStream();
     const processStream = new Promise((resolve, reject) => {
       stream

@@ -116,7 +116,7 @@ function EvaluationsTab({ evaluation }) {
               </Typography>
               <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
                 segments={5}
-                value={Number(evaluation.metricResults[metric].toFixed(2))}
+                value={Number(evaluation.metricResults[metric]).toFixed(2)}
                 needleColor={'black'}
                 currentValueText={''} segmentValueFormatter={(x) => ''}
                 textColor={'white'}
@@ -273,7 +273,7 @@ export default function ModelPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabIndex} onChange={(e, v) => setTabIndex(v)} aria-label="tabs" centered>
             <Tab label="Metrics" {...a11yProps(0)} />
-            <Tab label="Completions" {...a11yProps(1)} />
+            {!evaluation.trainingEvaluation ?  <Tab label="Completions" {...a11yProps(1)} /> : null}
             {'confusion' in evaluation.metricResults ?  <Tab label="Confusion Matrix" {...a11yProps(2)} /> : null}
           </Tabs>
         </Box>

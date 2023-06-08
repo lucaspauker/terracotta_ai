@@ -106,7 +106,6 @@ export default async function handler(request, response) {
           // Upload the results file to S3
           const resultsFileName = 'openai_results_data/' + model._id + '.csv';
           const openAiParams = {
-            ACL: 'public-read',
             Body: response.data,
             Bucket: S3_BUCKET,
             Key: resultsFileName,

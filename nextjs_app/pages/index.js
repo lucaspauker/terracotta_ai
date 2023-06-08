@@ -156,10 +156,20 @@ export default function Home() {
 
       <Divider className='homepage-divider' />
 
+      <div className='vertical-box'>
+        <Typography variant='h2' className="homepage-subtitle">Our Team</Typography>
+        <Typography variant='body1'>
+          Terracotta was created by <Link className='link' href='https://www.linkedin.com/in/beri-kohen-behar-321302193/'>Beri Kohen</Link> and <Link className='link' href='https://www.linkedin.com/in/lucas-pauker-7b4571150/'>Lucas Pauker</Link>, two Stanford AI students excited about LLMs.
+        </Typography>
+      </div>
+
+      <div className='homepage-space' />
+      <Divider className='homepage-divider' />
+
       <div className='email-list-form'>
         <div className='vertical-box' style={{alignItems:'flex-start'}}>
           <Typography variant="h3" className="email-header">Sign up for our email list</Typography>
-          <Typography className="part-subtext">We will keep you updated about what we are working on.</Typography>
+          <Typography className="part-subtext">We will keep you updated about what we are working on!</Typography>
         </div>
         <div className='email-form-container horizontal-box'>
           <TextField

@@ -67,7 +67,7 @@ export default async function handler(request, response) {
       Key: 'raw_data/' + fileName,
     };
     const stream = myBucket.getObject(params).createReadStream();
-    const json_output = await csv().fromStream(stream);
+    const json_output = await csv({trim:false}).fromStream(stream);
 
     let classes = new Set();
     for (let i=0; i<json_output.length; i++) {

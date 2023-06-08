@@ -128,7 +128,7 @@ export default async function handler(request, response) {
       Key: 'raw_data/' + fileName,
     };
     const stream = myBucket.getObject(params).createReadStream();
-    const json_output = await csv().fromStream(stream);
+    const json_output = await csv({trim:false}).fromStream(stream);
 
     const template = await Template.findById(model.templateId);
     const templateString = template.templateString;
@@ -166,7 +166,6 @@ export default async function handler(request, response) {
       }
 
       const uploadParams = {
-        ACL: 'public-read',
         Body: csvContent,
         Bucket: S3_BUCKET,
         Key: 'predictions/' + String(newEvaluationId) + '.csv',
