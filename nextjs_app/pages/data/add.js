@@ -20,6 +20,7 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Select from '@mui/material/Select';
+import ImageIcon from '@mui/icons-material/Image';
 import axios from 'axios';
 import AWS from 'aws-sdk';
 import Papa from 'papaparse';
@@ -31,6 +32,46 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 
 const steps = ['Upload Training Data', 'Choose Validation Data', 'Review'];
+
+const FileUploadForm = ({ handleFileInput }) => {
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const droppedFile = event.dataTransfer.files[0];
+    if (droppedFile.type === 'text/csv') {
+      handleFileInput({ target: { files: [droppedFile] } });
+    } else {
+      console.log('Please drop a CSV file.');  // TODO: Should add a better error message
+    }
+  };
+
+  return (
+    <form
+      id="form-file-upload"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        accept=".csv"
+        id="input-file-upload"
+        onChange={handleFileInput}
+      />
+      <label id="label-file-upload" htmlFor="input-file-upload" className="cursor-pointer">
+        <div>
+          <ImageIcon sx={{ fontSize: 64 }} color="primary" />
+          <Typography>
+            Drag and drop your CSV data file here <br /> or{' '}
+            <span className="upload-text">choose a file</span>
+          </Typography>
+        </div>
+      </label>
+    </form>
+  );
+};
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -265,20 +306,20 @@ export default function AddDataset() {
                 <div className='vertical-box'>
                   {uploadError ? <Typography variant='body2' color='red'>Error: {uploadError}</Typography> : null}
                   <div className='horizontal-box'>
-                    <Button variant="outlined" color="primary" component="label">
-                      Upload training data
-                      <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
-                    </Button>
+                    { selectedFile ?
+                      <Button variant="outlined" color="primary" component="label">
+                        Upload new file
+                        <input type="file" accept=".csv" onChange={handleFileInput}  hidden/>
+                      </Button>
+                      :
+                      <FileUploadForm handleFileInput={handleFileInput} />
+                    }
                   </div>
-                  <div className='tiny-space' />
-                  <Typography variant='body2' className='form-label'>
-                    Data must be uploaded as a CSV.
-                  </Typography>
                 </div>
               </div>
               {selectedFile ?
                 <>
-                  <div className='medium-space' />
+                  <div className='small-space'/>
                   <div className='border-card'>
                     <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
                     <div className='small-space' />

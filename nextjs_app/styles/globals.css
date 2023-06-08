@@ -690,3 +690,37 @@ a {
   flex-direction: column
 }
 
+#form-file-upload {
+  height: 300px;
+  width: 500px;
+  max-width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+#form-file-upload:hover {
+  background:	#F5F5F5;
+}
+
+#input-file-upload {
+  display: none;
+}
+
+#label-file-upload {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #9C2315;
+  border-radius: 4px;
+}
+
+.upload-text {
+  font-weight: bold;
+}
+
+.upload-text:hover {
+  text-decoration: underline;
+}
+
+
