@@ -87,6 +87,7 @@ export default async function handler(request, response) {
       }
 
       if (model.status === 'failed') {
+        if (!model.providerData) continue;
         let finetuneResponse = await openai.retrieveFineTune(model.providerData.finetuneId);
         finetuneResponse = finetuneResponse.data;
         console.log(finetuneResponse);

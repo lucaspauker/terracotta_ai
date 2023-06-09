@@ -113,3 +113,16 @@ export const calculateMonochromeColor = (inputValue) => {
   return `rgb(${red}, ${green}, ${blue})`;
 };
 
+export const joinWordsWithCommas = (wordList) => {
+  if (wordList.length === 0) {
+    return '';
+  }
+
+  let output = wordList[0];
+  for (let i = 1; i < wordList.length; i++) {
+    output += ', ' + wordList[i];
+  }
+  return output;
+}
+
+

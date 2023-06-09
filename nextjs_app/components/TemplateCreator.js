@@ -237,7 +237,7 @@ function TemplateCreator({
           <BiShuffle />
         </IconButton>
         {datasetLoading ?
-          <div className='horizontal-box'><CircularProgress /></div>
+          <div className='horizontal-box' style={{height:'500px'}}><CircularProgress /></div>
           :
           <div className="shadow">
             <TableContainer>

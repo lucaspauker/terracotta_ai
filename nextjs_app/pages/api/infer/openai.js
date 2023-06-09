@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import {templateTransform} from '../../../utils/template';
+import {getReturnText, templateTransform} from '@/utils/template';
 
 import User from '../../../schemas/User';
 import Template from '../../../schemas/Template';
@@ -83,7 +83,9 @@ export default async function handler(request, response) {
         temperature: temperature,
         stop: template.stopSequence,
       });
-      response.status(200).json(completion.data.choices[0].text);
+      const completionText = completion.data.choices[0].text;
+
+      response.status(200).json(getReturnText(template, completionText));
       return;
     }
   } catch (error) {

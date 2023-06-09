@@ -19,7 +19,7 @@ import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
 import { Line } from 'react-chartjs-2';
-import { calculateColor, metricFormat } from '/components/utils';
+import { joinWordsWithCommas, calculateColor, metricFormat } from '/components/utils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -228,6 +228,9 @@ export default function ModelPage() {
               <Typography>Provider: {model.provider === 'openai' ? 'OpenAI' : model.provider}</Typography>
               <Typography>Architecture: {model.modelArchitecture}</Typography>
               <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
+              <Typography>Output column: {model.outputColumn}</Typography>
+              <Typography>Stop sequence: {model.stopSequence}</Typography>
+              {model.classes && <Typography sx={{whiteSpace:'pre-wrap'}}>Classes: {joinWordsWithCommas(model.classes)}</Typography>}
               <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status && model.status.toLowerCase()}</span></Typography>
             </Paper>
           </div>
