@@ -23,6 +23,10 @@ const templateSchema = new Schema({
   classes: {
     type: [String]
   },
+  classMap: {
+    type: Map,
+    of: String,
+  },
   stopSequence: {
     type: String,
   },

@@ -147,12 +147,12 @@ export default async function handler(request, response) {
     }
 
     const results = await dispatchOpenAIRequests(openai, inputPrompts, model.providerData.modelId,
-                                                 maxTokens, temperature, template.stopSequence);
+                                                 maxTokens, temperature, template.stopSequence, template.classMap);
     console.log("Retrieved results from OpenAI");
 
     let totalTokens = 0;
     results.map((completion, i) => {
-      const completionText = completion.data.choices[0].text.trim();
+      const completionText = completion.data.choices[0].text;
       completions.push(completionText);
       totalTokens += completion.data.usage.total_tokens;
       uploadData[i+1][2] = completionText;

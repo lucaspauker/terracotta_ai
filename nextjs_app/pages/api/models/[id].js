@@ -68,6 +68,8 @@ export default async function handler(request, response) {
             templateString: "$template.templateString",
             stopSequence: "$template.stopSequence",
             outputColumn: "$template.outputColumn",
+            classMap: "$template.classMap",
+            classes: "$template.classes",
             description: "$description",
             provider: "$provider",
             timeCreated: "$timeCreated",

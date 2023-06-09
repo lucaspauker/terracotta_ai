@@ -229,12 +229,20 @@ export default function Models() {
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>
-                      <TableCell>{(model.providerData && "modelId" in model.providerData)?
+                      <TableCell>{model.status==='failed' ?  "---"
+                                  : model.providerData && ("modelId" in model.providerData)?
                                   <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>
                                       {model.providerData.modelId}
                                   </Link>
-                                  :"pending"}</TableCell>
-                      <TableCell>{"cost" in model ? getPriceString(model.cost): "pending"}</TableCell>
+                                  :"pending"}
+                      </TableCell>
+                      <TableCell>
+                        {"cost" in model ?
+                          getPriceString(model.cost):
+                          model.status==='failed' ?
+                          "---" :
+                          "pending"}
+                      </TableCell>
                       <TableCell>
                         <MenuComponent
                           editFunction={() => handleEdit(model._id)}

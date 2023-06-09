@@ -1,6 +1,6 @@
 const { encode } = require('gpt-3-encoder');
 
-export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, temperature, stopSequence) {
+export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, temperature, stopSequence, classMap) {
   let maxRequestsPerMinute;
   let maxTokensPerMinute;
   if (model === 'gpt-3.5-turbo') {
@@ -87,6 +87,11 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
           console.error('Error:', error);
           retryCount++;
         }
+      }
+
+      if (model !== 'gpt-3.5-turbo') {  // You cannot finetune gpt-3.5-turbo
+        const resData = result.data.choices[0].text;
+        if (classMap && classMap.has(resData)) result.data.choices[0].text = classMap.get(resData);
       }
       return result;
     });

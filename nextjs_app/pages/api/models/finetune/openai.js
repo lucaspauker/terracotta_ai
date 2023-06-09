@@ -142,18 +142,6 @@ export default async function handler(request, response) {
     const regex = /{{.*}}/g;
     const matches = templateString.match(regex);
     const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
-    let classes = [];
-
-    const templateTransform = (row) => {
-      if (project.type === "classification") {
-        classes.push(row[outputColumn]);
-      }
-      let prompt = templateString;
-      matches.forEach((match) => {
-        prompt = prompt.replace(match, row[match.replace('{{','').replace('}}','')]);
-      });
-      return {prompt: prompt, completion: row[outputColumn] + stopSequence};
-    }
 
     let template = {};
 
@@ -182,7 +170,20 @@ export default async function handler(request, response) {
       valJson = await csv({trim:false}).fromStream(stream);
     }
 
-    const trainData = trainJson.map((row) => {
+    let classes = [];
+
+    const templateTransform = (row) => {
+      if (project.type === "classification") {
+        classes.push(row[outputColumn]);
+      }
+      let prompt = templateString;
+      matches.forEach((match) => {
+        prompt = prompt.replace(match, row[match.replace('{{','').replace('}}','')]);
+      });
+      return {prompt: prompt, completion: row[outputColumn] + stopSequence};
+    }
+
+    let trainData = trainJson.map((row) => {
       return templateTransform(row);
     });
 
@@ -193,7 +194,29 @@ export default async function handler(request, response) {
       });
     }
 
+    // Get unique classes
     classes = Array.from(new Set(classes));
+
+    // Create map of classes to ids
+    let classMap = {}
+    let reverseClassMap = {}
+    for (let i=0; i<classes.length; i++) {
+      const tok = " " + String(i);
+      classMap[tok] = classes[i];
+      reverseClassMap[classes[i]] = tok;
+    }
+
+    // Go through trainData and replace completions with classMapped strings
+    if (classes.length > 0) {
+      trainData = trainData.map((row) => {
+        return {...row, completion: reverseClassMap[row.completion.substring(0, row.completion.length - stopSequence.length)] + stopSequence};
+      });
+      if (valFilePresent) {
+        valData = valData.map((row) => {
+          return {...row, completion: reverseClassMap[row.completion.slice(0,-1 * stopSequence.length)] + stopSequence};
+        });
+      }
+    }
 
     template = await Template.create({
       templateString: templateString,
@@ -201,9 +224,12 @@ export default async function handler(request, response) {
       outputColumn: outputColumn,
       datasetId: dataset._id,
       classes: classes.length > 1? classes : null,
+      classMap: classMap,
       stopSequence: stopSequence,
       fields: matchesStrings,
     });
+
+    console.log(template);
 
     const trainFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
     const valFileJsonl = tmp.tmpNameSync({ postfix: '.jsonl' });
@@ -227,8 +253,8 @@ export default async function handler(request, response) {
         "fine-tune"
       );
       deleteTemporaryFile(valFileJsonl);
-      dataset = await Dataset.findByIdAndUpdate(dataset._id, 
-        {openaiData: {trainFile: trainResponse.data.id, valFile: valResponse.data.id}}, {new: true}); 
+      dataset = await Dataset.findByIdAndUpdate(dataset._id,
+        {openaiData: {trainFile: trainResponse.data.id, valFile: valResponse.data.id}}, {new: true});
     } else {
       dataset = await Dataset.findByIdAndUpdate(dataset._id, {openaiData: {trainFile: trainResponse.data.id}}, {new: true});
     }
