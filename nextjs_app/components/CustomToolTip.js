@@ -1,6 +1,7 @@
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
-import { BiInfoCircle } from 'react-icons/bi';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import IconButton from '@mui/material/IconButton';
 
 export const CustomTooltip = styled(({ className, ...props }) => (
@@ -20,10 +21,14 @@ export const CustomTooltip = styled(({ className, ...props }) => (
   },
 }));
 
-export const createCustomTooltip = (text) => {
+export const createCustomTooltip = (text, error) => {
   return <CustomTooltip title={"💡 " + text} className='tooltip'>
     <IconButton disableRipple={true}>
-      <BiInfoCircle size={16} color='#9C2315'/>
+      {error ?
+        <ErrorOutlineIcon sx={{fontSize:16, marginBottom:'2px'}} color='primary'/>
+        :
+        <InfoOutlinedIcon sx={{fontSize:16, marginBottom:'2px'}} color='primary'/>
+      }
     </IconButton>
   </CustomTooltip>
 }

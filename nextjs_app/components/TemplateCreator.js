@@ -180,6 +180,8 @@ function TemplateCreator({
                 onChange={(e) => {
                   setTemplateModel(e.target.value);
                   handleTemplateChange(e.target.value.templateId.templateString)
+                  setStopSequence(e.target.value.templateId.stopSequence)
+                  setOutputColumn(e.target.value.templateId.outputColumn)
                 }}
               >
                 {models.map((d, i) => (

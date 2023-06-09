@@ -20,9 +20,7 @@ import { BiUser, BiLogOutCircle, BiSun } from 'react-icons/bi';
 import {BsFillCaretDownFill, BsFire} from 'react-icons/bs';
 import axios from 'axios';
 
-const drawerWidth = 250;
-
-export default function Header() {
+export default function Header({navbarExpanded, navbarWidth}) {
   const { data: session } = useSession()
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -50,7 +48,7 @@ export default function Header() {
     <AppBar
       position="fixed"
       elevation={0}
-      sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+      sx={{ width: `calc(100% - ${navbarWidth}px)`, ml: `${navbarWidth}px`, transition: 'all 1s' }}
       className='header'
     >
       <Toolbar>

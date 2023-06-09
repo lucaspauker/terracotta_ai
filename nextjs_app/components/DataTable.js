@@ -7,16 +7,19 @@ import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TablePagination from '@mui/material/TablePagination';
+import Tooltip from '@mui/material/Tooltip';
 import Divider from '@mui/material/Divider';
 import DownloadIcon from '@mui/icons-material/GetApp';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import axios from 'axios';
 
 import { saveAs } from 'file-saver';
 
-function DataTable({ headers, rawData, downloadId, downloadName}) {
+function DataTable({ headers, rawData, downloadId, downloadName, labelPredictTooltips}) {
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(rawData.slice(0, 5));
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -92,12 +95,24 @@ function DataTable({ headers, rawData, downloadId, downloadName}) {
                     style={{
                       borderRight: j === headers.length - 1 ? 'none' : '1px dashed lightgrey',
                       borderBottom: i === visibleRows.length - 1 ? '0px' : '1px dashed lightgrey',
+                      position: 'relative',
                     }}
                   >
-                    <div className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                      <Typography className="cell-content small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
+                    <div style={{ height: '200px', overflow: 'auto' }}>
+                      <Typography className="small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
                         {row[header]}
                       </Typography>
+                    </div>
+                    <div className='top-right'>
+                      {labelPredictTooltips && header==="Prediction" && row.Label === row.Prediction ?
+                        <Tooltip title="Prediction matches label">
+                          <CheckCircleOutlineIcon sx={{fontSize:'16px', color:'green'}}/>
+                        </Tooltip>
+                        : labelPredictTooltips && header === "Prediction" &&
+                        <Tooltip title="Prediction does not match label">
+                          <HighlightOffIcon sx={{fontSize:'16px', color:'red'}}/>
+                        </Tooltip>
+                      }
                     </div>
                   </TableCell>
                 ))}
