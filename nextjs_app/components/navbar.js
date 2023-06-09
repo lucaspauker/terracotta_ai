@@ -4,6 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
@@ -30,17 +31,19 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import {CgPushLeft, CgPushRight} from "react-icons/cg";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import axios from 'axios';
 
-const drawerWidth = 250;
-
-export default function Navbar() {
+export default function Navbar({expanded, setExpanded, width, setWidth}) {
   const router = useRouter();
   const [loading, setLoading] = useState('');
   const [project, setProject] = useState('');
   const [allProjects, setAllProjects] = useState([]);
+  const fullWidth = 250;
+  const collapsedWidth = 56;
 
   const isSelected = (p) => {
     if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
@@ -106,11 +109,27 @@ export default function Navbar() {
     });
   }
 
+  const handleExpand = () => {
+    setExpanded(true);
+    setWidth(fullWidth);
+    localStorage.setItem("expanded", true);
+  }
+
+  const handleContract = () => {
+    setExpanded(false);
+    setWidth(collapsedWidth);
+    localStorage.setItem("expanded", false);
+  }
+
   useEffect(() => {
     refreshProjects();
     window.addEventListener("storage", () => {
       refreshProjects();
     });
+    if (localStorage.getItem("expanded") === "false") {
+      setExpanded(false);
+      setWidth(collapsedWidth);
+    }
   }, []);
 
   return(
@@ -119,51 +138,70 @@ export default function Navbar() {
       variant='permanent'
     >
       <Box
-        sx={{ width: drawerWidth }}
+        sx={{ width: `${width}px`, transition: 'width 1s' }}
       >
-        <Toolbar />
-        <Divider />
-        <div className='tiny-space' />
-        <div className='horizontal-box'>
-          <FormControl variant="filled" size='small'>
-            <InputLabel id="project-label">Project</InputLabel>
-            <Select
-              labelId="project-label"
-              className="simple-select project-select"
-              label="Project"
-              value={project}
-              onChange={handleProjectChange}
-            >
-              {allProjects.map((project) => (
-                <MenuItem key={project.name} value={project.name}>{project.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </div>
-        <div className='tiny-space' />
+        <Toolbar>
+          {expanded ?
+            <div className='horizontal-box full-width'>
+              <div />
+              <IconButton onClick={handleContract}>
+                <CgPushLeft sx={{color: 'black', fontSize: '1.5rem'}} />
+              </IconButton>
+            </div>
+            :
+            <IconButton onClick={handleExpand} sx={{marginLeft:'-16px'}}>
+              <CgPushRight sx={{color: 'black', fontSize: '1.5rem'}} />
+            </IconButton>
+          }
+        </Toolbar>
+        {expanded &&
+          <>
+          <Divider />
+          <div className='tiny-space' />
+          <div className='horizontal-box'>
+            <FormControl variant="filled" size='small'>
+              <InputLabel id="project-label">Project</InputLabel>
+              <Select
+                labelId="project-label"
+                className="simple-select project-select"
+                label="Project"
+                value={project}
+                onChange={handleProjectChange}
+              >
+                {allProjects.map((project) => (
+                  <MenuItem key={project.name} value={project.name}>{project.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          <div className='tiny-space' />
+          </>
+        }
         <Divider />
         <List>
           {['Projects', 'Datasets', 'Models', 'Test', 'Evaluate', 'Deploy'].map((text, index) => (
-            <ListItem
-              key={text}
-              disablePadding
-              button
-              component={Link}
-              href={getLink(text)}
-              disabled={allProjects.length === 0 && text !== 'Projects'}
-            >
-              <ListItemButton selected={isSelected(text)}>
-                <ListItemIcon>
-                  {text === 'Datasets' ? <TextSnippetIcon /> :
-                   text === 'Models' ? <LightbulbIcon /> :
-                   text === 'Test' ? <EditIcon /> :
-                   text === 'Projects' ? <PaletteIcon /> :
-                   text === 'Deploy' ? <RocketIcon /> :
-                   text === 'Evaluate' ? <FunctionsIcon /> : null}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
+            <div key={text}>
+              <ListItem
+                disablePadding
+                button
+                component={Link}
+                href={getLink(text)}
+                disabled={allProjects.length === 0 && text !== 'Projects'}
+              >
+                <ListItemButton selected={isSelected(text)}>
+                  <ListItemIcon>
+                    {text === 'Datasets' ? <TextSnippetIcon /> :
+                     text === 'Models' ? <LightbulbIcon /> :
+                     text === 'Test' ? <EditIcon /> :
+                     text === 'Projects' ? <PaletteIcon /> :
+                     text === 'Deploy' ? <RocketIcon /> :
+                     text === 'Evaluate' ? <FunctionsIcon /> : null}
+                  </ListItemIcon>
+                  {expanded && <ListItemText primary={text} />}
+                </ListItemButton>
+              </ListItem>
+              {!expanded && <div className='tiny-space'/>}
+            </div>
           ))}
         </List>
         <Divider />
@@ -174,7 +212,7 @@ export default function Navbar() {
                 <ListItemIcon>
                   {text === 'API keys' ? <SettingsIcon /> : null}
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                {expanded && <ListItemText primary={text} />}
               </ListItemButton>
             </ListItem>
           ))}

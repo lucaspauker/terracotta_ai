@@ -75,7 +75,7 @@ export default async function handler(request, response) {
       ).populate(
         {
           path: 'templateId',
-          select: 'templateString fields classes'
+          select: 'templateString fields classes outputColumn stopSequence'
         }
       )
       .sort({timeCreated: -1});

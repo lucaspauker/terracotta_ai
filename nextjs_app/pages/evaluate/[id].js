@@ -26,7 +26,8 @@ import { BiShuffle } from 'react-icons/bi';
 import { Line } from 'react-chartjs-2';
 import ReactSpeedometer from "react-d3-speedometer/slim"
 import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
-import DataTable from '../../components/DataTable';
+import DataTable from '@/components/DataTable';
+import {createCustomTooltip} from '@/components/CustomToolTip.js';
 
 function TabPanel(props) {
     const {children, value, index, classes, ...other} = props;
@@ -74,18 +75,14 @@ function ConfusionMatrix({ evaluation }) {
           ))}
           {evaluation.metricResults['confusion'][0].length > evaluation.classes.length &&
             <div className="grid-cell header-cell">
-              <Typography>Misc</Typography>
+              <Typography>Misc {createCustomTooltip("Your model is predicting classes that are not present in your training data. You should experiment with using few-shot prompting or finetuning to build a more accurate model.", true)}</Typography>
             </div>
           }
         </div>
         {evaluation.metricResults['confusion'].map((row, rowIndex) => (
           <div key={rowIndex} className="grid-row">
             <div className="grid-cell header-cell">
-              {rowIndex >= evaluation.classes.length ?
-                <Typography>Misc</Typography>
-                :
-                <Typography>{evaluation.classes[rowIndex]}</Typography>
-              }
+              <Typography>{evaluation.classes[rowIndex]}</Typography>
             </div>
             {row.map((item, columnIndex) => (
               <div key={columnIndex} className="grid-cell"
@@ -116,7 +113,7 @@ function EvaluationsTab({ evaluation }) {
               </Typography>
               <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
                 segments={5}
-                value={Number(evaluation.metricResults[metric]).toFixed(2)}
+                value={Number(parseFloat(evaluation.metricResults[metric]).toFixed(2))}
                 needleColor={'black'}
                 currentValueText={''} segmentValueFormatter={(x) => ''}
                 textColor={'white'}
@@ -153,6 +150,7 @@ export default function ModelPage() {
   const [open, setOpen] = useState(false);
   const [evaluation, setEvaluation] = useState([]);
   const [headers, setHeaders] = useState([]);
+  const [projectType, setProjectType] = useState('');
   const [predictionData, setPredictionData] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
   const router = useRouter();
@@ -196,7 +194,6 @@ export default function ModelPage() {
   useEffect(() => {
     const last = window.location.href.split('/').pop();  // This is a hack
 
-    // Get the evaluations associated with the model
     axios.get("/api/evaluate/" + last).then((res) => {
       setEvaluation(res.data);
       setLoading(false);
@@ -204,6 +201,16 @@ export default function ModelPage() {
     }).catch((error) => {
       console.log(error);
     });
+
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+      axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
+        setProjectType(res.data.type);
+      }).catch((error) => {
+        console.log(error);
+      });
+    }
 
     axios.post("/api/data/file", {
       fileName: last + '.csv',
@@ -292,7 +299,8 @@ export default function ModelPage() {
               rawData={predictionData}
               downloadId={"predictions/" + window.location.href.split('/').pop() + ".csv"}
               downloadName = {evaluation.name + "_predictions.csv"}
-            /> : <div className='horizontal-box'><CircularProgress /></div>}
+              labelPredictTooltips={projectType === "classification"}
+            /> : <div className='horizontal-box' style={{height: 500}}><CircularProgress /></div>}
         </TabPanel>
         <TabPanel value={tabIndex} index={2}>
           {'confusion' in evaluation.metricResults && evaluation.metricResults['confusion'] &&

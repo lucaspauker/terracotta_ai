@@ -56,6 +56,9 @@ const theme = createTheme({
 });
 
 export function Layout({ children }) {
+  const [expanded, setExpanded] = useState(true);
+  const [width, setWidth] = useState(250);  // Navbar width
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -64,9 +67,11 @@ export function Layout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Header />
-      <Navbar />
-      <main>{children}</main>
+      <Header navbarExpanded={expanded} navbarWidth={width} />
+      <Navbar expanded={expanded} setExpanded={setExpanded} width={width} setWidth={setWidth}/>
+      <main style={{width:`calc(100% - ${width}px)`, marginLeft:`${width}px`, transition: 'all 1s'}}>
+        {children}
+      </main>
     </ThemeProvider>
   )
 }

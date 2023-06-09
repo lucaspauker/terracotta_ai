@@ -145,7 +145,7 @@ export default async function handler(request, response) {
     let requests = [];
     let references = [];
     let completions = [];
-    let uploadData = [["input","label","prediction"]];
+    let uploadData = [["Input","Label","Prediction"]];
     console.log(json_output.length);
 
     // Openai base models

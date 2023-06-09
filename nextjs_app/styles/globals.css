@@ -66,8 +66,6 @@ a {
 }
 
 .main {
-  width: calc(100% - 250px);
-  margin-left: 250px;
   min-height: 100vh;
   padding: 6rem;
   margin-top: 2rem;
@@ -721,6 +719,12 @@ a {
 
 .upload-text:hover {
   text-decoration: underline;
+}
+
+.top-right {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 
