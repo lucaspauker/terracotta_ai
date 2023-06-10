@@ -34,14 +34,6 @@
   z-index: 1;
 }
 
-@media (max-width: 768px) {
-  .main-box {
-    width: calc(100% - 40px);
-    left: 50%;
-    max-width: none;
-  }
-}
-
 .main-box-header {
   font-size: 64px;
   font-weight: bold;
@@ -53,6 +45,28 @@
 .main-box-subheader {
   font-size: 24px;
   color: #888888;
+}
+
+@media (max-width: 480px) {
+  .main-box {
+    width: calc(100% - 10px);
+    left: 50%;
+    max-width: none;
+  }
+  .main-box-header {
+    font-size: 48px;
+    text-align: center;
+  }
+  .main-box-subheader {
+    font-size: 24px;
+    text-align: center;
+  }
+  .homepage .logo {
+    font-size: 32px;
+  }
+  .sign-in-button {
+    display: none;
+  }
 }
 
 .logo {
