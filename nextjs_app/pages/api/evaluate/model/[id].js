@@ -1,26 +1,18 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import AWS from 'aws-sdk'
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 const ObjectId = require('mongodb').ObjectId;
 
-import Evaluation from '../../../../schemas/Evaluation';
-import Model from '../../../../schemas/Model';
-import User from '../../../../schemas/User';
+import Evaluation from '@/schemas/Evaluation';
+import Model from '@/schemas/Model';
+import User from '@/schemas/User';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -91,8 +83,11 @@ export default async function handler(request, response) {
       let y = [];
       let yMovingAverage = [];
       const n = 100;  // Moving average parameter
-      const s3Res = await myBucket.getObject(params).promise();
-      const data = s3Res.Body.toString('utf-8').split('\n');
+      const command = new GetObjectCommand(params);
+      const s3Response = await client.send(command);
+      const s3Data = await s3Response.Body.transformToString();
+      const data = s3Data.split('\n');
+
       // Skip the first row since it is the header row
       // The last row is an empty string, so skip that as well
       for (let i=1; i<data.length - 1; i++) {

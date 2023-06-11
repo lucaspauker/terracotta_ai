@@ -15,6 +15,9 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Tooltip from '@mui/material/Tooltip';
 import ErrorIcon from '@mui/icons-material/Error';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -30,11 +33,12 @@ import { BiInfoCircle } from 'react-icons/bi';
 import { BsFillCircleFill } from 'react-icons/bs';
 import {CustomTooltip} from 'components/CustomToolTip.js';
 
-function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
+function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading }) {
   const [expanded, setExpanded] = useState(datasetData);
   const router = useRouter()
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const [projectType, setProjectType] = useState('');
 
   const doDelete = () => {
     axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
@@ -69,24 +73,53 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
     setIdToDelete(id);
   };
 
+  const handleToggleShowTraining = () => {
+    setShowTraining(!showTraining);
+    refreshData();
+  }
+
+  useEffect(() => {
+    handleExpandAll();
+  }, [datasetData]);
+
   useEffect(() => {
     if (idToDelete !== null) {
       setOpen(true);
+    }
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+      axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
+        setProjectType(res.data.type);
+      }).catch((error) => {
+        console.log(error);
+      });
     }
   }, [idToDelete]);
 
   return (
     <div>
       <div>
-        <Button onClick={handleCollapseAll} variant="outlined" color="primary" className='button-margin'>
+        <Button onClick={handleCollapseAll} variant="outlined" color="primary">
           Collapse All
         </Button>
-        <Button onClick={handleExpandAll} variant="outlined" color="primary">
+        <Button onClick={handleExpandAll} variant="outlined" color="primary" className='button-margin'>
           Expand All
         </Button>
+        {projectType === 'classification' &&
+          <FormControlLabel
+            sx={{marginLeft: '16px'}}
+            control={
+              <Checkbox checked={showTraining} onChange={handleToggleShowTraining} />
+            }
+            label="Show training evaluations" />
+        }
       </div>
       <div className='small-space' />
-      {datasetData.map((datasetDataPoint, index) => (
+      {loading ?
+        <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+        :
+        datasetData.map((datasetDataPoint, index) => (
         <Box key={datasetDataPoint.id} marginBottom={2}>
           <Accordion
             expanded={expanded.includes(datasetDataPoint)}
@@ -162,7 +195,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData }) {
                               <>{baseModelNamesDict[e.providerCompletionName]}</>
                             }
                           </TableCell>
-                          <TableCell>{"cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
+                          <TableCell>{e.trainingEvaluation ? "---" : "cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
                           <TableCell>
                             {e.metricResults ?
                               <div className='metrics-cell'>

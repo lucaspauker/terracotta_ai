@@ -1,32 +1,22 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import AWS from 'aws-sdk'
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-import Project from '../../../schemas/Project';
-import User from '../../../schemas/User';
-import Dataset from "../../../schemas/Dataset";
-import Model from "../../../schemas/Model";
-import Evaluation from "../../../schemas/Evaluation";
-import Template from "../../../schemas/Template";
+import Project from '@/schemas/Project';
+import User from '@/schemas/User';
+import Dataset from "@/schemas/Dataset";
+import Model from "@/schemas/Model";
+import Evaluation from "@/schemas/Evaluation";
+import Template from "@/schemas/Template";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
 
-
 const { Configuration, OpenAIApi } = require("openai");
+
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
-
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -111,7 +101,8 @@ export default async function handler(request, response) {
             Bucket: S3_BUCKET,
             Key: resultsFileName,
           };
-          await myBucket.putObject(openAiParams).promise();
+          const uploadCommand = new PutObjectCommand(openAiParams);
+          await client.send(uploadCommand);
 
           // Get the last row of the response and create an evaluation
           const splitData = response.data.split(',');

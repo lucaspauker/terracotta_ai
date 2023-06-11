@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import AWS from 'aws-sdk'
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 import {templateTransform} from '@/utils/template';
 import {dispatchOpenAIRequests} from '@/utils/evaluate';
@@ -24,14 +24,7 @@ const ObjectId = require('mongodb').ObjectId;
 const { Configuration, OpenAIApi } = require("openai");
 const cohere = require('cohere-ai');
 
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -139,7 +132,10 @@ export default async function handler(request, response) {
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + fileName,
     };
-    const stream = myBucket.getObject(params).createReadStream();
+
+    const command = new GetObjectCommand(params);
+    const s3Response = await client.send(command);
+    const stream = s3Response.Body;
     const json_output = await csv({trim:false}).fromStream(stream);
 
     let requests = [];
@@ -206,7 +202,7 @@ export default async function handler(request, response) {
       });
     }
 
-    stringify(uploadData, function (err, csvContent) {
+    stringify(uploadData, async function (err, csvContent) {
       if (err) {
         console.log('Error converting data to CSV:', err);
         return;
@@ -218,13 +214,9 @@ export default async function handler(request, response) {
         Key: 'predictions/' + String(newEvaluationId) + '.csv',
       };
 
-      myBucket.upload(uploadParams, function (err, data) {
-        if (err) {
-          console.log('Error uploading file:', err);
-        } else {
-          console.log('File uploaded successfully. File location:', data.Location);
-        }
-      });
+      const command = new PutObjectCommand(uploadParams);
+      const data = await client.send(command);
+      console.log('File uploaded successfully. File location:', data.Location);
     });
 
     // move this to after evaluation?

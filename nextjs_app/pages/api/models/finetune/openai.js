@@ -1,31 +1,20 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
-import AWS from 'aws-sdk'
-import Project from '../../../../schemas/Project';
-import User from '../../../../schemas/User';
-import Dataset from '../../../../schemas/Dataset';
-import Model from "../../../../schemas/Model";
-import Template from "../../../../schemas/Template";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import Project from '@/schemas/Project';
+import User from '@/schemas/User';
+import Dataset from '@/schemas/Dataset';
+import Model from "@/schemas/Model";
+import Template from "@/schemas/Template";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
-
-
 const csv = require('csvtojson');
 const tmp = require('tmp');
 
-
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 const { Configuration, OpenAIApi } = require("openai");
 
@@ -156,7 +145,9 @@ export default async function handler(request, response) {
       Key: 'raw_data/' + trainFileName,
     }
 
-    const stream = myBucket.getObject(params).createReadStream();
+    const command = new GetObjectCommand(params);
+    const s3Response = await client.send(command);
+    const stream = s3Response.Body;
     const trainJson = await csv({trim:false}).fromStream(stream);
     let valJson = {};
 
@@ -166,7 +157,9 @@ export default async function handler(request, response) {
         Key: 'raw_data/' + valFileName,
       }
 
-      const stream = myBucket.getObject(params).createReadStream();
+      const command = new GetObjectCommand(params);
+      const s3Response = await client.send(command);
+      const stream = s3Response.Body;
       valJson = await csv({trim:false}).fromStream(stream);
     }
 

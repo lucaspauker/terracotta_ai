@@ -1,7 +1,7 @@
 import { IncomingForm } from 'formidable'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import AWS from 'aws-sdk'
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import Project from '../../../schemas/Project';
 import User from '../../../schemas/User';
 import Dataset from '../../../schemas/Dataset';
@@ -13,15 +13,7 @@ const csv = require('csvtojson');
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 export const config = {
   api: {
@@ -167,26 +159,14 @@ export default async function handler(request, response) {
     response.status(200).json(d);
 
     // Wrap writing files to S3 in a Promise
-    return new Promise((resolve, reject) => {
-      myBucket.putObject(trainParams, function(trainErr, trainData) {
-        if (trainErr) {
-          reject();
-        }
-        console.log("Successfully wrote " + trainFileName);
-        if (!valFileName) {
-          resolve();
-        } else {
-          myBucket.putObject(valParams, function(valErr, valData) {
-            if (valErr) {
-              reject();
-            } else {
-              console.log("Successfully wrote " + valFileName);
-              resolve();
-            };
-          });
-        }
-      });
-    });
+    const trainUploadCommand = new PutObjectCommand(trainParams);
+    const valUploadCommand = new PutObjectCommand(valParams);
+    const s3TrainResponse = await client.send(trainUploadCommand);
+    console.log("Successfully wrote " + trainFileName);
+    if (valFileName) {
+      const s3ValResponse = await client.send(valUploadCommand);
+      console.log("Successfully wrote " + valFileName);
+    }
   } catch (error) {
     if (!error.status) {
       error = createError(500, 'Error creating dataset');

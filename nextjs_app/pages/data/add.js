@@ -22,7 +22,6 @@ import StepLabel from '@mui/material/StepLabel';
 import Select from '@mui/material/Select';
 import ImageIcon from '@mui/icons-material/Image';
 import axios from 'axios';
-import AWS from 'aws-sdk';
 import Papa from 'papaparse';
 import { v4 } from "uuid";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"

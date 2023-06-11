@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from  "../../../auth/[...nextauth]"
-import AWS from 'aws-sdk'
 
 import User from '@/schemas/User';
 import Project from '@/schemas/Project';

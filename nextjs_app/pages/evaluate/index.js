@@ -58,6 +58,7 @@ export default function Evaluate() {
   const [page, setPage] = useState(0);
   const [visibleRows, setVisibleRows] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showTraining, setShowTraining] = useState(true);
   const { data: session } = useSession();
 
   const groupByDatasets = (data) => {
@@ -90,7 +91,11 @@ export default function Evaluate() {
         projectName: p,
       }).then((res) => {
         console.log(res.data);
-        setEvals(groupByDatasets(res.data));
+        if (showTraining) {
+          setEvals(groupByDatasets(res.data.filter(e => !e.trainingEvaluation)));
+        } else {
+          setEvals(groupByDatasets(res.data));
+        }
         setPage(0);
         const newPage = 0;
         const updatedRows = res.data.slice(
@@ -155,10 +160,9 @@ export default function Evaluate() {
       <div className='tiny-space' />
 
       <div>
-        {loading ?
-          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
-          : datasetData.length > 0 ?
-          <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData} />
+        {datasetData.length > 0 ?
+          <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData}
+            showTraining={showTraining} setShowTraining={setShowTraining} loading={loading}/>
           :
           <>
           <Paper variant='outlined' className='info-box'>

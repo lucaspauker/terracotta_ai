@@ -1,21 +1,13 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 
-const AWS = require('aws-sdk');
-const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
-const REGION = process.env.PUBLIC_S3_REGION;
-
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 const createError = require('http-errors');
 
-AWS.config.update({
-    accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-    secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-  });
-
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
+const REGION = process.env.PUBLIC_S3_REGION;
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
@@ -31,7 +23,6 @@ export default async function handler(request, response) {
     try {
       const downloadId = request.body.downloadId;
       const filename = request.body.downloadName;
-      const s3 = new AWS.S3();
       const params = {
         Bucket: S3_BUCKET,
         Key: downloadId,
@@ -39,16 +30,13 @@ export default async function handler(request, response) {
         Expires: 60
       };
 
-      s3.getSignedUrl('getObject', params, (error, url) => {
-        if (error) {
-          throw createError(500, 'Error fetching file');
-        }
-        console.log('URL', url);
-        return response.status(200).json({downloadUrl: url});
-      });
+      const command = new GetObjectCommand(params);
 
+      const url = await getSignedUrl(client, command, { expiresIn: 3600 });
+      return response.status(200).json({downloadUrl: url});
 
     } catch (error) {
+      console.log(error);
       if (!error.status) {
         error = createError(500, 'Error fetching file');
       }

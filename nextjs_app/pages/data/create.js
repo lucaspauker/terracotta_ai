@@ -25,7 +25,6 @@ import StepLabel from '@mui/material/StepLabel';
 import IconButton from '@mui/material/IconButton';
 import Select from 'react-select'
 import axios from 'axios';
-import AWS from 'aws-sdk';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
 import { FaArrowLeft, FaTrash } from 'react-icons/fa';
