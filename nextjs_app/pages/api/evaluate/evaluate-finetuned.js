@@ -195,6 +195,7 @@ export default async function handler(request, response) {
         }
       }
       metricResults['confusion'] = tempMetricResults['confusion'];
+      metricResults['class_distribution'] = tempMetricResults['class_distribution'];
     } else if (project.type === "generative") {
       // Call flask app
       let url = process.env.FLASK_URL + "/evaluate_nlp";

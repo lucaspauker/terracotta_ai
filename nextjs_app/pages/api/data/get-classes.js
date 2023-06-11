@@ -1,14 +1,14 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
 
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-import User from '../../../schemas/User';
-import Project from '../../../schemas/Project';
-import Evaluation from '../../../schemas/Evaluation';
-import Dataset from "../../../schemas/Dataset";
-import Template from "../../../schemas/Template";
-import ProviderModel from "../../../schemas/ProviderModel";
+import User from '@/schemas/User';
+import Project from '@/schemas/Project';
+import Evaluation from '@/schemas/Evaluation';
+import Dataset from "@/schemas/Dataset";
+import Template from "@/schemas/Template";
+import ProviderModel from "@/schemas/ProviderModel";
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -73,16 +73,13 @@ export default async function handler(request, response) {
     response.status(200).json(classes);
   } catch (error) {
     console.error(error);
-    if (didReturn) {
-      await Evaluation.findByIdAndUpdate(newEvaluationId, {
-        status: "failed"
-      })
-    } else {
-      if (!error.status) {
-        error = createError(500, 'Error creating evaluation');
-      }
-      response.status(error.status).json({ error: error.message });
+    await Evaluation.findByIdAndUpdate(newEvaluationId, {
+      status: "failed"
+    })
+    if (!error.status) {
+      error = createError(500, 'Error creating evaluation');
     }
+    response.status(error.status).json({ error: error.message });
   }
 }
 

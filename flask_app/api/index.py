@@ -102,7 +102,19 @@ def classification_metrics():
             cm = confusion_matrix(references, completions_with_misc, labels=classes).tolist()
             if is_misc_class: cm = cm[:-1]
 
-            metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall, 'precision': precision, 'confusion': cm}
+            # Get class distributions
+            class_distribution = [{}, {}]  # [ for references, for completions ]
+            for c in classes:
+                class_distribution[0][c] = 0
+                class_distribution[1][c] = 0
+            for reference in references:
+                class_distribution[0][reference] += 1
+            for completion in completions:
+                class_distribution[1][completion] += 1
+
+            metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall,
+                              'precision': precision, 'confusion': cm,
+                              'class_distribution': class_distribution}
         else: # Multiclass classification
 
             if is_misc_class: classes = classes + [misc_class_name]
@@ -113,7 +125,18 @@ def classification_metrics():
             cm = confusion_matrix(references, completions_with_misc, labels=classes).tolist()
             if is_misc_class: cm = cm[:-1]
 
-            metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1, 'confusion': cm}
+            # Get class distributions
+            class_distribution = [{}, {}]  # [ for references, for completions ]
+            for c in classes:
+                class_distribution[0][c] = 0
+                class_distribution[1][c] = 0
+            for reference in references:
+                class_distribution[0][reference] += 1
+            for completion in completions:
+                class_distribution[1][completion] += 1
+
+            metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1, 'confusion': cm,
+                              'class_distribution': class_distribution}
 
         app.logger.info("Found metrics: " + json.dumps(metric_results))
         print(metric_results)

@@ -75,8 +75,11 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
 
   const handleToggleShowTraining = () => {
     setShowTraining(!showTraining);
-    refreshData();
   }
+
+  useEffect(() => {
+    refreshData();
+  }, [showTraining]);
 
   useEffect(() => {
     handleExpandAll();

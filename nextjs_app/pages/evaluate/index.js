@@ -52,7 +52,7 @@ export async function getServerSideProps(context) {
 export default function Evaluate() {
   const [loading, setLoading] = useState(true);
   const [evals, setEvals] = useState({});
-  const [datasetData, setDatasetData] = useState([]);
+  const [datasetData, setDatasetData] = useState(null);
   const [project, setProject] = useState('');
   const router = useRouter()
   const [page, setPage] = useState(0);
@@ -90,11 +90,10 @@ export default function Evaluate() {
     axios.post("/api/evaluate", {
         projectName: p,
       }).then((res) => {
-        console.log(res.data);
         if (showTraining) {
-          setEvals(groupByDatasets(res.data.filter(e => !e.trainingEvaluation)));
-        } else {
           setEvals(groupByDatasets(res.data));
+        } else {
+          setEvals(groupByDatasets(res.data.filter(e => !e.trainingEvaluation)));
         }
         setPage(0);
         const newPage = 0;
@@ -160,7 +159,9 @@ export default function Evaluate() {
       <div className='tiny-space' />
 
       <div>
-        {datasetData.length > 0 ?
+        {!datasetData ?
+          <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
+          : datasetData.length > 0 ?
           <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData}
             showTraining={showTraining} setShowTraining={setShowTraining} loading={loading}/>
           :

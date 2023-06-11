@@ -23,6 +23,22 @@
   align-items: center;
 }
 
+.dist-outer {
+  flex-direction: column;
+  border: 1px solid grey;
+  border-radius: 4px;
+  padding: 50px;
+}
+
+.dist-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0px auto;
+}
+
 .grid-row {
   display: flex;
   flex-direction: row;

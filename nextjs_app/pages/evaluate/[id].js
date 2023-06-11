@@ -27,7 +27,8 @@ import { Line } from 'react-chartjs-2';
 import ReactSpeedometer from "react-d3-speedometer/slim"
 import { calculateMonochromeColor, calculateColor, baseModelNamesDict, metricFormat } from '/components/utils';
 import DataTable from '@/components/DataTable';
-import {createCustomTooltip} from '@/components/CustomToolTip.js';
+import {createCustomTooltip} from '@/components/CustomToolTip';
+import DistributionBarGraph from '@/components/DistributionBarGraph';
 
 function TabPanel(props) {
     const {children, value, index, classes, ...other} = props;
@@ -197,7 +198,6 @@ export default function ModelPage() {
     axios.get("/api/evaluate/" + last).then((res) => {
       setEvaluation(res.data);
       setLoading(false);
-      console.log(res.data);
     }).catch((error) => {
       console.log(error);
     });
@@ -282,6 +282,7 @@ export default function ModelPage() {
             <Tab label="Metrics" {...a11yProps(0)} />
             {!evaluation.trainingEvaluation ?  <Tab label="Completions" {...a11yProps(1)} /> : null}
             {'confusion' in evaluation.metricResults ?  <Tab label="Confusion Matrix" {...a11yProps(2)} /> : null}
+            {'class_distribution' in evaluation.metricResults ?  <Tab label="Class Distributions" {...a11yProps(3)} /> : null}
           </Tabs>
         </Box>
         <div className='small-space' />
@@ -311,6 +312,20 @@ export default function ModelPage() {
                   <Typography sx={{fontWeight: 'bold', marginLeft: '100px'}}>Predicted labels</Typography>
                   <ConfusionMatrix evaluation={evaluation} />
                 </div>
+              </div>
+            </div>
+          }
+        </TabPanel>
+        <TabPanel value={tabIndex} index={3}>
+          {'class_distribution' in evaluation.metricResults &&
+            <div className='dist-outer'>
+              <div className='dist-inner'>
+                <Typography sx={{fontWeight: 'bold'}}>Reference class distribution</Typography>
+                <DistributionBarGraph data={evaluation.metricResults.class_distribution[0]} />
+              </div>
+              <div className='dist-inner'>
+                <Typography sx={{fontWeight: 'bold'}}>Completion class distribution</Typography>
+                <DistributionBarGraph data={evaluation.metricResults.class_distribution[1]} />
               </div>
             </div>
           }

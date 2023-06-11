@@ -74,8 +74,6 @@ const BarGraph = ({ evaluations, selected }) => {
       datasets: [dataset],
     };
 
-    console.log(data);
-
     const options = {
       indexAxis: 'y', // Display bars horizontally
       responsive: true,
