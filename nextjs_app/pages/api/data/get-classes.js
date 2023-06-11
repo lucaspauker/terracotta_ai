@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import AWS from 'aws-sdk'
+
+import { S3Client } from "@aws-sdk/client-s3";
 
 import User from '../../../schemas/User';
 import Project from '../../../schemas/Project';
@@ -19,14 +20,7 @@ const ObjectId = require('mongodb').ObjectId;
 
 const { Configuration, OpenAIApi } = require("openai");
 
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -66,7 +60,9 @@ export default async function handler(request, response) {
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + fileName,
     };
-    const stream = myBucket.getObject(params).createReadStream();
+    const command = new GetObjectCommand(params);
+    const s3Response = await client.send(command);
+    const stream = s3Response.Body;
     const json_output = await csv({trim:false}).fromStream(stream);
 
     let classes = new Set();

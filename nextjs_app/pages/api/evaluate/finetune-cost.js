@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import AWS from 'aws-sdk'
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 import ProviderModel from "@/schemas/ProviderModel";
 import User from "@/schemas/User";
@@ -16,15 +16,7 @@ const {encode} = require('gpt-3-encoder')
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
-
-AWS.config.update({
-  accessKeyId: process.env.PUBLIC_S3_ACCESS_KEY,
-  secretAccessKey: process.env.PUBLIC_S3_SECRET_ACCESS_KEY
-});
-const myBucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-});
+const client = new S3Client({ region: REGION });
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -80,7 +72,9 @@ export default async function handler(request, response) {
     let lines = [];
     const maxLines = 50;
     const csvParser = csv({trim:false});
-    const stream = myBucket.getObject(params).createReadStream();
+    const command = new GetObjectCommand(params);
+    const s3Response = await client.send(command);
+    const stream = s3Response.Body;
     const processStream = new Promise((resolve, reject) => {
       stream
         .pipe(csvParser)
