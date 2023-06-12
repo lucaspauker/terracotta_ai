@@ -41,6 +41,7 @@ const datasetSchema = new Schema({
   },
   numValExamples: Number,
   openaiData: openaiDataSchema,
+  status: String,
   timeCreated: {
     type: Date,
     default: Date.now

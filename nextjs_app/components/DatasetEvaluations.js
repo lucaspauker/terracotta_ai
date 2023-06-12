@@ -31,7 +31,7 @@ import { getPriceString, calculateColor, timestampToDateTimeShort, metricFormat,
 import { FaArrowRight } from 'react-icons/fa';
 import { BiInfoCircle } from 'react-icons/bi';
 import { BsFillCircleFill } from 'react-icons/bs';
-import {CustomTooltip} from 'components/CustomToolTip.js';
+import {createCustomTooltip, CustomTooltip} from 'components/CustomToolTip.js';
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading }) {
   const [expanded, setExpanded] = useState(datasetData);
@@ -117,6 +117,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
             }
             label="Show training evaluations" />
         }
+        {createCustomTooltip("Training evaluations are generated during fine-tuning by OpenAI using the validation dataset.")}
       </div>
       <div className='small-space' />
       {loading ?

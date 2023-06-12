@@ -27,12 +27,11 @@ export default async function handler(request, response) {
         Bucket: S3_BUCKET,
         Key: downloadId,
         ResponseContentDisposition: `attachment; filename="${filename}"`,
-        Expires: 60
       };
 
       const command = new GetObjectCommand(params);
 
-      const url = await getSignedUrl(client, command, { expiresIn: 3600 });
+      const url = await getSignedUrl(client, command, { expiresIn: 600 });
       return response.status(200).json({downloadUrl: url});
 
     } catch (error) {

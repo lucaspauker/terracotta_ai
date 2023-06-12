@@ -24,11 +24,14 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import ErrorIcon from '@mui/icons-material/Error';
 import axios from 'axios';
 import { useRouter } from 'next/router'
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import {FaTrash} from "react-icons/fa";
+import {HiOutlineRefresh} from "react-icons/hi";
 
 import {timestampToDateTimeShort} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
@@ -95,6 +98,7 @@ export default function Data() {
       p = localStorage.getItem("project");
       setProject(localStorage.getItem("project"));
     };
+    setLoading(true);
     axios.post("/api/data/list", {
         projectName: p,
       }).then((res) => {
@@ -159,9 +163,14 @@ export default function Data() {
         <Typography variant='h4' className='page-main-header'>
           Datasets
         </Typography>
-        <Button variant='contained' color="secondary" component={Link} href="/data/add">
-          + Upload CSV
-        </Button>
+        <div>
+          <IconButton color="secondary" className='button-margin' onClick={refreshData}>
+            <HiOutlineRefresh size={25} />
+          </IconButton>
+          <Button variant='contained' color="secondary" component={Link} href="/data/add">
+            + Upload CSV
+          </Button>
+        </div>
       </div>
       <div className='tiny-space' />
 
@@ -188,7 +197,23 @@ export default function Data() {
                       key={dataset._id}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 }, margin: 0 }}
                     >
-                      <TableCell><Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link></TableCell>
+                      <TableCell>
+                        {dataset.status === "failed" ?
+                          <div className='horizontal-box flex-start'>
+                            <div>{dataset.name} &nbsp;&nbsp;&nbsp;</div>
+                            <Tooltip title="Error creating dataset">
+                              <ErrorIcon sx={{color:'red', fontSize:16}}/>
+                            </Tooltip>
+                          </div>
+                          : dataset.status === 'loading' ?
+                          <div className='horizontal-box flex-start'>
+                            <div>{dataset.name} &nbsp;&nbsp;&nbsp;</div>
+                            <CircularProgress size={16}/>
+                          </div>
+                          :
+                          <Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link>
+                        }
+                      </TableCell>
                       <TableCell>{timestampToDateTimeShort(dataset.timeCreated)}</TableCell>
                       <TableCell><span style={{color:'grey'}}>{dataset.initialTrainFileName}</span></TableCell>
                       <TableCell>{addPercentage(dataset.numTrainExamples, dataset.numValExamples)}</TableCell>

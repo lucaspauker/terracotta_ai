@@ -106,6 +106,7 @@ export default function AddDataset() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [numValExamples, setNumValExamples] = useState(10);
+  const [isCreatingDataset, setIsCreatingDataset] = useState(false);
   const router = useRouter();
 
   const handleFileInput = (e) => {
@@ -149,12 +150,36 @@ export default function AddDataset() {
     setTrainInputFileData(file);
   }
 
+  const uploadFileToS3 = async (file, filename) => {
+    const fileType = encodeURIComponent(file.type);
+
+    const res = await axios.get(`/api/data/post-link?file=${filename}&fileType=${fileType}`);
+    const {url, fields} = res.data;
+    const formData = new FormData();
+
+    Object.entries({ ...fields, file }).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    try {
+      const upload = await axios.post(url, formData);
+      if (upload.status === 204) {
+        console.log('Uploaded successfully!');
+      } else {
+        console.error('Upload failed.', upload);
+      }
+    } catch (error) {
+      console.error('Upload failed.', error);
+    }
+  };
+
   const uploadFileVal = (file) => {
     setValInputFileData(file);
   }
 
-  const handleCreateDataset = () => {
+  const handleCreateDataset = async () => {
     console.log(name);
+
     if (name === '') {
       setError("Please provide a name.");
       return;
@@ -168,28 +193,36 @@ export default function AddDataset() {
       p = localStorage.getItem("project");
     };
 
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('trainFileName', realFileName);
-    formData.append('initialTrainFileName', selectedFile.name);
-    formData.append('valFileName', realFileNameVal);
-    formData.append('initialValFileName', selectedFileVal ? selectedFileVal.name : '');
-    formData.append('projectName', p);
-    formData.append('trainFileData', trainInputFileData);
-    formData.append('valFileData', valInputFileData);
-    formData.append('autoGenerateVal', autoGenerateVal);
-    formData.append('numValExamples', numValExamples);
-    formData.append('numTrainExamples',numTrainExamples);
-    formData.append('headers',headers);
+    setIsCreatingDataset(true);
 
-    axios.post("/api/data/add", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }}).then((res) => {
+    await uploadFileToS3(trainInputFileData, realFileName);
+    console.log('Upload completed successfully!');
+
+    if (selectedFileVal && !autoGenerateVal) {
+      await uploadFileToS3(valInputFileData, realFileNameVal);
+      console.log('Val file upload completed successfully!');
+    }
+
+    const requestData = {
+      name: name,
+      description: description,
+      trainFileName: realFileName,
+      initialTrainFileName: selectedFile.name,
+      valFileName: realFileNameVal,
+      initialValFileName: selectedFileVal ? selectedFileVal.name : '',
+      projectName: p,
+      autoGenerateVal: autoGenerateVal,
+      numValExamples: numValExamples,
+      numTrainExamples: numTrainExamples,
+      headers: headers
+    };
+
+    axios.post("/api/data/add", requestData)
+      .then((res) => {
         setError("");
         router.push('/data');
-      }).catch((err) => {
+      })
+      .catch((err) => {
         setError(err.response.data.error);
       });
   }
@@ -434,6 +467,7 @@ export default function AddDataset() {
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
+              {isCreatingDataset ? <Typography variant='body1'>Loading...</Typography> : null}
               <div className='vertical-box'>
                 <Button size='large' variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
               </div>
