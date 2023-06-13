@@ -26,7 +26,7 @@ export default async function handler(request, response) {
       ContentType: 'text/csv',
       Expires: 600, // seconds
       Conditions: [
-        ['content-length-range', 0, 256 * 1000000], // up to 256 MB
+        ['content-length-range', 0, 150 * 1000000], // Buffer of extra 22MB
       ],
     });
 

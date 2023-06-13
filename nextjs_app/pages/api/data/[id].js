@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
-import Project from '../../../schemas/Project';
-import User from '../../../schemas/User';
-import Dataset from '../../../schemas/Dataset';
+import Project from '@/schemas/Project';
+import User from '@/schemas/User';
+import Dataset from '@/schemas/Dataset';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
@@ -29,7 +29,7 @@ export default async function handler(request, response) {
       throw createError(400,'User not found');
     }
 
-    const d = await Dataset.findById(id);
+    const d = await Dataset.findOne({_id: id, userId: user._id});
     if (!d) {
       throw createError(400, 'Dataset not found')
     }
