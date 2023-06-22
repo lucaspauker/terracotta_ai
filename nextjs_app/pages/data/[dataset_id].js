@@ -165,7 +165,9 @@ export default function DataPage() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box cursor-pointer'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             {dataset.name}
           </Typography>

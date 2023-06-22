@@ -159,23 +159,6 @@ export default function Models() {
           <IconButton color="secondary" onClick={refreshModels}>
             <HiOutlineRefresh size={25} />
           </IconButton>
-          {!loading && (user.cohereKey || user.openAiKey) ?
-            <Button className='button-margin' variant='contained' color="secondary" component={Link} href="/models/import">
-              + Import model
-            </Button>
-            : loading ?
-            <Button className='button-margin' variant='contained' color='secondary'>
-              + Import model
-            </Button>
-            :
-            <CustomTooltip title="💡 Add your OpenAI or Cohere API key to import a model." className='tooltip'>
-              <span>
-                <Button className='button-margin' variant='contained' color="secondary" disabled>
-                  + Import model
-                </Button>
-              </span>
-            </CustomTooltip>
-          }
           {!loading && user.openAiKey ?
             <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
               + Finetune model

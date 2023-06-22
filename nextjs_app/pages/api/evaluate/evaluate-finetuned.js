@@ -167,6 +167,7 @@ export default async function handler(request, response) {
 
       const command = new PutObjectCommand(uploadParams);
       const data = await client.send(command);
+      console.log(data);
       console.log('File uploaded successfully. File location:', data.Location);
     });
 

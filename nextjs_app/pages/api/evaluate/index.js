@@ -35,6 +35,7 @@ export default async function handler(request, response) {
     }
     const projectId = project._id;
 
+    console.log(projectId);
     const evals = await db.collection("evaluations")
       .aggregate([
         {

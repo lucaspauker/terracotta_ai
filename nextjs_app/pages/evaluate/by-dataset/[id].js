@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'
 import { getSession, useSession } from "next-auth/react"
 import axios from 'axios';
-import { Button, CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
+import { Button, IconButton, CircularProgress, Typography, Card, CardContent, Grid } from '@mui/material';
 import { FaArrowLeft } from 'react-icons/fa';
 import BarGraph from 'components/BarGraph';
 import {toTitleCase, metricFormat} from 'components/utils';
@@ -69,7 +69,9 @@ export default function EvaluationDatasetPage() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box cursor-pointer'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             Evaluation Dataset View
           </Typography>
@@ -95,7 +97,6 @@ export default function EvaluationDatasetPage() {
                 <Card
                   className={selected[evaluation._id] ? 'dark-scrollbar evaluation-card cursor-pointer active' : 'dark-scrollbar evaluation-card cursor-pointer'}
                   onClick={() => handleEvaluationCardClick(evaluation._id)}
-                  style={{width: 250, marginRight: 10, marginTop: 4, marginLeft: 4}}
                 >
                   <CardContent>
                     <Typography sx={{marginBottom: 2, fontWeight: 'bold'}} variant='subtitle1' align='center'>{evaluation.name}</Typography>

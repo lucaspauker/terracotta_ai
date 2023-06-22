@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import { FaArrowLeft } from 'react-icons/fa';
 
 export default function Custom404() {
@@ -10,7 +11,9 @@ export default function Custom404() {
     <div className="main">
       <div className='horizontal-box full-width'>
         <div className='horizontal-box'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             Back
           </Typography>

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
@@ -92,7 +93,9 @@ export default function EditDataPage() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box cursor-pointer'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             Edit Dataset
           </Typography>

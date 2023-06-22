@@ -281,6 +281,7 @@ a {
 
 .back-icon {
   margin-right: 20px;
+  color: black;
 }
 
 .table-cell {
@@ -328,6 +329,10 @@ a {
   transition: outline 0.1s;
   max-height: 200px;
   overflow: auto;
+  overflow-x: hidden;
+  margin-top: 4px;
+  margin-right: 10px;
+  width: 250px;
 }
 
 .active-project-card {

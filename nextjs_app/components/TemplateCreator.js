@@ -24,7 +24,6 @@ import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { FaArrowLeft } from 'react-icons/fa';
 import { BiShuffle, BiCopy, BiInfoCircle } from 'react-icons/bi';
 
 function TemplateCreator({

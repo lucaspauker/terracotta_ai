@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -22,7 +23,6 @@ import Checkbox from '@mui/material/Checkbox';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import IconButton from '@mui/material/IconButton';
 import Select from 'react-select'
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -106,7 +106,9 @@ export default function CreateDataset() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             Create CSV
           </Typography>

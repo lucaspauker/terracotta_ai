@@ -187,7 +187,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                               :
                               <div className='horizontal-box flex-start'>
                                 <div>{e.name} &nbsp;&nbsp;&nbsp;</div>
-                                <CircularProgress size={16}/>
+                                <div><CircularProgress size={16} /></div>
                               </div>
                             }
                           </TableCell>

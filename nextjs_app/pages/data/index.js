@@ -168,7 +168,7 @@ export default function Data() {
             <HiOutlineRefresh size={25} />
           </IconButton>
           <Button variant='contained' color="secondary" component={Link} href="/data/add">
-            + Upload CSV
+            + Upload Dataset
           </Button>
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function Data() {
                           : dataset.status === 'loading' ?
                           <div className='horizontal-box flex-start'>
                             <div>{dataset.name} &nbsp;&nbsp;&nbsp;</div>
-                            <CircularProgress size={16}/>
+                            <div><CircularProgress size={16} /></div>
                           </div>
                           :
                           <Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link>

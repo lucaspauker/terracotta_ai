@@ -2,6 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { getSession, useSession } from "next-auth/react"
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -121,7 +122,9 @@ const EvaluateSelect = () => {
     <div className="main">
       <div className='horizontal-box full-width'>
         <div className='horizontal-box'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon cursor-pointer'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             Evaluate
           </Typography>

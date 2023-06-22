@@ -23,7 +23,7 @@ import Select from '@mui/material/Select';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
-import { FaArrowLeft, FaCopy } from 'react-icons/fa';
+import { FaCopy } from 'react-icons/fa';
 import { BiCopy } from 'react-icons/bi';
 import { BiInfoCircle } from 'react-icons/bi';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';

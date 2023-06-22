@@ -71,7 +71,7 @@ def classification_metrics():
         completions_with_misc = []
         # We will have a "misc" class that represents any completion that is not in one of the
         # input classes. This will make doing F1 and confusion matrix make more sense.
-        misc_class_name = "NULL"
+        misc_class_name = "MISC"
         if misc_class_name in classes: pass # Edge case
 
         # Note: we assume that the references are well formed (ie in the classes)
@@ -109,7 +109,7 @@ def classification_metrics():
                 class_distribution[1][c] = 0
             for reference in references:
                 class_distribution[0][reference] += 1
-            for completion in completions:
+            for completion in completions_with_misc:
                 class_distribution[1][completion] += 1
 
             metric_results = {'accuracy': accuracy, 'f1': f1, 'recall': recall,
@@ -132,7 +132,7 @@ def classification_metrics():
                 class_distribution[1][c] = 0
             for reference in references:
                 class_distribution[0][reference] += 1
-            for completion in completions:
+            for completion in completions_with_misc:
                 class_distribution[1][completion] += 1
 
             metric_results = {'accuracy': accuracy, 'weighted f1': weighted_f1, 'confusion': cm,

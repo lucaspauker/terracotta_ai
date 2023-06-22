@@ -76,7 +76,7 @@ function ConfusionMatrix({ evaluation }) {
           ))}
           {evaluation.metricResults['confusion'][0].length > evaluation.classes.length &&
             <div className="grid-cell header-cell">
-              <Typography>Misc {createCustomTooltip("Your model is predicting classes that are not present in your training data. You should experiment with using few-shot prompting or finetuning to build a more accurate model.", true)}</Typography>
+              <Typography>MISC {createCustomTooltip("Your model is predicting classes that are not present in your training data. You should experiment with using few-shot prompting or finetuning to build a more accurate model.", true)}</Typography>
             </div>
           }
         </div>
@@ -229,7 +229,9 @@ export default function ModelPage() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <div className='horizontal-box cursor-pointer'>
-          <FaArrowLeft size='30' onClick={() => router.back()} className='back-icon'/>
+          <IconButton onClick={() => router.back()} className='back-icon cursor-pointer'>
+            <FaArrowLeft size='30'/>
+          </IconButton>
           <Typography variant='h4' className='page-main-header'>
             {evaluation.name}
           </Typography>
@@ -317,7 +319,7 @@ export default function ModelPage() {
           }
         </TabPanel>
         <TabPanel value={tabIndex} index={3}>
-          {'class_distribution' in evaluation.metricResults &&
+          {'class_distribution' in evaluation.metricResults && evaluation.metricResults.class_distribution &&
             <div className='dist-outer'>
               <div className='dist-inner'>
                 <Typography sx={{fontWeight: 'bold'}}>Reference class distribution</Typography>
