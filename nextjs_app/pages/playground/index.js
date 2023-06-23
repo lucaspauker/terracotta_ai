@@ -649,9 +649,11 @@ export default function Playground() {
                 key={m._id}
               >
                 <Checkbox checked={isCheckedById(m._id)} />
-                <Typography>
-                  {m.name}
-                </Typography>
+                <div style={{textAlign:'left'}}>
+                  <Typography sx={{wordBreak:'break-word'}}>
+                    {m.name}
+                  </Typography>
+                </div>
               </Paper>
             ))
             : provider === "Finetuned" ?
@@ -682,10 +684,10 @@ export default function Playground() {
                 >
                   <Checkbox checked={isCheckedById(m.completionName)} />
                   <div style={{textAlign:'left'}}>
-                    <Typography>
+                    <Typography sx={{wordBreak:'break-word'}}>
                       {baseModelNamesDict[m.completionName]}
                     </Typography>
-                    <Typography>
+                    <Typography sx={{wordBreak:'break-word'}}>
                       <span style={{color: 'grey', fontSize:12}}>{'\n' + m.completionName}</span>
                     </Typography>
                   </div>

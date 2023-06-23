@@ -25,6 +25,7 @@ import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { BiShuffle, BiCopy, BiInfoCircle } from 'react-icons/bi';
+import {createCustomTooltip} from '@/components/CustomToolTip.js';
 
 function TemplateCreator({
       templateString,
@@ -170,27 +171,37 @@ function TemplateCreator({
         />
         <div className = "template-options">
           <div className = "vertical-box">
-            <Typography>Import template from a model:</Typography>
-            <div className = "tiny-space" />
-            <FormControl>
-              <Select
-                className="compact-select"
-                value={templateModel}
-                onChange={(e) => {
-                  setTemplateModel(e.target.value);
-                  handleTemplateChange(e.target.value.templateId.templateString)
-                  setStopSequence(e.target.value.templateId.stopSequence)
-                  setOutputColumn(e.target.value.templateId.outputColumn)
-                }}
-              >
-                {models.map((d, i) => (
-                  <MenuItem value={d} key={i}>{d.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            {models.length > 0 ?
+              <>
+              <Typography>Import template from a model:</Typography>
+              <div className = "tiny-space" />
+              <FormControl>
+                <Select
+                  className="compact-select"
+                  value={templateModel}
+                  onChange={(e) => {
+                    setTemplateModel(e.target.value);
+                    handleTemplateChange(e.target.value.templateId.templateString)
+                    setStopSequence(e.target.value.templateId.stopSequence)
+                    setOutputColumn(e.target.value.templateId.outputColumn)
+                  }}
+                >
+                  {models.map((d, i) => (
+                    <MenuItem value={d} key={i}>{d.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              </>
+              :
+              <>
+              <Typography sx={{color:'grey'}}>Import template from a model:</Typography>
+              <div className = "tiny-space" />
+              <Select className="compact-select" disabled />
+              </>
+            }
           </div>
           <div>
-            <Typography>Output column:</Typography>
+            <Typography>Output column: {createCustomTooltip("Column from the dataset for the output of the model.")}</Typography>
             <div className = "tiny-space" />
             <FormControl>
               <Select
@@ -208,7 +219,7 @@ function TemplateCreator({
             </FormControl>
           </div>
           <div>
-            <Typography>Stop sequence:</Typography>
+            <Typography>Stop sequence: {createCustomTooltip("The model will stop producing output when it hits the stop sequence.")}</Typography>
             <div className = "tiny-space" />
             <TextField
               variant="outlined"

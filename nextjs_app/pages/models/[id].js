@@ -19,6 +19,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import axios from 'axios';
 import {BsFillCircleFill} from "react-icons/bs";
+import ReactSpeedometer from "react-d3-speedometer/slim"
 import { Line } from 'react-chartjs-2';
 import { joinWordsWithCommas, calculateColor, metricFormat } from '/components/utils';
 import {
@@ -263,17 +264,24 @@ export default function ModelPage() {
               {trainEval &&
                 <div className='horizontal-box-grid'>
                   {trainEval.metrics.map(metric => (
-                    <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(trainEval.metricResults[metric])}}>
-                      <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                        {metricFormat(metric)}
-                      </Typography>
-                      <div className='small-space'/>
-                      <Typography variant='h6'>
-                        {metric === 'accuracy' ?
-                          parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
-                          parseFloat(trainEval.metricResults[metric]).toFixed(2)}
-                      </Typography>
-                    </div>
+                    <Paper className="metric-box" key={metric} elevation={3}>
+                      <div className='vertical-box'>
+                        <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
+                        <div className='small-space'/>
+                        <Typography variant='h6'>
+                          {metric === 'accuracy' ?
+                            parseFloat(trainEval.metricResults[metric] * 100).toFixed(0) + " %" :
+                            parseFloat(trainEval.metricResults[metric]).toFixed(2)}
+                        </Typography>
+                        <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
+                          segments={5}
+                          value={Number(parseFloat(trainEval.metricResults[metric]).toFixed(2))}
+                          needleColor={'black'}
+                          currentValueText={''} segmentValueFormatter={(x) => ''}
+                          textColor={'white'}
+                        />
+                      </div>
+                    </Paper>
                   ))}
                 </div>
               }
@@ -288,28 +296,35 @@ export default function ModelPage() {
           <Typography variant='h6'>
             Evaluations
           </Typography>
-          {evals.map(e => (
-            e.status === "succeeded" &&
-            <div key={e._id}>
+          {evals.map(evaluation => (
+            evaluation.status === "succeeded" &&
+            <div key={evaluation._id}>
               <div className='tiny-space'/>
               <Paper className='card' variant='outlined'>
-                <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + e._id}>{e.name}</Link></Typography>
-                {e.description ? <Typography>Description: {e.description}</Typography> : null }
-                <Typography>Dataset name: <Link className='link' href={"/data/" + e.datasetId}>{e.datasetName}</Link></Typography>
+                <Typography>Evaluation name: <Link className='link' href={"/evaluate/" + evaluation._id}>{evaluation.name}</Link></Typography>
+                {evaluation.description ? <Typography>Description: {evaluation.description}</Typography> : null }
+                <Typography>Dataset name: <Link className='link' href={"/data/" + evaluation.datasetId}>{evaluation.datasetName}</Link></Typography>
                 <div className='small-space'/>
                 <div className='horizontal-box-grid'>
-                  {e.metrics.map(metric => (metric !== 'confusion') && (
-                    <div className="metric-box" key={metric} style={{backgroundColor: calculateColor(e.metricResults[metric])}}>
-                      <Typography variant='h6' sx={{fontWeight: 'bold'}}>
-                        {metricFormat(metric)}
-                      </Typography>
-                      <div className='small-space'/>
-                      <Typography variant='h6'>
-                        {metric === 'accuracy' ?
-                          parseFloat(e.metricResults[metric] * 100).toFixed(0) + " %" :
-                          parseFloat(e.metricResults[metric]).toFixed(2)}
-                      </Typography>
-                    </div>
+                  {evaluation.metrics.map(metric => (metric !== 'confusion') && (
+                    <Paper className="metric-box" key={metric} elevation={3}>
+                      <div className='vertical-box'>
+                        <Typography variant='h6' sx={{fontWeight: 'bold'}}>{metricFormat(metric)}</Typography>
+                        <div className='small-space'/>
+                        <Typography variant='h6'>
+                          {metric === 'accuracy' ?
+                            parseFloat(evaluation.metricResults[metric] * 100).toFixed(0) + " %" :
+                            parseFloat(evaluation.metricResults[metric]).toFixed(2)}
+                        </Typography>
+                        <ReactSpeedometer minValue={0} maxValue={1} width={200} height={120}
+                          segments={5}
+                          value={Number(parseFloat(evaluation.metricResults[metric]).toFixed(2))}
+                          needleColor={'black'}
+                          currentValueText={''} segmentValueFormatter={(x) => ''}
+                          textColor={'white'}
+                        />
+                      </div>
+                    </Paper>
                   ))}
                 </div>
               </Paper>
