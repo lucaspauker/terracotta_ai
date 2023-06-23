@@ -108,7 +108,7 @@ const EvaluateSelect = () => {
             <span><LinkBox /></span>
           </CustomTooltip>
           : disabled ?
-          <CustomTooltip title="💡 Finetune a model to evaluate a finetuned model." className='tooltip'>
+          <CustomTooltip title="💡 Fine-tune a model to evaluate a fine-tuned model." className='tooltip'>
             <span><LinkBox /></span>
           </CustomTooltip>
           :
@@ -145,8 +145,8 @@ const EvaluateSelect = () => {
           <Grid item>
             <EvaluationBox
               href="/evaluate/evaluate-finetuned"
-              title="Evaluate finetuned model"
-              description="Click here to evaluate the performance of your finetuned model."
+              title="Evaluate fine-tuned model"
+              description="Click here to evaluate the performance of your fine-tuned model."
               disabled={!hasSucceededModel}
               baseModel={false}
             />

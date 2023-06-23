@@ -173,7 +173,7 @@ export default function Models() {
     <div className='main'>
       <div className='horizontal-box full-width'>
         <Typography variant='h4' className='page-main-header'>
-          Finetuned Models
+          Fine-tuned Models
         </Typography>
         <div>
           <IconButton color="secondary" onClick={refreshModels}>
@@ -181,17 +181,17 @@ export default function Models() {
           </IconButton>
           {!loading && user.openAiKey ?
             <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
-              + Finetune model
+              + Fine-tune model
             </Button>
             : loading ?
             <Button variant='contained' color='secondary'>
-              + Finetune model
+              + Fine-tune model
             </Button>
             :
-            <CustomTooltip title="💡 Add your OpenAI API key to finetune a model." className='tooltip'>
+            <CustomTooltip title="💡 Add your OpenAI API key to fine-tune a model." className='tooltip'>
               <span>
                 <Button variant='contained' color="secondary" disabled>
-                  + Finetune model
+                  + Fine-tune model
                 </Button>
               </span>
             </CustomTooltip>
@@ -272,13 +272,13 @@ export default function Models() {
           <>
           <Paper variant='outlined' className='info-box'>
             <Typography variant='h4'>
-              What is a finetuned model?
+              What is a fine-tuned model?
             </Typography>
             <Typography variant='body1'>
               Large language models (LLMs) such as GPT-3 are trained on large amounts
               of text data and therefore understand language well. However, since they
               are trained on general data, in order to create a model useful for a
-              specific use-case such as spam detection, one must finetune the model on
+              specific use-case such as spam detection, one must fine-tune the model on
               spam detection data. Then, the model uses what it learned on general data
               and applies it to the new data and quickly learns the new task. This is
               similar to teaching someone a new skill.
@@ -303,7 +303,7 @@ export default function Models() {
         onClose={() => setOpen(false)}
       >
         <DialogTitle id="alert-dialog-title">
-          {"Delete finetuned model?"}
+          {"Delete fine-tuned model?"}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">

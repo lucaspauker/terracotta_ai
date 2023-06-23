@@ -67,7 +67,7 @@ export default function Evaluate() {
   const refreshInterval = 2000;
   useEffect(() => {
     const checkEvaluationChange = () => {
-      refreshData(true);
+      refreshData(null, true);
 
       // Schedule the next refresh
       const nextRefreshInterval = refreshInterval * 1.5;
@@ -100,7 +100,7 @@ export default function Evaluate() {
     return result;
   }
 
-  const refreshData = (background=false) => {
+  const refreshData = (e, background=false) => {
     !background && setLoading(true);
     let p = project;
     if (localStorage.getItem("project")) {
@@ -191,7 +191,7 @@ export default function Evaluate() {
               What is an evaluation?
             </Typography>
             <Typography variant='body1'>
-              A dataset is your data that you can use to finetune a large language model (LLM).
+              A dataset is your data that you can use to fine-tune a large language model (LLM).
               Datasets consist of two columns: <span className='italic'>input</span> and
               <span className='italic'>output</span>.
             </Typography>

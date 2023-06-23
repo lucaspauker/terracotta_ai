@@ -80,7 +80,7 @@ export default function Data() {
   const refreshInterval = 2000;
   useEffect(() => {
     const checkDatabaseChange = () => {
-      refreshData(true);
+      refreshData(null, true);
 
       // Schedule the next refresh
       const nextRefreshInterval = refreshInterval * 2;
@@ -112,7 +112,7 @@ export default function Data() {
     });
   }
 
-  const refreshData = (background=false) => {
+  const refreshData = (e, background=false) => {
     let p = project;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");
@@ -228,7 +228,7 @@ export default function Data() {
                           : dataset.status === 'loading' ?
                           <div className='horizontal-box flex-start'>
                             <div>{dataset.name} &nbsp;&nbsp;&nbsp;</div>
-                            <div><CircularProgress size={16} /></div>
+                            <div><CircularProgress size={16} sx={{marginTop: 1}} /></div>
                           </div>
                           :
                           <Link className='link' href={"/data/" + dataset._id}>{dataset.name}</Link>
@@ -267,7 +267,7 @@ export default function Data() {
               What is a dataset?
             </Typography>
             <Typography variant='body1'>
-              A dataset is used to finetune a large language model (LLM).
+              A dataset is used to fine-tune a large language model (LLM).
               Each dataset must be uploaded as a CSV file.
             </Typography>
             <div className='medium-space'/>
