@@ -112,8 +112,8 @@ export default function AddDataset() {
   const handleFileInput = (e) => {
     console.log(e.target.files[0]);
     const f = e.target.files[0];
-    if (f.size > 128 * 1024 * 1024) {
-      setUploadError('File size exceeds the limit of 128 MB');
+    if (f.size > 10 * 1024 * 1024) {
+      setUploadError('File size exceeds the limit of 10 MB');
     } else {
       setUploadError('');
       const reader = new FileReader();
@@ -469,7 +469,7 @@ export default function AddDataset() {
               </div>
               <div className='medium-space' />
               {error ? <Typography variant='body2' color='red'>Error: {error}</Typography> : null}
-              {!error && isCreatingDataset ? <Typography variant='body2'>Loading... (this may take a minute)</Typography> : null}
+              {!error && isCreatingDataset ? <Typography variant='body2'>Securely uploading dataset... (this may take a minute)</Typography> : null}
               <div className='vertical-box'>
                 <Button size='large' variant='contained' color="primary" onClick={handleCreateDataset}>Create dataset</Button>
               </div>

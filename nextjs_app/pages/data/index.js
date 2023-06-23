@@ -74,6 +74,26 @@ export default function Data() {
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
 
+  // Auto page refresh
+  const [refreshCount, setRefreshCount] = useState(0);
+  const maxRefreshes = 5;
+  const refreshInterval = 2000;
+  useEffect(() => {
+    const checkDatabaseChange = () => {
+      refreshData(true);
+
+      // Schedule the next refresh
+      const nextRefreshInterval = refreshInterval * 2;
+      const timeout = setTimeout(() => {
+        setRefreshCount(prevCount => prevCount + 1);
+      }, nextRefreshInterval);
+
+      return () => clearTimeout(timeout); // Clean up the timeout on unmount
+    };
+
+    checkDatabaseChange();
+  }, [refreshCount]);
+
   const handleEdit = (id) => {
     router.push("/data/edit/" + id);
   };
@@ -92,13 +112,13 @@ export default function Data() {
     });
   }
 
-  const refreshData = () => {
+  const refreshData = (background=false) => {
     let p = project;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");
       setProject(localStorage.getItem("project"));
     };
-    setLoading(true);
+    !background && setLoading(true);
     axios.post("/api/data/list", {
         projectName: p,
       }).then((res) => {

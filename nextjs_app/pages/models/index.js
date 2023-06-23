@@ -65,6 +65,26 @@ export default function Models() {
   const [user, setUser] = useState({});
   const router = useRouter();
 
+  // Auto page refresh
+  const [refreshCount, setRefreshCount] = useState(0);
+  const maxRefreshes = 10;
+  const refreshInterval = 60000;
+  useEffect(() => {
+    const checkDatabaseChange = () => {
+      refreshModels(null, true);
+
+      // Schedule the next refresh
+      const nextRefreshInterval = refreshInterval;
+      const timeout = setTimeout(() => {
+        setRefreshCount(prevCount => prevCount + 1);
+      }, nextRefreshInterval);
+
+      return () => clearTimeout(timeout); // Clean up the timeout on unmount
+    };
+
+    checkDatabaseChange();
+  }, [refreshCount]);
+
   const handleEdit = (id) => {
     router.push("/models/edit/" + id);
   };
@@ -74,8 +94,8 @@ export default function Models() {
     setIdToDelete(id);
   };
 
-  const refreshModels = () => {
-    setLoading(true);
+  const refreshModels = (e, background=false) => {
+    !background && setLoading(true);
     let projectName = '';
     if (localStorage.getItem("project")) {
       projectName = localStorage.getItem("project");

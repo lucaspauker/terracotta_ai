@@ -139,7 +139,6 @@ export default async function handler(request, response) {
     valFilePresent = valFileName && valFileName !== undefined;
 
     // Download files from S3
-
     const params = {
       Bucket: S3_BUCKET,
       Key: 'raw_data/' + trainFileName,
@@ -262,7 +261,7 @@ export default async function handler(request, response) {
         finetuneRequest = {
           training_file: dataset.openaiData.trainFile,
           compute_classification_metrics: true,
-          classification_positive_class: classes[0] + stopSequence,
+          classification_positive_class: " 0" + stopSequence,
           model: modelArchitecture,
         };
         if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;

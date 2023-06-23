@@ -61,6 +61,26 @@ export default function Evaluate() {
   const [showTraining, setShowTraining] = useState(true);
   const { data: session } = useSession();
 
+  // Auto page refresh
+  const [refreshCount, setRefreshCount] = useState(0);
+  const maxRefreshes = 10;
+  const refreshInterval = 2000;
+  useEffect(() => {
+    const checkEvaluationChange = () => {
+      refreshData(true);
+
+      // Schedule the next refresh
+      const nextRefreshInterval = refreshInterval * 1.5;
+      const timeout = setTimeout(() => {
+        setRefreshCount(prevCount => prevCount + 1);
+      }, nextRefreshInterval);
+
+      return () => clearTimeout(timeout); // Clean up the timeout on unmount
+    };
+
+    checkEvaluationChange();
+  }, [refreshCount]);
+
   const groupByDatasets = (data) => {
     let result = {};
     let ddata = [];
@@ -80,8 +100,8 @@ export default function Evaluate() {
     return result;
   }
 
-  const refreshData = () => {
-    setLoading(true);
+  const refreshData = (background=false) => {
+    !background && setLoading(true);
     let p = project;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");

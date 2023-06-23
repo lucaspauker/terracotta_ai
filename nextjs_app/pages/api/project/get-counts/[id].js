@@ -31,9 +31,11 @@ export default async function handler(request, response) {
       throw createError(400, 'User not found');
     }
 
-    const modelCount = await Model.count({projectId: id});
-    const datasetCount = await Dataset.count({projectId: id});
-    const evaluationCount = await Evaluation.count({projectId: id});
+    const [modelCount, datasetCount, evaluationCount] = await Promise.all([
+      Model.count({ projectId: id }),
+      Dataset.count({ projectId: id }),
+      Evaluation.count({ projectId: id }),
+    ]);
 
     response.status(200).json({modelCount: modelCount, datasetCount: datasetCount, evaluationCount: evaluationCount});
   } catch (error) {
