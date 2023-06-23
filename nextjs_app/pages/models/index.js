@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router'
 import Link from 'next/link';
 import Button from '@mui/material/Button';
@@ -28,7 +28,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
-import {FaTrash} from "react-icons/fa";
+import {FaTrash, FaArrowRight} from "react-icons/fa";
 import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
@@ -183,18 +183,29 @@ export default function Models() {
             <Button variant='contained' color="secondary" component={Link} href="/models/finetune">
               + Fine-tune model
             </Button>
-            : loading ?
-            <Button variant='contained' color='secondary'>
-              + Fine-tune model
-            </Button>
-            :
-            <CustomTooltip title="💡 Add your OpenAI API key to fine-tune a model." className='tooltip'>
+            : !user.openAiKey ?
+            <CustomTooltip title={
+                  <React.Fragment>
+                    💡 Add your OpenAI API key to fine-tune a model.
+                    <div className='small-space'/>
+                    <Button variant='outlined' color="secondary" component={Link} href="/settings">
+                      Go to settings &nbsp;<FaArrowRight />
+                    </Button>
+                  </React.Fragment>
+                }
+                className='tooltip'>
               <span>
                 <Button variant='contained' color="secondary" disabled>
                   + Fine-tune model
                 </Button>
               </span>
             </CustomTooltip>
+            : loading ?
+            <Button variant='contained' color='secondary'>
+              + Fine-tune model
+            </Button>
+            :
+            null
           }
         </div>
       </div>

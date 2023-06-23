@@ -428,7 +428,7 @@ export default function Train() {
                 onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
               />
               <Typography variant='body2' className='form-label'>
-                By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pertaining multiplied by this value.
+                By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pretraining multiplied by this value.
               </Typography>
               <div className='medium-space' />
               <TextField

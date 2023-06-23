@@ -410,7 +410,7 @@ export default function DoEvaluate() {
           {activeStep === 1 ?
             <>
               <Typography variant='h6'>
-                Finetuning Template
+                Evaluation Template
               </Typography>
               <div className='small-space' />
               {datasetLoading ?
