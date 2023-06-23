@@ -46,7 +46,7 @@ export default function Home() {
         <div className='hero-image'></div>
 
         <div className='main-box'>
-          <Typography className='main-box-header'>Finetune large language models fast and easily</Typography>
+          <Typography className='main-box-header'>Fine-tune large language models fast and easily</Typography>
           <Typography className='main-box-subheader'>
             With Terracotta, supercharge your LLM development workflow through our easy-to-use platform.
           </Typography>
@@ -56,7 +56,7 @@ export default function Home() {
         <div className='information-element'>
           <AccountTree className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Manage many models</Typography>
-          <Typography className='part-subtext'>Manage all your finetuned models in one place.</Typography>
+          <Typography className='part-subtext'>Manage all your fine-tuned models in one place.</Typography>
         </div>
         <div className='information-element'>
           <FlashOn className='icon' color="primary"/>
@@ -92,7 +92,7 @@ export default function Home() {
               </Typography>
               <div className='small-space' />
               <Typography variant='body1' className='workflow-body'>
-                The first step in the process of finetuning a large language model
+                The first step in the process of fine-tuning a large language model
                 is to upload your data.
                 At the core of good models is good data.
                 Use Terracotta to securely store your data to later use for fine-tuning a model.
@@ -105,13 +105,13 @@ export default function Home() {
             <div className='vertical-box flex-start'>
               <Typography variant='h3' className='horizontal-box'>
                 <RocketLaunchIcon sx={{fontSize: 64, marginRight: 2, marginBottom: 1}} />
-                Finetune models
+                Fine-tune models
               </Typography>
               <div className='small-space' />
               <Typography variant='body1' className='workflow-body'>
-                Finetune models on your data for both classification and text
+                Fine-tune models on your data for both classification and text
                 generation.
-                We make the process of finetuning a model as easy as a few clicks.
+                We make the process of fine-tuning a model as easy as a few clicks.
               </Typography>
             </div>
           </div>
