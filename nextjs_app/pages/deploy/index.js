@@ -69,8 +69,8 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.Completion.create(
     model="${modelName}",
-    prompt="${inputPrompt}" + "###",
-    max_tokens=7,
+    prompt="${inputPrompt}",
+    max_tokens=50,
     temperature=0
 )`;
   }
@@ -83,8 +83,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const response = await openai.createCompletion({
   model: "${modelName}",
-  prompt: "${inputPrompt}" + "###",
-  max_tokens: 7,
+  prompt: "${inputPrompt}",
+  max_tokens: 50,
   temperature: 0,
 });`
   }
@@ -95,8 +95,8 @@ const response = await openai.createCompletion({
   -H "Authorization: Bearer $OPENAI_API_KEY" \\
   -d '{
     "model": "${modelName}",
-    "prompt": "${inputPrompt}" + "###",
-    "max_tokens": 7,
+    "prompt": "${inputPrompt}",
+    "max_tokens": 50,
     "temperature": 0
   }'`
 }
@@ -123,6 +123,7 @@ const response = await openai.createCompletion({
   }
 
   const handleModelChange = (newModel) => {
+    setModel(newModel);
     setApiCode(getApiCode(newModel.providerData.modelId, library, prompt));
     getModelCost(newModel);
   }
