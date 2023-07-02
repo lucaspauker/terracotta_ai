@@ -18,6 +18,10 @@ const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 const client = new S3Client({ region: REGION });
 
+async function deleteFiles(openai) {
+
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.status(400).json({ error: 'Use POST request' })
@@ -47,7 +51,6 @@ export default async function handler(request, response) {
     });
     const openai = new OpenAIApi(configuration);
 
-
     // Get project ID
     const project = await Project.findOne({userId: userId, name: projectName});
     if (!project) {
@@ -56,7 +59,7 @@ export default async function handler(request, response) {
 
     const projectId = project._id;
 
-
+    // We only select name but reference id?
     let models = await Model.find({userId: userId, projectId: projectId}).populate(
         {
           path: 'datasetId',
@@ -88,6 +91,14 @@ export default async function handler(request, response) {
         let finetuneResponse = await openai.retrieveFineTune(model.providerData.finetuneId);
         finetuneResponse = finetuneResponse.data;
         const events = finetuneResponse.events;
+
+        if (finetuneResponse.status === "succeeded" || finetuneResponse.status === "failed") {
+          const dataset = await Dataset.findById(model.datasetId._id);
+          await openai.deleteFile(dataset.openaiData.trainFile);
+          if (dataset.openaiData.valFile) {
+            await openai.deleteFile(dataset.openaiData.valFile);
+          }
+        }
 
         if (finetuneResponse.status === "succeeded") {
           // Get the results file from OpenAI
