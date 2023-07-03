@@ -152,6 +152,8 @@ const response = await openai.createCompletion({
         getModelCost(m);
         setApiCode(getApiCode(m.providerData.modelId, library, prompt));
         setLoading(false);
+      } else {
+        setLoading(false);
       }
     }).catch((error) => {
       console.log(error);

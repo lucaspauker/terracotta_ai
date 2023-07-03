@@ -51,11 +51,16 @@ export default function Header({navbarExpanded, navbarWidth}) {
       sx={{ width: `calc(100% - ${navbarWidth}px)`, ml: `${navbarWidth}px`, transition: 'all 1s' }}
       className='header'
     >
-      <Toolbar>
-        <GiClayBrick size='40'/>
-        <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30}} className='website-title'>
-          &nbsp;Terracotta
-        </Typography>
+      <Toolbar sx={{justifyContent:'space-between'}}>
+        <div className='horizontal-box flex-start'>
+          <GiClayBrick size='40'/>
+          <Typography variant="h1" sx={{ flexGrow: 1, fontSize: 30}} className='website-title'>
+            &nbsp;Terracotta
+          </Typography>
+          <Typography className='beta'>
+            Beta
+          </Typography>
+        </div>
         <div className='horizontal-box'>
           {session ?
             <div>
