@@ -41,7 +41,7 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
   const router = useRouter();
   const [loading, setLoading] = useState('');
   const [project, setProject] = useState('');
-  const [allProjects, setAllProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState(null);
   const fullWidth = 250;
   const collapsedWidth = 56;
 
@@ -99,10 +99,7 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
       setProject(localStorage.getItem("project"));
     };
     axios.get("/api/project").then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setAllProjects(res.data);
-      }
+      setAllProjects(res.data);
       setLoading(false);
     }).catch((error) => {
       console.log(error);
@@ -160,18 +157,25 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
           <div className='tiny-space' />
           <div className='horizontal-box'>
             <FormControl variant="filled" size='small'>
-              <InputLabel id="project-label">Project</InputLabel>
-              <Select
-                labelId="project-label"
-                className="simple-select project-select"
-                label="Project"
-                value={project}
-                onChange={handleProjectChange}
-              >
-                {allProjects.map((project) => (
-                  <MenuItem key={project.name} value={project.name}>{project.name}</MenuItem>
-                ))}
-              </Select>
+              {allProjects ?
+                <>
+                  <InputLabel id="project-label">Choose project</InputLabel>
+                  <Select
+                    labelId="project-label"
+                    className="simple-select"
+                    label="Choose project"
+                    value={project}
+                    onChange={handleProjectChange}
+                    disabled={allProjects.length === 0}
+                  >
+                    {allProjects.map((p) => (
+                      <MenuItem key={p.name} value={p.name}>{p.name}</MenuItem>
+                    ))}
+                  </Select>
+                </>
+                :
+                <CircularProgress/>
+              }
             </FormControl>
           </div>
           <div className='tiny-space' />
@@ -186,7 +190,7 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
                 button
                 component={Link}
                 href={getLink(text)}
-                disabled={allProjects.length === 0 && text !== 'Projects'}
+                disabled={!allProjects || allProjects.length === 0 && text !== 'Projects'}
               >
                 <ListItemButton selected={isSelected(text)}>
                   <ListItemIcon>

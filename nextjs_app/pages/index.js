@@ -46,7 +46,7 @@ export default function Home() {
         <div className='hero-image'></div>
 
         <div className='main-box'>
-          <Typography className='main-box-header'>Fine-tune large language models fast and easily</Typography>
+          <Typography className='main-box-header'>Experiment with LLMs rapidly and easily</Typography>
           <Typography className='main-box-subheader'>
             With Terracotta, supercharge your LLM development workflow through our easy-to-use platform.
           </Typography>
