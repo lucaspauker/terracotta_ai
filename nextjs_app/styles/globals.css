@@ -742,4 +742,9 @@ a {
   line-height: 1;
 }
 
+.navbar-footer {
+  padding: 10px;
+  text-align: center;
+}
+
 

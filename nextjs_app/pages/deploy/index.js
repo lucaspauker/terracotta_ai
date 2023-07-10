@@ -145,9 +145,10 @@ const response = await openai.createCompletion({
       projectName = localStorage.getItem("project");
     }
     axios.post("/api/models", {projectName: projectName}).then((res) => {
-      setModels(res.data);
-      if (res.data[0]) {
-        const m = res.data[0];
+      let resModels = res.data.filter(m => m.status === 'succeeded');
+      setModels(resModels);
+      if (resModels[0]) {
+        const m = resModels[0];
         setModel(m);
         getModelCost(m);
         setApiCode(getApiCode(m.providerData.modelId, library, prompt));

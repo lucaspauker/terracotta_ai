@@ -63,6 +63,7 @@ export default async function handler(request, response) {
             _id: "$_id",
             name: "$name",
             datasetId: "$datasetId",
+            providerData: "$providerData",
             templateId: "$templateId",
             datasetName: "$dataset.name",
             templateString: "$template.templateString",
