@@ -98,7 +98,7 @@ function DataTable({ headers, rawData, downloadId, downloadName, labelPredictToo
                       position: 'relative',
                     }}
                   >
-                    <div style={{ height: '200px', overflow: 'auto' }}>
+                    <div style={{ maxHeight: '200px', overflow: 'auto' }}>
                       <Typography className="small-scrollbar" style={{ maxHeight: '200px', overflow: 'auto', whiteSpace: 'pre-wrap'}}>
                         {row[header]}
                       </Typography>

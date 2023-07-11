@@ -13,6 +13,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
+import {createCustomTooltip} from '@/components/CustomToolTip.js';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context)
@@ -113,6 +114,7 @@ export default function Add() {
                 </Typography>
               </ToggleButton>
             </ToggleButtonGroup>
+            {createCustomTooltip("Use a classification project if you want to classify text into certain predefined categories. Use a generative project if you want to generate freeform text.")}
           </div>
           <div className='medium-space' />
 
