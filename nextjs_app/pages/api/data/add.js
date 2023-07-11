@@ -133,7 +133,7 @@ export default async function handler(request, response) {
       initialTrainFileName: initialTrainFileName,
       valFileName: valFileName,
       initialValFileName: initialValFileName,
-      numTrainExamples: numTrainExamples,
+      numTrainExamples: initialValFileName ? numTrainExamples : numTrainExamples - numValExamples,
       numValExamples: numValExamples,
       headers: headers,
       status: "loading",

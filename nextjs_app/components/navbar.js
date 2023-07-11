@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Router from "next/router";
 import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Toolbar from '@mui/material/Toolbar';
@@ -22,6 +23,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import Build from '@mui/icons-material/Build';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import EditIcon from '@mui/icons-material/Edit';
 import BrushIcon from '@mui/icons-material/Brush';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -41,12 +43,13 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
   const router = useRouter();
   const [loading, setLoading] = useState('');
   const [project, setProject] = useState('');
-  const [allProjects, setAllProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState(null);
+  const [showFooter, setShowFooter] = useState(expanded);
   const fullWidth = 250;
   const collapsedWidth = 56;
 
   const isSelected = (p) => {
-    if (router.pathname.startsWith('/evaluate') && p === 'Evaluate') {
+    if (router.pathname.startsWith('/evaluate') && p === 'Evaluations') {
       return true;
     } else if (router.pathname.startsWith('/data') && p === 'Datasets') {
       return true;
@@ -59,6 +62,8 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
     } else if (router.pathname.startsWith('/settings') && p === 'API keys') {
       return true;
     } else if (router.pathname.startsWith('/deploy') && p === 'Deploy') {
+      return true;
+    } else if (router.pathname.startsWith('/user-guide') && p === 'User guide') {
       return true;
     } else {
       return false;
@@ -74,12 +79,14 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
       return '/models';
     } else if (p === 'Test') {
       return '/playground';
-    } else if (p === 'Evaluate') {
+    } else if (p === 'Evaluations') {
       return '/evaluate';
     } else if (p === 'API keys') {
       return '/settings';
     } else if (p === 'Deploy') {
       return '/deploy';
+    } else if (p === 'User guide') {
+      return '/user-guide';
     } else {
       return '/';
     }
@@ -99,10 +106,7 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
       setProject(localStorage.getItem("project"));
     };
     axios.get("/api/project").then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setAllProjects(res.data);
-      }
+      setAllProjects(res.data);
       setLoading(false);
     }).catch((error) => {
       console.log(error);
@@ -120,6 +124,22 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
     setWidth(collapsedWidth);
     localStorage.setItem("expanded", false);
   }
+
+  useEffect(() => {
+    let timeoutId;
+
+    if (expanded) {
+      timeoutId = setTimeout(() => {
+        setShowFooter(true);
+      }, 1000);
+    } else {
+      setShowFooter(false);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [expanded]);
 
   useEffect(() => {
     refreshProjects();
@@ -160,18 +180,25 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
           <div className='tiny-space' />
           <div className='horizontal-box'>
             <FormControl variant="filled" size='small'>
-              <InputLabel id="project-label">Project</InputLabel>
-              <Select
-                labelId="project-label"
-                className="simple-select project-select"
-                label="Project"
-                value={project}
-                onChange={handleProjectChange}
-              >
-                {allProjects.map((project) => (
-                  <MenuItem key={project.name} value={project.name}>{project.name}</MenuItem>
-                ))}
-              </Select>
+              {allProjects ?
+                <>
+                  <InputLabel id="project-label">Choose project</InputLabel>
+                  <Select
+                    labelId="project-label"
+                    className="simple-select"
+                    label="Choose project"
+                    value={project}
+                    onChange={handleProjectChange}
+                    disabled={allProjects.length === 0}
+                  >
+                    {allProjects.map((p) => (
+                      <MenuItem key={p.name} value={p.name}>{p.name}</MenuItem>
+                    ))}
+                  </Select>
+                </>
+                :
+                <CircularProgress/>
+              }
             </FormControl>
           </div>
           <div className='tiny-space' />
@@ -179,14 +206,14 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
         }
         <Divider />
         <List>
-          {['Projects', 'Datasets', 'Models', 'Test', 'Evaluate', 'Deploy'].map((text, index) => (
+          {['Projects', 'Datasets', 'Models', 'Test', 'Evaluations', 'Deploy'].map((text, index) => (
             <div key={text}>
               <ListItem
                 disablePadding
                 button
                 component={Link}
                 href={getLink(text)}
-                disabled={allProjects.length === 0 && text !== 'Projects'}
+                disabled={!allProjects || allProjects.length === 0 && text !== 'Projects'}
               >
                 <ListItemButton selected={isSelected(text)}>
                   <ListItemIcon>
@@ -195,7 +222,7 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
                      text === 'Test' ? <EditIcon /> :
                      text === 'Projects' ? <PaletteIcon /> :
                      text === 'Deploy' ? <RocketIcon /> :
-                     text === 'Evaluate' ? <FunctionsIcon /> : null}
+                     text === 'Evaluations' ? <FunctionsIcon /> : null}
                   </ListItemIcon>
                   {expanded && <ListItemText primary={text} />}
                 </ListItemButton>
@@ -206,17 +233,28 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
         </List>
         <Divider />
         <List>
-          {['API keys'].map((text, index) => (
+          {['API keys', 'User guide'].map((text, index) => (
             <ListItem key={text} disablePadding button component={Link} href={getLink(text)}>
               <ListItemButton selected={isSelected(text)}>
                 <ListItemIcon>
-                  {text === 'API keys' ? <SettingsIcon /> : null}
+                  {text === 'API keys' ? <SettingsIcon /> :
+                  text === 'User guide' ? <MenuBookIcon /> : null}
                 </ListItemIcon>
                 {expanded && <ListItemText primary={text} />}
               </ListItemButton>
             </ListItem>
           ))}
         </List>
+        {expanded && showFooter &&
+          <div style={{ position: 'fixed', bottom: 0, width: `${width}px`}}>
+            <Divider />
+            <div className='navbar-footer'>
+              <Typography variant='body2' sx={{fontSize:12}}>
+                Questions? Feedback? Concerns? Please email us at <a className='link' href='mailto:contact@terra-cotta.ai?subject=Feedback'>contact@terra&#8209;cotta.ai</a>.
+              </Typography>
+            </div>
+          </div>
+        }
       </Box>
     </Drawer>
   );

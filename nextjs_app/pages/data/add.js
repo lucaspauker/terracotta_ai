@@ -142,6 +142,9 @@ export default function AddDataset() {
     } else {
       setUploadError('');
       setSelectedFileVal(f);
+      Papa.parse(f, { complete: function(results) {
+        setNumValExamples(results.data.length);
+      }, header: true, skipEmptyLines: true});
       uploadFileVal(f);
     }
   }
@@ -245,7 +248,7 @@ export default function AddDataset() {
   const handleNext = () => {
     if (activeStep === 1) {
       setName(selectedFile.name.substring(0, selectedFile.name.length - 4));
-      if (!autoGenerateVal) {
+      if (!autoGenerateVal && !selectedFileVal) {
         setNumValExamples(0);
       }
     }
@@ -464,7 +467,11 @@ export default function AddDataset() {
               <div className='light-background-card'>
                 <Typography>Train file name: {selectedFile.name}</Typography>
                 <Typography>Number of rows: {numTrainExamples}</Typography>
-                <Typography>Number of train rows: {numTrainExamples - numValExamples}</Typography>
+                {selectedFileVal ?
+                  <Typography>Number of train rows: {numTrainExamples}</Typography>
+                  :
+                  <Typography>Number of train rows: {numTrainExamples - numValExamples}</Typography>
+                }
                 <Typography>Number of validation rows: {numValExamples}</Typography>
               </div>
               <div className='medium-space' />

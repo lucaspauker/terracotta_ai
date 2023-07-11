@@ -250,7 +250,7 @@ a {
 }
 
 .website-title {
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .splash-title {
@@ -731,6 +731,20 @@ a {
   position: absolute;
   top: 8px;
   right: 8px;
+}
+
+.beta {
+  margin-left: 12px;
+  padding: 4px;
+  background-color: #bf9b30;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.navbar-footer {
+  padding: 10px;
+  text-align: center;
 }
 
 

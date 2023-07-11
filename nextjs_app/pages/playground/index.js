@@ -94,7 +94,7 @@ export default function Playground() {
         axios.get("/api/data/" + mFinetuned.datasetId._id).then((res) => {
           const dataset = res.data;
           axios.post("/api/data/file", {
-            fileName: dataset.valFileName,
+            fileName: dataset.valFileName ? dataset.valFileName : dataset.trainFileName,
             maxLines: 1,
             shuffle: true,
             shuffleMaxLines: 50,
