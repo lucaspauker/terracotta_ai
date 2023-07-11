@@ -578,7 +578,6 @@ a {
   justify-content: flex-start;
   align-items: center;
   width: 30%;
-  height: 500px;
   gap: 20px;
   text-align: center;
 }
@@ -610,7 +609,7 @@ a {
 .template-layout {
   display:flex;
   flex-direction: row;
-  height: 500px;
+  max-height: 500px;
 }
 
 .left-message {
@@ -657,6 +656,7 @@ a {
   border: 1px solid grey;
   border-radius: 4px;
   padding: 16px;
+  position: relative;
 }
 
 .space-between {
@@ -745,6 +745,13 @@ a {
 .navbar-footer {
   padding: 10px;
   text-align: center;
+}
+
+.x-button {
+  color: black;
+  position: absolute;
+  right: 4px;
+  top: 4px;
 }
 
 

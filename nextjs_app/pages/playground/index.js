@@ -635,7 +635,7 @@ export default function Playground() {
                 {providers.map(p => (
                   <MenuItem key={p} value={p}>{providerNameDict[p]}</MenuItem>
                 ))}
-                <MenuItem value={'Finetuned'}>Finetuned</MenuItem>
+                <MenuItem value={'Finetuned'}>Fine-tuned</MenuItem>
               </Select>
           </FormControl>
           <div className='tiny-space'/>

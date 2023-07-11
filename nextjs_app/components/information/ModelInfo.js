@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import {FaArrowRight} from "react-icons/fa";
 
 const Info = () => {
   return (
@@ -22,6 +24,13 @@ const Info = () => {
       <Typography variant='h4'>
         How can I get started?
       </Typography>
+      <Typography variant='body1'>
+        In order to fine-tune models, you need an OpenAI API key.&nbsp;&nbsp;
+        <Button size='small' variant='outlined' color="secondary" component={Link} href="/settings">
+          Add API Key &nbsp;<FaArrowRight />
+        </Button>
+      </Typography>
+
       <Typography variant='body1'>
         To fine-tune your own custom model, first make sure that you have uploaded
         a dataset.

@@ -26,8 +26,9 @@ import Papa from 'papaparse';
 import { v4 } from "uuid";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from 'next/router'
-import { FaArrowLeft } from 'react-icons/fa';
 
+import { FaArrowLeft } from 'react-icons/fa';
+import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiCopy, BiInfoCircle } from 'react-icons/bi';
 
 const steps = ['Upload Training Data', 'Choose Validation Data', 'Review'];
@@ -358,6 +359,9 @@ export default function AddDataset() {
                 <>
                   <div className='small-space'/>
                   <div className='border-card'>
+                    <IconButton className='x-button' onClick={() => setSelectedFile(null)}>
+                      <AiOutlineCloseCircle size={20} />
+                    </IconButton>
                     <Typography variant='h6'>&nbsp;{selectedFile.name}</Typography>
                     <div className='small-space' />
                     <div className='vertical-box' style={{alignItems:'flex-start'}}>
@@ -404,7 +408,7 @@ export default function AddDataset() {
               <FormGroup>
                 <FormControlLabel
                     control={<Checkbox checked={autoGenerateVal} onChange={() => setAutoGenerateVal(!autoGenerateVal)}/>}
-                    label="Automatically generate validation data from training data" />
+                    label="Automatically partition validation data from training data" />
               </FormGroup>
 
               {autoGenerateVal && selectedFile ?

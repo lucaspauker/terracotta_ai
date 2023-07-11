@@ -190,7 +190,7 @@ export default function Models() {
                     💡 Add your OpenAI API key to fine-tune a model.
                     <div className='small-space'/>
                     <Button variant='outlined' color="secondary" component={Link} href="/settings">
-                      Go to settings &nbsp;<FaArrowRight />
+                      Add API Key &nbsp;<FaArrowRight />
                     </Button>
                   </React.Fragment>
                 }

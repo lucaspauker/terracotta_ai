@@ -140,6 +140,9 @@ export default function Settings() {
               setChecked={saveOpenAiChecked}
               saveChecked={saveOpenAiChecked}
             />
+            <Typography variant='body2' className='form-label'>
+              For information about how to add an OpenAI API key, refer to <Link href="https://www.howtogeek.com/885918/how-to-get-an-openai-api-key/" target='_blank' className='link'>this guide.</Link>
+            </Typography>
             <div className='medium-space'/>
             <InputApiBox
               provider="cohere"
@@ -150,6 +153,9 @@ export default function Settings() {
               updateApiKeys={updateApiKeys}
               saveChecked={saveCohereChecked}
             />
+            <Typography variant='body2' className='form-label'>
+              To get a Cohere API key, create an account and go to <Link href="https://dashboard.cohere.ai/api-keys" target='_blank' className='link'>this link.</Link>
+            </Typography>
             <div className='small-space'/>
           </Paper>
         </div>

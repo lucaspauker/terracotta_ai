@@ -18,11 +18,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import axios from 'axios';
-import { getSession, useSession, signIn, signOut } from "next-auth/react"
-import { FaArrowLeft } from 'react-icons/fa';
-import { BiCopy, BiInfoCircle } from 'react-icons/bi';
-import { useCallback } from 'react';
+import Collapse from '@mui/material/Collapse';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -32,6 +28,14 @@ import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
+
+import axios from 'axios';
+import { getSession, useSession, signIn, signOut } from "next-auth/react"
+import { FaArrowLeft } from 'react-icons/fa';
+import { BiCopy, BiInfoCircle } from 'react-icons/bi';
+import { useCallback } from 'react';
 
 import { toTitleCase, getPriceString } from '../../components/utils';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';
@@ -76,6 +80,7 @@ export default function Train() {
   const [visibleRows, setVisibleRows] = useState(null);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
 
   // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
@@ -367,7 +372,12 @@ export default function Train() {
                 <Typography variant='h6'>
                   Finetuning Template
                 </Typography>
-                {createCustomTooltip("Open AI recommends adding ### to the end of prompts")}
+                {createCustomTooltip(`The template is used to determine what the input
+                  and output of the fine-tuned model is. Use double brackets to encode a
+                  field from your dataset (for example, {{myField}}). In the table below
+                  the text box, you can see examples of the input and output for the model
+                  with examples from your dataset. When constructing the input prompts,
+                  OpenAI recommends adding ### to the end of prompts`)}
               </Box>
               <div className='small-space' />
               {datasetLoading ?
@@ -397,7 +407,7 @@ export default function Train() {
               <Typography variant='h6'>
                 Hyperparameters
               </Typography>
-              <div className='small-space' />
+              <div className='medium-space' />
               <TextField
                 label="Number of epochs"
                 variant="outlined"
@@ -409,39 +419,49 @@ export default function Train() {
                 The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
               </Typography>
               <div className='medium-space' />
-              <TextField
-                label="Batch size"
-                variant="outlined"
-                className='text-label center'
-                value={hyperParams.batch_size ? hyperParams.batch_size : ''}
-                onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
-              />
-              <Typography variant='body2' className='form-label'>
-                The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
-              </Typography>
-              <div className='medium-space' />
-              <TextField
-                label="Learning rate multiplier"
-                variant="outlined"
-                className='text-label center'
-                value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
-                onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
-              />
-              <Typography variant='body2' className='form-label'>
-                By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pretraining multiplied by this value.
-              </Typography>
-              <div className='medium-space' />
-              <TextField
-                label="Prompt loss weight"
-                variant="outlined"
-                className='text-label center'
-                value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
-                onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
-              />
-              <Typography variant='body2' className='form-label'>
-              This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short. 
-              If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
-              </Typography>
+              <Button variant="text" onClick={() => setShowAdvanced(!showAdvanced)}>
+                Show advanced parameters
+                {showAdvanced ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+              </Button>
+
+              <Collapse in={showAdvanced}>
+                <div className='medium-space' />
+                <TextField
+                  label="Batch size"
+                  variant="outlined"
+                  className='text-label center'
+                  value={hyperParams.batch_size ? hyperParams.batch_size : ''}
+                  onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
+                />
+                <Typography variant='body2' className='form-label'>
+                  The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
+                </Typography>
+                <div className='medium-space' />
+
+                <TextField
+                  label="Learning rate multiplier"
+                  variant="outlined"
+                  className='text-label center'
+                  value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
+                  onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
+                />
+                <Typography variant='body2' className='form-label'>
+                  By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pretraining multiplied by this value.
+                </Typography>
+                <div className='medium-space' />
+
+                <TextField
+                  label="Prompt loss weight"
+                  variant="outlined"
+                  className='text-label center'
+                  value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
+                  onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
+                />
+                <Typography variant='body2' className='form-label'>
+                This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short.
+                If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
+                </Typography>
+              </Collapse>
 
             </>
             : null}
