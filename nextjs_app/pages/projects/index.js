@@ -31,7 +31,8 @@ import Paper from '@mui/material/Paper';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import axios from 'axios';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
-import {timestampToDateTime, toTitleCase} from "../../components/utils";
+import {timestampToDateTime, toTitleCase} from "@/components/utils";
+import ProjectInfo from "@/components/information/ProjectInfo";
 import {FaTrash} from "react-icons/fa";
 
 import MenuComponent from "components/MenuComponent";
@@ -228,28 +229,7 @@ export default function Projects() {
             ))}
           </div>
           :
-         <>
-          <Paper variant='outlined' className='info-box'>
-            <Typography variant='h4'>
-              What is a project?
-            </Typography>
-            <Typography variant='body1'>
-              To get started, create a project. Create a new project for every
-              kind of task you want to do.
-            </Typography>
-            <div className='medium-space'/>
-
-            <Typography variant='h4'>
-              Is there a tutorial?
-            </Typography>
-            <Typography variant='body1'>
-              Check out our tutorial here:&nbsp;
-              <Link href='' className='link'>
-                some tutorial
-              </Link>
-            </Typography>
-          </Paper>
-          </>
+          <ProjectInfo />
         }
       </div>
       <Dialog

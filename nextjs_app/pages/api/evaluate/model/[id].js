@@ -92,7 +92,7 @@ export default async function handler(request, response) {
       // The last row is an empty string, so skip that as well
       for (let i=1; i<data.length - 1; i++) {
         let splitData = data[i].split(',');
-        x.push(Number(splitData[0]));
+        x.push(Number(splitData[2]));
         y.push(Number(splitData[3]));
 
 
