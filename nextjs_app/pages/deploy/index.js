@@ -191,6 +191,7 @@ const response = await openai.createCompletion({
                   label="Model"
                   value={model}
                   onChange={(e) => handleModelChange(e.target.value)}
+                  disabled={models.length === 0}
                 >
                   {models.map((m) => (
                     <MenuItem key={m._id} value={m}>{m.name}</MenuItem>
