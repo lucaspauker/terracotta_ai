@@ -7,6 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { CacheProvider } from '@emotion/react';
 import { SessionProvider } from "next-auth/react"
 import createEmotionCache from '../components/createEmotionCache';
+import ErrorBoundary from '../components/ErrorBoundary'
 import { Layout, SimpleLayout } from '../components/layout'
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -27,7 +28,9 @@ export default function App({Component, emotionCache = clientSideEmotionCache, p
     <CacheProvider value={emotionCache}>
       <SessionProvider session={session}>
         <Layout>
-          <Component {...pageProps} />
+          <ErrorBoundary>
+            <Component {...pageProps} />
+          </ErrorBoundary>
         </Layout>
       </SessionProvider>
     </CacheProvider>
