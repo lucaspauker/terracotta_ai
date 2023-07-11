@@ -41,7 +41,7 @@ export default function Home() {
             <GiClayBrick style={{marginRight: 10}}/>
             Terracotta
           </Typography>
-          <Button className='sign-in-button' variant='contained' color='primary' size='large' onClick={() => signIn()}>Sign in</Button>
+          <Button className='sign-in-button' variant='outlined' color='primary' size='large' onClick={() => signIn()}>Sign in with google or github</Button>
         </div>
         <div className='hero-image'></div>
 

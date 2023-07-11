@@ -20,12 +20,6 @@ export default async function handler(request, response) {
     if (!email) {
       throw createError(400,'Must provide email!');
     }
-    if (!first_name) {
-      throw createError(400,'Must provide first name!')
-    }
-    if (!last_name) {
-      throw createError(400,'Must provide last name!')
-    }
 
     // Create user
     await User.create({
