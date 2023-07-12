@@ -178,7 +178,7 @@ export default async function handler(request, response) {
     let cost;
 
     if (providerModel.provider === "openai") {
-      if (completionName === 'gpt-3.5-turbo') {
+      if (completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4') {
         results.map((completion, i) => {
           const completionText = completion.data.choices[0].message.content.trim()
           completions.push(completionText);

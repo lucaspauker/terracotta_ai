@@ -80,6 +80,7 @@ export const baseModelNamesDict = {
   'text-curie-001': 'GPT-3 Curie',
   'text-davinci-003': 'GPT-3 Davinci',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  'gpt-4': 'GPT-4',
   'generate-medium': 'Generate Medium',
   'generate-xlarge': 'Generate X-Large',
   //'classify-small': 'Classify Small',
