@@ -163,7 +163,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                         <TableCell className='table-cell'>Name</TableCell>
                         <TableCell className='table-cell'>Date created</TableCell>
                         <TableCell className='table-cell'>Model name</TableCell>
-                        <TableCell className='table-cell'>Cost</TableCell>
+                        <TableCell className='table-cell'>Estimated cost</TableCell>
                         <TableCell className='table-cell'>Metrics</TableCell>
                         <TableCell className='table-cell'></TableCell>
                       </TableRow>
@@ -199,7 +199,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                               <>{baseModelNamesDict[e.providerCompletionName]}</>
                             }
                           </TableCell>
-                          <TableCell>{e.trainingEvaluation ? "---" : "cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
+                          <TableCell>{e.trainingEvaluation || e.status === "failed" ? "---" : "cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
                           <TableCell>
                             {e.metricResults ?
                               <div className='metrics-cell'>
@@ -212,7 +212,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                                   </div>
                                 )}
                               </div>
-                              : null }
+                              : "---" }
                           </TableCell>
                           <TableCell>
                             <MenuComponent
