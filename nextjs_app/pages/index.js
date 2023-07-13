@@ -7,9 +7,11 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { Layout, SimpleLayout } from '../components/layout'
-import { AccountTree, FlashOn, Cloud } from '@mui/icons-material';
 import { GiClayBrick } from 'react-icons/gi';
 import { BsCheckLg } from 'react-icons/bs';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import CloudIcon from '@mui/icons-material/Cloud';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CalculateIcon from '@mui/icons-material/Calculate';
@@ -54,17 +56,17 @@ export default function Home() {
       </div>
       <div className='information'>
         <div className='information-element'>
-          <AccountTree className='icon' color="primary"/>
+          <AccountTreeIcon className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Manage many models</Typography>
           <Typography className='part-subtext'>Manage all your fine-tuned models in one place.</Typography>
         </div>
         <div className='information-element'>
-          <FlashOn className='icon' color="primary"/>
+          <FlashOnIcon className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Iterate quickly</Typography>
           <Typography className='part-subtext'>Improve models with easy qualitative and quantitative evaluation.</Typography>
         </div>
         <div className='information-element'>
-          <Cloud className='icon' color="primary"/>
+          <CloudIcon className='icon' color="primary"/>
           <Typography variant="h3" className='part-header'>Multiple providers</Typography>
           <Typography className='part-subtext'>Connect to OpenAI and Cohere.</Typography>
         </div>
@@ -159,7 +161,7 @@ export default function Home() {
       <div className='vertical-box'>
         <Typography variant='h2' className="homepage-subtitle">Our Team</Typography>
         <Typography variant='body1'>
-          Terracotta was created by <Link className='link' href='https://www.linkedin.com/in/beri-kohen-behar-321302193/'>Beri Kohen</Link> and <Link className='link' href='https://www.linkedin.com/in/lucas-pauker-7b4571150/'>Lucas Pauker</Link>, two Stanford AI students excited about LLMs.
+          Terracotta was created by <Link className='link' target="_blank" href='https://www.linkedin.com/in/beri-kohen-behar-321302193/'>Beri Kohen</Link> and <Link className='link' target="_blank" href='https://www.linkedin.com/in/lucas-pauker-7b4571150/'>Lucas Pauker</Link>, two Stanford AI students excited about LLMs.
         </Typography>
       </div>
 

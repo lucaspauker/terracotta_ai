@@ -34,11 +34,11 @@ import { BsFillCircleFill } from 'react-icons/bs';
 import {createCustomTooltip, CustomTooltip} from 'components/CustomToolTip.js';
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading }) {
-  const [expanded, setExpanded] = useState(datasetData);
   const router = useRouter()
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const [projectType, setProjectType] = useState('');
+  const [expanded, setExpanded] = useState([]);
 
   const doDelete = () => {
     axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
@@ -126,7 +126,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
         datasetData.map((datasetDataPoint, index) => (
         <Box key={datasetDataPoint.id} marginBottom={2}>
           <Accordion
-            expanded={expanded.includes(datasetDataPoint)}
+            expanded={expanded && expanded.includes(datasetDataPoint)}
             onChange={() => handleChange(datasetDataPoint)}
             defaultExpanded={true}
           >
@@ -163,7 +163,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                         <TableCell className='table-cell'>Name</TableCell>
                         <TableCell className='table-cell'>Date created</TableCell>
                         <TableCell className='table-cell'>Model name</TableCell>
-                        <TableCell className='table-cell'>Cost</TableCell>
+                        <TableCell className='table-cell'>Estimated cost</TableCell>
                         <TableCell className='table-cell'>Metrics</TableCell>
                         <TableCell className='table-cell'></TableCell>
                       </TableRow>
@@ -199,7 +199,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                               <>{baseModelNamesDict[e.providerCompletionName]}</>
                             }
                           </TableCell>
-                          <TableCell>{e.trainingEvaluation ? "---" : "cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
+                          <TableCell>{e.trainingEvaluation || e.status === "failed" ? "---" : "cost" in e ? getPriceString(e.cost): "pending"}</TableCell>
                           <TableCell>
                             {e.metricResults ?
                               <div className='metrics-cell'>
@@ -212,7 +212,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
                                   </div>
                                 )}
                               </div>
-                              : null }
+                              : "---" }
                           </TableCell>
                           <TableCell>
                             <MenuComponent

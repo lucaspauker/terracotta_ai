@@ -48,7 +48,7 @@ export default async function handler(request, response) {
 
     if (completionName) {  // Stock OpenAI model
       let completion;
-      if (completionName === 'gpt-3.5-turbo') {
+      if (completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4') {
         completion = await openai.createChatCompletion({
           model: completionName,
           messages: [{role: 'user', content: prompt}],
