@@ -34,6 +34,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import EmailIcon from '@mui/icons-material/Email';
 import {CgPushLeft, CgPushRight} from "react-icons/cg";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -247,11 +249,17 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
         </List>
         {expanded && showFooter &&
           <div style={{ position: 'fixed', bottom: 0, width: `${width}px`}}>
-            <Divider />
             <div className='navbar-footer'>
-              <Typography variant='body2' sx={{fontSize:12}}>
-                Questions? Feedback? Concerns? Please email us at <a className='link' href='mailto:contact@terra-cotta.ai?subject=Feedback'>contact@terra&#8209;cotta.ai</a>.
-              </Typography>
+              <Link href="https://twitter.com/TerracottaAi" target="_blank">
+                <IconButton>
+                  <TwitterIcon />
+                </IconButton>
+              </Link>
+              <Link href="mailto:contact@terra-cotta.ai?subject=Hello">
+                <IconButton>
+                  <EmailIcon />
+                </IconButton>
+              </Link>
             </div>
           </div>
         }

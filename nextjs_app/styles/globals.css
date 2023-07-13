@@ -744,7 +744,8 @@ a {
 
 .navbar-footer {
   padding: 10px;
-  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .x-button {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -15,6 +16,8 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import EmailIcon from '@mui/icons-material/Email';
 import axios from 'axios';
 
 export default function Home() {
@@ -43,7 +46,7 @@ export default function Home() {
             <GiClayBrick style={{marginRight: 10}}/>
             Terracotta
           </Typography>
-          <Button className='sign-in-button' variant='outlined' color='primary' size='large' onClick={() => signIn()}>Sign in with google or github</Button>
+          <Button className='sign-in-button' variant='contained' color='primary' size='large' onClick={() => signIn()}>Sign in with google or github</Button>
         </div>
         <div className='hero-image'></div>
 
@@ -198,6 +201,17 @@ export default function Home() {
 
       <div className='footer'>
         <Typography>Copyright © 2023 Terracotta AI</Typography>
+        <div className="small-space"/>
+        <Link href="https://twitter.com/TerracottaAi" target="_blank">
+          <IconButton>
+            <TwitterIcon />
+          </IconButton>
+        </Link>
+        <Link href="mailto:contact@terra-cotta.ai?subject=Hello">
+          <IconButton>
+            <EmailIcon />
+          </IconButton>
+        </Link>
       </div>
     </div>
   )
