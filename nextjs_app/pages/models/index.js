@@ -33,7 +33,7 @@ import {BsFillCircleFill} from "react-icons/bs";
 import {HiOutlineRefresh} from "react-icons/hi";
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 
-import {CustomTooltip} from '/components/CustomToolTip.js';
+import {createCustomTooltip, CustomTooltip} from '/components/CustomToolTip.js';
 import {timestampToDateTimeShort, getPriceString} from '/components/utils';
 import MenuComponent from "components/MenuComponent";
 import ModelInfo from "components/information/ModelInfo";
@@ -59,7 +59,7 @@ export default function Models() {
   const [loading, setLoading] = useState(true);
   const [models, setModels] = useState([]);
   const [page, setPage] = useState(0);
-  const [visibleRows, setVisibleRows] = useState(null);
+  const [visibleRows, setVisibleRows] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
@@ -71,6 +71,7 @@ export default function Models() {
   const maxRefreshes = 10;
   const refreshInterval = 60000;
   useEffect(() => {
+    if (refreshCount >= maxRefreshes) return;
     const checkDatabaseChange = () => {
       refreshModels(null, true);
 
@@ -108,13 +109,15 @@ export default function Models() {
       if (res.data !== "No data found") {
         setModels(res.data);
         console.log(res.data);
-        setPage(0);
-        const newPage = 0;
-        const updatedRows = res.data.slice(
-          newPage * rowsPerPage,
-          newPage * rowsPerPage + rowsPerPage,
-        );
-        setVisibleRows(updatedRows);
+        if (!background) {
+          setPage(0);
+          const newPage = 0;
+          const updatedRows = res.data.slice(
+            newPage * rowsPerPage,
+            newPage * rowsPerPage + rowsPerPage,
+          );
+          setVisibleRows(updatedRows);
+        }
       }
       setLoading(false);
     }).catch((error) => {
@@ -243,7 +246,13 @@ export default function Models() {
                       <TableCell>{model.datasetId? <Link className='link' href={'data/' + model.datasetId._id}>{model.datasetId.name}</Link>: null}</TableCell>
                       <TableCell>{model.provider === 'openai' ? 'OpenAI' : model.provider}</TableCell>
                       <TableCell>{model.modelArchitecture}</TableCell>
-                      <TableCell><span className='status'><BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status.toLowerCase()}</span></TableCell>
+                      <TableCell>
+                        <span className='status'>
+                          <BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>
+                          {model.status.toLowerCase()}
+                          {model.status === 'queued for training' && createCustomTooltip("Time in the training queue depends on OpenAI and can take up to a day.")}
+                        </span>
+                      </TableCell>
                       <TableCell>{model.status==='failed' ?  "---"
                                   : model.providerData && ("modelId" in model.providerData)?
                                   <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>

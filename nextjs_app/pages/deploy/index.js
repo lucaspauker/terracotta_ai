@@ -199,11 +199,11 @@ const response = await openai.createCompletion({
                 </Select>
               </FormControl>
               <FormControl>
-                <InputLabel id="library-label">Library</InputLabel>
+                <InputLabel id="library-label">Language</InputLabel>
                 <Select
                   labelId="library-label"
                   className="simple-select"
-                  label="Library"
+                  label="Language"
                   value={library}
                   onChange={(e) => handleLibraryChange(e.target.value)}
                 >

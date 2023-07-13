@@ -34,11 +34,11 @@ import { BsFillCircleFill } from 'react-icons/bs';
 import {createCustomTooltip, CustomTooltip} from 'components/CustomToolTip.js';
 
 function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading }) {
-  const [expanded, setExpanded] = useState(datasetData);
   const router = useRouter()
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const [projectType, setProjectType] = useState('');
+  const [expanded, setExpanded] = useState([]);
 
   const doDelete = () => {
     axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
@@ -126,7 +126,7 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
         datasetData.map((datasetDataPoint, index) => (
         <Box key={datasetDataPoint.id} marginBottom={2}>
           <Accordion
-            expanded={expanded.includes(datasetDataPoint)}
+            expanded={expanded && expanded.includes(datasetDataPoint)}
             onChange={() => handleChange(datasetDataPoint)}
             defaultExpanded={true}
           >

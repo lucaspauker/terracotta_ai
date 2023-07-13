@@ -7,7 +7,8 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import { Layers, Psychology } from '@mui/icons-material';
+import LayersIcon from '@mui/icons-material/Layers';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useRouter } from 'next/router';
@@ -87,9 +88,9 @@ const EvaluateSelect = () => {
           }}
         >
           {title === "Evaluate base model" ?
-            <Layers fontSize="inherit" sx={{ color: [mainColor], fontSize: '50px' }} />
+            <LayersIcon fontSize="inherit" sx={{ color: [mainColor], fontSize: '50px' }} />
             :
-            <Psychology fontSize="inherit" sx={{ color: [mainColor], fontSize: '50px' }} />
+            <PsychologyIcon fontSize="inherit" sx={{ color: [mainColor], fontSize: '50px' }} />
           }
           <Typography variant="h6" color={mainColor} align="center" sx={{ mt: 1 }}>
             {title}

@@ -16,17 +16,6 @@ const Info = () => {
         predefined categories.
         Use a generative project if you want to generate freeform text.
       </Typography>
-      <div className='medium-space'/>
-
-      <Typography variant='h4'>
-        Is there a tutorial?
-      </Typography>
-      <Typography variant='body1'>
-        Check out our tutorial here:&nbsp;
-        <Link href='' className='link'>
-          some tutorial
-        </Link>
-      </Typography>
     </Paper>
   );
 };

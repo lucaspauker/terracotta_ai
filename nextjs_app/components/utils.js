@@ -74,6 +74,23 @@ export const metricFormat = (metric) => {
   return toTitleCase(metric);
 }
 
+export const metricTooltip = (metric) => {
+  if (metric === "bleu") {
+    return "The BLEU metric is a method for evaluating the quality of machine-translated text by comparing it to one or more reference translations based on n-grams and measuring their overlap.";
+  } else if (metric === "rougel") {
+    return "The RougeL metric is a method for evaluating the quality of machine-generated summaries by measuring the longest common subsequence between the summary and one or more reference summaries.";
+  } else if (metric === "f1") {
+    return "The F1 metric is a measure of a model's accuracy that balances precision and recall by calculating the harmonic mean of these two metrics.";
+  } else if (metric === "accuracy") {
+    return "Accuracy is a metric that quantifies the proportion of correct predictions made by a model out of the total number of predictions.";
+  } else if (metric === "precision") {
+    return "Precision is a metric that quantifies the proportion of true positive predictions made by a model out of the total number of positive predictions. ";
+  } else if (metric === "recall") {
+    return "Recall is a metric that quantifies the proportion of true positive predictions made by a model out of the total number of actual positive instances.";
+  }
+  return null;
+}
+
 export const baseModelNamesDict = {
   'text-ada-001': 'GPT-3 Ada',
   'text-babbage-001': 'GPT-3 Babbage',

@@ -56,9 +56,6 @@ export default function Evaluate() {
   const [datasetData, setDatasetData] = useState(null);
   const [project, setProject] = useState('');
   const router = useRouter()
-  const [page, setPage] = useState(0);
-  const [visibleRows, setVisibleRows] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showTraining, setShowTraining] = useState(true);
   const { data: session } = useSession();
 
@@ -66,7 +63,9 @@ export default function Evaluate() {
   const [refreshCount, setRefreshCount] = useState(0);
   const maxRefreshes = 10;
   const refreshInterval = 2000;
+
   useEffect(() => {
+    if (refreshCount >= maxRefreshes) return;
     const checkEvaluationChange = () => {
       refreshData(null, true);
 
@@ -97,7 +96,7 @@ export default function Evaluate() {
         );
       }
     }
-    setDatasetData(ddata);
+    if (ddata !== datasetData) setDatasetData(ddata);
     return result;
   }
 
@@ -112,47 +111,17 @@ export default function Evaluate() {
         projectName: p,
       }).then((res) => {
         if (showTraining) {
-          setEvals(groupByDatasets(res.data));
+          const data = groupByDatasets(res.data);
+          if (evals !== data) setEvals(data);
         } else {
-          setEvals(groupByDatasets(res.data.filter(e => !e.trainingEvaluation)));
+          const data = groupByDatasets(res.data.filter(e => !e.trainingEvaluation));
+          if (evals !== data) setEvals(data);
         }
-        setPage(0);
-        const newPage = 0;
-        const updatedRows = res.data.slice(
-          newPage * rowsPerPage,
-          newPage * rowsPerPage + rowsPerPage,
-        );
-        setVisibleRows(updatedRows);
         setLoading(false);
       }).catch((error) => {
         console.log(error);
       });
   }
-
-  const handleChangePage = useCallback(
-    (event, newPage) => {
-      setPage(newPage);
-      const updatedRows = evals.slice(
-        newPage * rowsPerPage,
-        newPage * rowsPerPage + rowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
-
-  const handleChangeRowsPerPage = useCallback(
-    (event) => {
-      const updatedRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(updatedRowsPerPage);
-      setPage(0);
-
-      const updatedRows = evals.slice(
-        0 * updatedRowsPerPage,
-        0 * updatedRowsPerPage + updatedRowsPerPage,
-      );
-      setVisibleRows(updatedRows);
-    },
-  );
 
   useEffect(() => {
     refreshData();
@@ -184,7 +153,8 @@ export default function Evaluate() {
           <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
           : datasetData.length > 0 ?
           <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData}
-            showTraining={showTraining} setShowTraining={setShowTraining} loading={loading}/>
+            showTraining={showTraining} setShowTraining={setShowTraining} loading={loading}
+          />
           :
           <EvaluationInfo/>
         }

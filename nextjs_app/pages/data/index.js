@@ -67,19 +67,21 @@ export default function Data() {
   const [selectedFile, setSelectedFile] = useState();
 	const [isFilePicked, setIsFilePicked] = useState(false);
   const [project, setProject] = useState('');
-  const { data: session } = useSession();
-  const router = useRouter()
   const [page, setPage] = useState(0);
-  const [visibleRows, setVisibleRows] = useState(null);
+  const [visibleRows, setVisibleRows] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
+  const { data: session } = useSession();
+  const router = useRouter()
 
   // Auto page refresh
   const [refreshCount, setRefreshCount] = useState(0);
   const maxRefreshes = 5;
   const refreshInterval = 2000;
+
   useEffect(() => {
+    if (refreshCount >= maxRefreshes) return;
     const checkDatabaseChange = () => {
       refreshData(null, true);
 
@@ -125,13 +127,15 @@ export default function Data() {
       }).then((res) => {
         if (res.data !== "No data found") {
           setDatasets(res.data);
-          setPage(0);
-          const newPage = 0;
-          const updatedRows = res.data.slice(
-            newPage * rowsPerPage,
-            newPage * rowsPerPage + rowsPerPage,
-          );
-          setVisibleRows(updatedRows);
+          if (!background) {
+            setPage(0);
+            const newPage = 0;
+            const updatedRows = res.data.slice(
+              newPage * rowsPerPage,
+              newPage * rowsPerPage + rowsPerPage,
+            );
+            setVisibleRows(updatedRows);
+          }
         }
         setLoading(false);
       }).catch((error) => {

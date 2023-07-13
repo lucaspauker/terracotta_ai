@@ -33,7 +33,8 @@ import {
   metricFormat,
   classificationMetrics,
   multiclassClassificationMetrics,
-  generationMetrics
+  generationMetrics,
+  metricTooltip,
 } from '/components/utils';
 
 const steps = ['Select Dataset and Model', 'Select Generation Parameters', 'Select Metrics', 'Review'];
@@ -335,7 +336,7 @@ export default function DoEvaluate() {
                     value={maxTokens}
                     onChange={(e) => setMaxTokens(e.target.value)}
                   />
-                  {createCustomTooltip("The maximum number of tokens to generate per prediction")}
+                  {createCustomTooltip("The maximum number of tokens to generate per prediction. One word is 2-3 tokens.")}
                   </div>
                   <div className='small-space' />
                   <div className='horizontal-box'>
@@ -346,7 +347,7 @@ export default function DoEvaluate() {
                     value={temperature}
                     onChange={(e) => setTemperature(e.target.value)}
                   />
-                  {createCustomTooltip("Higher temperature means more random output while lower temperature means more deterministic output")}
+                  {createCustomTooltip("Higher temperature means more random output while lower temperature means more deterministic output. Temperature must be in the range 0-1.")}
                   </div>
                 </div>
               </>
@@ -363,6 +364,7 @@ export default function DoEvaluate() {
                   <div key={m} className='horizontal-box'>
                     <Checkbox key={m} checked={isChecked(m)} onChange={() => toggleChecked(m)} />
                     <Typography>{metricFormat(m)}</Typography>
+                    {metricTooltip(m) && createCustomTooltip(metricTooltip(m))}
                   </div>
                 ))}
               </div>
