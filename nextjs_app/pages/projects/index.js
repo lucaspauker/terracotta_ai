@@ -24,6 +24,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Grow from '@mui/material/Grow';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItem from '@mui/material/ListItem';
@@ -213,13 +214,16 @@ export default function Projects() {
                 </CardContent>
                 <div className='tiny-space'/>
                 {countData[project._id] ?
-                  <div className='horizontal-box' style={{justifyContent:'space-around'}}>
-                    <CountComponent type='dataset' count={countData[project._id].datasetCount} />
-                    <CountComponent type='model' count={countData[project._id].modelCount} />
-                    <CountComponent type='evaluation' count={countData[project._id].evaluationCount} />
-                  </div>
-                :
-                <div className='horizontal-box'><CircularProgress/></div>}
+                  <Grow in={countData[project._id]}>
+                    <div className='horizontal-box' style={{justifyContent:'space-around'}}>
+                      <CountComponent type='dataset' count={countData[project._id].datasetCount} />
+                      <CountComponent type='model' count={countData[project._id].modelCount} />
+                      <CountComponent type='evaluation' count={countData[project._id].evaluationCount} />
+                    </div>
+                  </Grow>
+                  :
+                  <div className='horizontal-box'><CircularProgress/></div>
+                }
                 <div className='small-space'/>
                 <CardActions className='vertical-box'>
                   <Button onClick={() => handleProjectChange(project.name)} disabled={project.name===currentProject}>Switch to this project</Button>
