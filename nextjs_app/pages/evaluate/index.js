@@ -55,9 +55,10 @@ export default function Evaluate() {
   const [evals, setEvals] = useState({});
   const [datasetData, setDatasetData] = useState(null);
   const [project, setProject] = useState('');
-  const router = useRouter()
+  const [expanded, setExpanded] = useState([]);
   const [showTraining, setShowTraining] = useState(true);
   const { data: session } = useSession();
+  const router = useRouter()
 
   // Auto page refresh
   const [refreshCount, setRefreshCount] = useState(0);
@@ -96,26 +97,27 @@ export default function Evaluate() {
         );
       }
     }
-    if (ddata !== datasetData) setDatasetData(ddata);
+    if (JSON.stringify(ddata) !== JSON.stringify(datasetData)) setDatasetData(ddata);
     return result;
   }
 
   const refreshData = (e, background=false) => {
+    console.log("refreshing");
     !background && setLoading(true);
     let p = project;
     if (localStorage.getItem("project")) {
       p = localStorage.getItem("project");
-      setProject(localStorage.getItem("project"));
+      if (p !== project) setProject(localStorage.getItem("project"));
     };
     axios.post("/api/evaluate", {
         projectName: p,
       }).then((res) => {
         if (showTraining) {
           const data = groupByDatasets(res.data);
-          if (evals !== data) setEvals(data);
+          if (JSON.stringify(evals) !== JSON.stringify(data)) setEvals(data);
         } else {
           const data = groupByDatasets(res.data.filter(e => !e.trainingEvaluation));
-          if (evals !== data) setEvals(data);
+          if (JSON.stringify(evals) !== JSON.stringify(data)) setEvals(data);
         }
         setLoading(false);
       }).catch((error) => {
@@ -154,6 +156,7 @@ export default function Evaluate() {
           : datasetData.length > 0 ?
           <DatasetEvaluations datasetData={datasetData} evaluations={evals} refreshData={refreshData}
             showTraining={showTraining} setShowTraining={setShowTraining} loading={loading}
+            expanded={expanded} setExpanded={setExpanded}
           />
           :
           <EvaluationInfo/>

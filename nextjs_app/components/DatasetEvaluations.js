@@ -33,12 +33,12 @@ import { BiInfoCircle } from 'react-icons/bi';
 import { BsFillCircleFill } from 'react-icons/bs';
 import {createCustomTooltip, CustomTooltip} from 'components/CustomToolTip.js';
 
-function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading }) {
+function DatasetEvaluations({ datasetData, evaluations, refreshData, showTraining, setShowTraining, loading, expanded, setExpanded }) {
   const router = useRouter()
   const [open, setOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const [projectType, setProjectType] = useState('');
-  const [expanded, setExpanded] = useState([]);
+  const [firstLoad, setFirstLoad] = useState(true);
 
   const doDelete = () => {
     axios.post("/api/evaluate/delete/" + idToDelete).then((res) => {
@@ -83,6 +83,15 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
 
   useEffect(() => {
     handleExpandAll();
+    let projectName = '';
+    if (localStorage.getItem("project")) {
+      projectName = localStorage.getItem("project");
+      axios.post("/api/project/by-name", {projectName: projectName}).then((res) => {
+        setProjectType(res.data.type);
+      }).catch((error) => {
+        console.log(error);
+      });
+    }
   }, [datasetData]);
 
   useEffect(() => {
@@ -100,6 +109,10 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
     }
   }, [idToDelete]);
 
+  useEffect(() => {
+    setFirstLoad(false);
+  }, []);
+
   return (
     <div>
       <div>
@@ -110,17 +123,20 @@ function DatasetEvaluations({ datasetData, evaluations, refreshData, showTrainin
           Expand All
         </Button>
         {projectType === 'classification' &&
-          <FormControlLabel
-            sx={{marginLeft: '16px'}}
-            control={
-              <Checkbox checked={showTraining} onChange={handleToggleShowTraining} />
-            }
-            label="Show training evaluations" />
+          <>
+            <FormControlLabel
+              sx={{marginLeft: '16px'}}
+              control={
+                <Checkbox checked={showTraining} onChange={handleToggleShowTraining} />
+              }
+              label="Show training evaluations" />
+            {createCustomTooltip("Training evaluations are generated during fine-tuning by OpenAI using the validation dataset.")}
+          </>
         }
-        {createCustomTooltip("Training evaluations are generated during fine-tuning by OpenAI using the validation dataset.")}
       </div>
       <div className='small-space' />
-      {loading ?
+      {firstLoad ? null :
+        loading ?
         <div className='vertical-box' style={{height:500}}><CircularProgress /></div>
         :
         datasetData.map((datasetDataPoint, index) => (
