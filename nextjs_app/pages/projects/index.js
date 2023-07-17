@@ -215,7 +215,7 @@ export default function Projects() {
                 {countData[project._id] ?
                   <>
                   <div className='tiny-space'/>
-                  <Grow in={countData[project._id]}>
+                  <Grow in={countData[project._id]} timeout={1000}>
                     <div className='horizontal-box' style={{justifyContent:'space-around'}}>
                       <CountComponent type='dataset' count={countData[project._id].datasetCount} />
                       <CountComponent type='model' count={countData[project._id].modelCount} />
