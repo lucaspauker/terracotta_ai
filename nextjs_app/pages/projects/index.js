@@ -212,8 +212,9 @@ export default function Projects() {
                     {toTitleCase(project.type)}
                   </Typography>
                 </CardContent>
-                <div className='tiny-space'/>
                 {countData[project._id] ?
+                  <>
+                  <div className='tiny-space'/>
                   <Grow in={countData[project._id]}>
                     <div className='horizontal-box' style={{justifyContent:'space-around'}}>
                       <CountComponent type='dataset' count={countData[project._id].datasetCount} />
@@ -221,8 +222,9 @@ export default function Projects() {
                       <CountComponent type='evaluation' count={countData[project._id].evaluationCount} />
                     </div>
                   </Grow>
+                  </>
                   :
-                  <div className='horizontal-box'><CircularProgress/></div>
+                  null
                 }
                 <div className='small-space'/>
                 <CardActions className='vertical-box'>
