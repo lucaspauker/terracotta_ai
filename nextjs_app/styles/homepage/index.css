@@ -14,15 +14,21 @@
   background-color: #ffffff;
   padding: 10px 50px;
   margin: 24px auto;
-  border-radius: 500px;
+  border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   max-width: 1200px;
   z-index: 1;
 }
 
+@media (max-width: 1200px) {
+  .homepage .header {
+    border-radius: 0px;
+  }
+}
+
 .main-box {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 40%;
   transform: translate(-50%, -50%);
   width: 80%;
@@ -47,11 +53,35 @@
   color: #888888;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .information {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+  .information-element {
+    margin-bottom: 20px;
+  }
+  .email-list-form {
+    flex-direction: column;
+  }
   .main-box {
-    width: calc(100% - 10px);
+    border-radius: 0px;
+    width: calc(100%);
     left: 50%;
     max-width: none;
+    margin: 0px;
+    margin-top: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .homepage .header {
+    justify-content: space-around;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  .main-box {
     margin-top: 80px;
   }
   .main-box-header {
@@ -63,7 +93,8 @@
     text-align: center;
   }
   .homepage .logo {
-    font-size: 32px;
+    font-size: 48px;
+    color: black;
   }
   .sign-in-button {
     display: none;
@@ -86,6 +117,10 @@
   margin-top: 120px;
 }
 
+.team-box {
+  padding: 0px 40px;
+}
+
 .information {
   display: flex;
   justify-content: space-between;
@@ -94,20 +129,6 @@
   padding: 0px 40px;
   margin: 0px auto;
   margin-top: 120px;
-}
-
-@media (max-width: 768px) {
-  .information {
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-  }
-  .information-element {
-    margin-bottom: 20px;
-  }
-  .email-list-form {
-    flex-direction: column;
-  }
 }
 
 .information-element {

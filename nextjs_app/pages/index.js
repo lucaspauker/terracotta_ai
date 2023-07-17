@@ -161,10 +161,10 @@ export default function Home() {
 
       <Divider className='homepage-divider' />
 
-      <div className='vertical-box'>
+      <div className='vertical-box team-box'>
         <Typography variant='h2' className="homepage-subtitle">Our Team</Typography>
         <Typography variant='body1'>
-          Terracotta was created by <Link className='link' target="_blank" href='https://www.linkedin.com/in/beri-kohen-behar-321302193/'>Beri Kohen</Link> and <Link className='link' target="_blank" href='https://www.linkedin.com/in/lucas-pauker-7b4571150/'>Lucas Pauker</Link>, two Stanford AI students excited about LLMs.
+          Terracotta was created by <Link className='link' target="_blank" href='https://www.linkedin.com/in/beri-kohen-behar-321302193/'>Beri Kohen</Link> and <Link className='link' target="_blank" href='https://www.linkedin.com/in/lucas-pauker-7b4571150/'>Lucas Pauker</Link>, two Stanford AI graduates excited about LLMs.
         </Typography>
       </div>
 
