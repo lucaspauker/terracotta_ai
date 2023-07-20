@@ -94,10 +94,10 @@ export default async function handler(request, response) {
 
         if (finetuneResponse.status === "succeeded" || finetuneResponse.status === "failed") {
           const dataset = await Dataset.findById(model.datasetId._id);
-          await openai.deleteFile(dataset.openaiData.trainFile);
-          if (dataset.openaiData.valFile) {
-            await openai.deleteFile(dataset.openaiData.valFile);
-          }
+          //await openai.deleteFile(dataset.openaiData.trainFile);
+          //if (dataset.openaiData.valFile) {
+          //  await openai.deleteFile(dataset.openaiData.valFile);
+          //}
         }
 
         if (finetuneResponse.status === "succeeded") {
