@@ -81,7 +81,7 @@ export function SimpleLayout({ children }) {
     <ThemeProvider theme={theme}>
       <Head>
         <title>Terracotta</title>
-        <meta name="description" content="Sharpen LLM Management" />
+        <meta name="description" content="Experiment with LLMs quickly and intuitively" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <main>{children}</main>
