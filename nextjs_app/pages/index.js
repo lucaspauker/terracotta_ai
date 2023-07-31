@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField';
 import { getSession, useSession, signIn, signOut } from "next-auth/react"
 import { Layout, SimpleLayout } from '../components/layout'
 import { GiClayBrick } from 'react-icons/gi';
-import { BsCheckLg } from 'react-icons/bs';
+import { BsCheckLg, BsDiscord } from 'react-icons/bs';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import CloudIcon from '@mui/icons-material/Cloud';
@@ -205,6 +205,11 @@ export default function Home() {
         <Link href="https://twitter.com/TerracottaAi" target="_blank">
           <IconButton>
             <TwitterIcon />
+          </IconButton>
+        </Link>
+        <Link href="https://discord.gg/XA7eXACb" target="_blank">
+          <IconButton>
+            <BsDiscord />
           </IconButton>
         </Link>
         <Link href="mailto:contact@terra-cotta.ai?subject=Hello">
