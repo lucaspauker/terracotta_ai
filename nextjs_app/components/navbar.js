@@ -37,6 +37,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import EmailIcon from '@mui/icons-material/Email';
 import {CgPushLeft, CgPushRight} from "react-icons/cg";
+import {BsDiscord} from "react-icons/bs";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import axios from 'axios';
@@ -253,6 +254,11 @@ export default function Navbar({expanded, setExpanded, width, setWidth}) {
               <Link href="https://twitter.com/TerracottaAi" target="_blank">
                 <IconButton>
                   <TwitterIcon />
+                </IconButton>
+              </Link>
+              <Link href="https://discord.gg/XA7eXACb" target="_blank">
+                <IconButton>
+                  <BsDiscord />
                 </IconButton>
               </Link>
               <Link href="mailto:contact@terra-cotta.ai?subject=Hello">
