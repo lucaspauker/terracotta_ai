@@ -102,7 +102,6 @@ export default function Evaluate() {
   }
 
   const refreshData = (e, background=false) => {
-    console.log("refreshing");
     !background && setLoading(true);
     let p = project;
     if (localStorage.getItem("project")) {

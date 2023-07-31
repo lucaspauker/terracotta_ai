@@ -68,8 +68,8 @@ export default function Models() {
 
   // Auto page refresh
   const [refreshCount, setRefreshCount] = useState(0);
-  const maxRefreshes = 10;
-  const refreshInterval = 60000;
+  const maxRefreshes = 5;
+  const refreshInterval = 2000;
   useEffect(() => {
     if (refreshCount >= maxRefreshes) return;
     const checkDatabaseChange = () => {
@@ -105,19 +105,21 @@ export default function Models() {
 
     axios.get("/api/user",).then((res) => {setUser(res.data);}).catch((error) => console.log(error));
     axios.post("/api/models", {projectName: projectName}).then((res) => {
-      console.log(res.data);
-      if (res.data !== "No data found") {
-        setModels(res.data);
-        console.log(res.data);
-        if (!background) {
-          setPage(0);
-          const newPage = 0;
-          const updatedRows = res.data.slice(
-            newPage * rowsPerPage,
-            newPage * rowsPerPage + rowsPerPage,
-          );
-          setVisibleRows(updatedRows);
-        }
+      setModels(res.data);
+      if (!background) {
+        setPage(0);
+        const newPage = 0;
+        const updatedRows = res.data.slice(
+          newPage * rowsPerPage,
+          newPage * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
+      } else {
+        const updatedRows = res.data.slice(
+          page * rowsPerPage,
+          page * rowsPerPage + rowsPerPage,
+        );
+        setVisibleRows(updatedRows);
       }
       setLoading(false);
     }).catch((error) => {

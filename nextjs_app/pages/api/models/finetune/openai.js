@@ -252,27 +252,32 @@ export default async function handler(request, response) {
     }
 
     console.log("Done");
+    console.log(valFilePresent);
 
     let finetuneRequest = null;
     if (project.type === "classification") {
       if (classes.length <= 1) {
-        throw createError(400,'Dataset classes not specified')
+        throw createError(400,'Dataset classes not specified');
       } else if (classes.length === 2) {  // Binary classification
         finetuneRequest = {
           training_file: dataset.openaiData.trainFile,
-          compute_classification_metrics: true,
-          classification_positive_class: " 0" + stopSequence,
           model: modelArchitecture,
         };
-        if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;
+        if (valFilePresent) {
+          finetuneRequest.validation_file = dataset.openaiData.valFile;
+          finetuneRequest.classification_positive_class = " 0" + stopSequence;
+          finetuneRequest.compute_classification_metrics = true;
+        }
       } else {  // Multiclass classification
         finetuneRequest = {
           training_file: dataset.openaiData.trainFile,
-          compute_classification_metrics: true,
-          classification_n_classes: classes.length,
           model: modelArchitecture,
         };
-        if (valFilePresent) finetuneRequest.validation_file = dataset.openaiData.valFile;
+        if (valFilePresent) {
+          finetuneRequest.validation_file = dataset.openaiData.valFile;
+          finetuneRequest.classification_n_classes = classes.length;
+          finetuneRequest.compute_classification_metrics = true;
+        }
       }
     } else if (project.type === "generative") {
       finetuneRequest = {
@@ -283,6 +288,7 @@ export default async function handler(request, response) {
 
     // Create finetune
     finetuneRequest = {...finetuneRequest,...hyperParams};
+    console.log(finetuneRequest);
     const finetuneResponse = await openai.createFineTune(finetuneRequest);
 
     await Model.findByIdAndUpdate(

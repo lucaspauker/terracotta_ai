@@ -125,17 +125,21 @@ export default function Data() {
     axios.post("/api/data/list", {
         projectName: p,
       }).then((res) => {
-        if (res.data !== "No data found") {
-          setDatasets(res.data);
-          if (!background) {
-            setPage(0);
-            const newPage = 0;
-            const updatedRows = res.data.slice(
-              newPage * rowsPerPage,
-              newPage * rowsPerPage + rowsPerPage,
-            );
-            setVisibleRows(updatedRows);
-          }
+        setDatasets(res.data);
+        if (!background) {
+          setPage(0);
+          const newPage = 0;
+          const updatedRows = res.data.slice(
+            newPage * rowsPerPage,
+            newPage * rowsPerPage + rowsPerPage,
+          );
+          setVisibleRows(updatedRows);
+        } else {
+          const updatedRows = res.data.slice(
+            page * rowsPerPage,
+            page * rowsPerPage + rowsPerPage,
+          );
+          setVisibleRows(updatedRows);
         }
         setLoading(false);
       }).catch((error) => {
