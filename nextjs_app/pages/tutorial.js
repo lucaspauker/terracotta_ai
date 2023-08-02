@@ -8,7 +8,7 @@ import { SimpleLayout } from '@/components/layout'
 
 export default function TutorialPublic() {
   return (
-    <div className='homepage tutorial'>
+    <div className='homepage tutorial main-content'>
       <div className='header horizontal-box full-width'>
         <Typography className="logo horizontal-box" variant="h1">
           <GiClayBrick style={{marginRight: 10}}/>
