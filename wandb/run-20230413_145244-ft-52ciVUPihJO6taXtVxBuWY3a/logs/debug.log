@@ -1,0 +1,48 @@
+2023-04-13 14:52:44,078 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Configure stats pid to 12829
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Loading settings from /Users/berikohen/.config/wandb/settings
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Loading settings from /Users/berikohen/Desktop/canopy_ai_labs/wandb/settings
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2023-04-13 14:52:44,079 WARNING MainThread:12829 [wandb_setup.py:_flush():76] Could not save program above cwd: /Users/berikohen/anaconda3/bin/openai
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': None, 'program': '/Users/berikohen/anaconda3/bin/openai'}
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_init.py:_log_setup():507] Logging user logs to /Users/berikohen/Desktop/canopy_ai_labs/wandb/run-20230413_145244-ft-52ciVUPihJO6taXtVxBuWY3a/logs/debug.log
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_init.py:_log_setup():508] Logging internal logs to /Users/berikohen/Desktop/canopy_ai_labs/wandb/run-20230413_145244-ft-52ciVUPihJO6taXtVxBuWY3a/logs/debug-internal.log
+2023-04-13 14:52:44,079 INFO    MainThread:12829 [wandb_init.py:init():547] calling init triggers
+2023-04-13 14:52:44,080 INFO    MainThread:12829 [wandb_init.py:init():555] wandb.init called with sweep_config: {}
+config: {'object': 'fine-tune', 'id': 'ft-52ciVUPihJO6taXtVxBuWY3a', 'hyperparams': <OpenAIObject at 0x7fd56d0c52b0> JSON: {
+  "batch_size": 1,
+  "classification_positive_class": " baseball",
+  "compute_classification_metrics": true,
+  "learning_rate_multiplier": 0.1,
+  "n_epochs": 4,
+  "prompt_loss_weight": 0.01
+}, 'organization_id': 'org-v2Mdjs38KdXqPUcB4MofPhwd', 'model': 'ada', 'training_files': <File file id=file-aMy0XOpDTfZxd8hnxEDaXU6X at 0x7fd56d0c5308> JSON: {
+  "bytes": 1519036,
+  "created_at": 1680825358,
+  "filename": "sport2_prepared_train.jsonl",
+  "id": "file-aMy0XOpDTfZxd8hnxEDaXU6X",
+  "object": "file",
+  "purpose": "fine-tune",
+  "status": "processed",
+  "status_details": null
+}, 'validation_files': <File file id=file-PVVxHduUvpaKaYeWUgIa72Qw at 0x7fd56d0c5360> JSON: {
+  "bytes": 387349,
+  "created_at": 1680825361,
+  "filename": "sport2_prepared_valid.jsonl",
+  "id": "file-PVVxHduUvpaKaYeWUgIa72Qw",
+  "object": "file",
+  "purpose": "fine-tune",
+  "status": "processed",
+  "status_details": null
+}, 'result_files': <File file id=file-7sJVM4X4Dg3bXMeyvl2PVJ48 at 0x7fd56d0c53b8> JSON: {
+  "bytes": 214958,
+  "created_at": 1680826056,
+  "filename": "compiled_results.csv",
+  "id": "file-7sJVM4X4Dg3bXMeyvl2PVJ48",
+  "object": "file",
+  "purpose": "fine-tune-results",
+  "status": "processed",
+  "status_details": null
+}, 'created_at': datetime.datetime(2023, 4, 6, 16, 56, 1), 'updated_at': 1680826056, 'status': 'succeeded', 'fine_tuned_model': 'ada:ft-personal-2023-04-07-00-07-35'}
+2023-04-13 14:52:44,080 INFO    MainThread:12829 [wandb_init.py:init():595] starting backend
+2023-04-13 14:52:44,080 INFO    MainThread:12829 [wandb_init.py:init():599] setting up manager
