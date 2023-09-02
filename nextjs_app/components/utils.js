@@ -71,6 +71,8 @@ export const metricFormat = (metric) => {
   if (metric === 'rougel') return 'RougeL';
   if (metric === 'mauve') return 'MAUVE';
   if (metric === 'confusion') return 'Confusion Matrix';
+  if (metric === 'train_accuracy') return 'Train Accuracy';
+  if (metric === 'val_accuracy') return 'Validation Accuracy';
   return toTitleCase(metric);
 }
 
@@ -94,9 +96,12 @@ export const metricTooltip = (metric) => {
 export const baseModelNamesDict = {
   'text-ada-001': 'GPT-3 Ada',
   'text-babbage-001': 'GPT-3 Babbage',
+  'babbage-002': 'GPT-3 Babbage 2',
   'text-curie-001': 'GPT-3 Curie',
   'text-davinci-003': 'GPT-3 Davinci',
+  'davinci-002': 'GPT-3 Davinci 2',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  'gpt-3.5-turbo-0613': 'GPT-3.5 Turbo 6/13/23',
   'gpt-4': 'GPT-4',
   'generate-medium': 'Generate Medium',
   'generate-xlarge': 'Generate X-Large',

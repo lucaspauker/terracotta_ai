@@ -376,17 +376,28 @@ a {
   margin-top: 2px;
   margin-right: 5px;
   color: lightgreen;
+  width: 16px;
 }
 
 .model-failed {
+  margin-top: 2px;
   margin-right: 5px;
   color: #ff726f;
+  width: 16px;
+}
+
+.model-pending {
+  margin-top: 2px;
+  margin-right: 5px;
+  color: tan;
+  width: 16px;
 }
 
 .model-training {
   margin-top: 2px;
   margin-right: 5px;
-  color: tan;
+  color: lightblue;
+  width: 16px;
 }
 
 .status {

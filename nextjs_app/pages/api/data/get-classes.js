@@ -18,7 +18,7 @@ const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 const ObjectId = require('mongodb').ObjectId;
 
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 const client = new S3Client({ region: REGION });
 

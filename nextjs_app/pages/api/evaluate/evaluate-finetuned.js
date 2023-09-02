@@ -16,7 +16,7 @@ import { stringify } from 'csv-stringify';
 
 const createError = require('http-errors');
 const mongoose = require('mongoose');
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 const csv = require('csvtojson');
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
@@ -56,10 +56,9 @@ export default async function handler(request, response) {
     }
     const userId = user._id;
 
-    const configuration = new Configuration({
-      apiKey: user.openAiKey,
+    const openai = new OpenAI({
+      apiKey: user.openAiKey
     });
-    const openai = new OpenAIApi(configuration);
 
     const project = await Project.findOne({userId: user._id, name: projectName});
     if (!project) {
@@ -146,9 +145,14 @@ export default async function handler(request, response) {
 
     let totalTokens = 0;
     results.map((completion, i) => {
-      const completionText = completion.data.choices[0].text;
+      let completionText;
+      if (model.modelArchitecture === "gpt-3.5-turbo-0613") {
+        completionText = completion.choices[0].message.content;
+      } else {
+        completionText = completion.choices[0].text;
+      }
       completions.push(completionText);
-      totalTokens += completion.data.usage.total_tokens;
+      totalTokens += completion.usage.total_tokens;
       uploadData[i+1][2] = completionText;
     });
     const cost = totalTokens * pmodel.finetuneCompletionCost / 1000;
@@ -167,7 +171,6 @@ export default async function handler(request, response) {
 
       const command = new PutObjectCommand(uploadParams);
       const data = await client.send(command);
-      console.log(data);
       console.log('File uploaded successfully. File location:', data.Location);
     });
 

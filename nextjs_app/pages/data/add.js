@@ -97,7 +97,7 @@ export default function AddDataset() {
   const [selectedFileVal, setSelectedFileVal] = useState(null);
   const [realFileName, setRealFileName] = useState('');  // Filename in S3
   const [realFileNameVal, setRealFileNameVal] = useState('');
-  const [autoGenerateVal, setAutoGenerateVal] = useState(false);
+  const [autoGenerateVal, setAutoGenerateVal] = useState(true);
   const [headers, setHeaders] = useState([]);
   const [trainInputFileData, setTrainInputFileData] = useState({});
   const [valInputFileData, setValInputFileData] = useState({});

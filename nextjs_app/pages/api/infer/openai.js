@@ -8,7 +8,7 @@ import Template from '../../../schemas/Template';
 const createError = require('http-errors');
 const mongoose = require('mongoose');
 
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -38,33 +38,33 @@ export default async function handler(request, response) {
     }
 
     // Configure openai with user API key
-    const configuration = new Configuration({
-      apiKey: user.openAiKey,
+
+    const openai = new OpenAI({
+      apiKey: user.openAiKey
     });
-    const openai = new OpenAIApi(configuration);
 
     let max_tokens = Number(hyperParams.maxTokens);
     let temperature = Number(hyperParams.temperature);
 
     if (completionName) {  // Stock OpenAI model
       let completion;
-      if (completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4') {
-        completion = await openai.createChatCompletion({
+      if (completionName === 'gpt-3.5-turbo-0613' || completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4') {
+        completion = await openai.chat.completions.create({
           model: completionName,
           messages: [{role: 'user', content: prompt}],
           max_tokens: max_tokens,
           temperature: temperature,
         });
-        response.status(200).json(completion.data.choices[0].message.content);
+        response.status(200).json(completion.choices[0].message.content);
         return;
       } else {
-        completion = await openai.createCompletion({
+        completion = await openai.completions.create({
           model: completionName,
           prompt: prompt,
           max_tokens: max_tokens,
           temperature: temperature,
         });
-        response.status(200).json(completion.data.choices[0].text);
+        response.status(200).json(completion.choices[0].text);
         return;
       }
     } else {  // Finetuned model
@@ -76,14 +76,14 @@ export default async function handler(request, response) {
 
       const templateString = template.templateString;
 
-      const completion = await openai.createCompletion({
+      const completion = await openai.completions.create({
         model: model.providerData.modelId,
         prompt: templateTransform(templateString, finetuneInputData),
         max_tokens: max_tokens,
         temperature: temperature,
         stop: template.stopSequence,
       });
-      const completionText = completion.data.choices[0].text;
+      const completionText = completion.choices[0].text;
 
       response.status(200).json(getReturnText(template, completionText));
       return;

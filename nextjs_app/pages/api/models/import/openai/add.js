@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 
 const path = require('path');
 
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {

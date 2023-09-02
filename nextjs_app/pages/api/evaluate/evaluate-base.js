@@ -21,7 +21,7 @@ const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 const ObjectId = require('mongodb').ObjectId;
 
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 const cohere = require('cohere-ai');
 
 const client = new S3Client({ region: REGION });
@@ -85,10 +85,10 @@ export default async function handler(request, response) {
     let openai;
 
     if (providerModel.provider === "openai") {
-      const configuration = new Configuration({
-        apiKey: user.openAiKey,
+      
+      openai = new OpenAI({
+        apiKey: user.openAiKey
       });
-      openai = new OpenAIApi(configuration);
     } else {
       cohere.init(user.cohereKey);
     }

@@ -19,6 +19,10 @@ const modelSchema = new Schema({
     type: String,
     required: true,
   },
+  errorMessage: {
+    type: String,
+    required: false,
+  },
   datasetId: {
     type: Schema.Types.ObjectId,
     ref: 'datasets'

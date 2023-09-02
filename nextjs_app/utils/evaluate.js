@@ -1,9 +1,9 @@
-const { encode } = require('gpt-3-encoder');
+const { encode } = require('gpt-3-encoder')
 
 export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, temperature, stopSequence, classMap) {
   let maxRequestsPerMinute;
   let maxTokensPerMinute;
-  if (model === 'gpt-3.5-turbo') {
+  if (model === 'gpt-3.5-turbo' || model === 'gpt-3.5-turbo-0613') {
     maxRequestsPerMinute = 3500 / 2;
     maxTokensPerMinute = 90000 / 2;
   } else if (model === 'gpt-4') {
@@ -67,8 +67,8 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
 
       while (retryCount <= numRequestRetries) {
         try {
-          if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
-            result = openai.createChatCompletion({
+          if (model === 'gpt-3.5-turbo' || model === 'gpt-4' || model.includes('gpt-3.5-turbo-0613')) {
+            result = await openai.chat.completions.create({
               model: model,
               messages: [{role: 'user', content: prompt}],
               max_tokens: maxTokens,
@@ -77,7 +77,7 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
             });
             break;
           } else {
-            result = await openai.createCompletion({
+            result = await openai.completions.create({
               model,
               prompt,
               max_tokens: maxTokens,
@@ -93,8 +93,8 @@ export async function dispatchOpenAIRequests(openai, prompts, model, maxTokens, 
       }
 
       if (model !== 'gpt-3.5-turbo' && model !== 'gpt-4') {  // You cannot finetune gpt-3.5-turbo or gpt-4
-        const resData = result.data.choices[0].text;
-        if (classMap && classMap.has(resData)) result.data.choices[0].text = classMap.get(resData);
+        const resData = result.choices[0].text;
+        if (classMap && classMap.has(resData)) result.choices[0].text = classMap.get(resData);
       }
       return result;
     });
