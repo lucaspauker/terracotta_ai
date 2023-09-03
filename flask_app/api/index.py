@@ -14,11 +14,11 @@ if __name__ != '__main__':
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
-@app.route('/')
+@app.route('/flask-api/')
 def hello_world():
     return 'Hello, World!'
 
-@app.route('/evaluate_nlp', methods=["POST"])
+@app.route('/flask-api/evaluate_nlp', methods=["POST"])
 def nlp_metrics(test=False):
     try:
         if test:
@@ -60,7 +60,7 @@ def nlp_metrics(test=False):
         app.logger.error(e)
         return jsonify({"error": str(e)})
 
-@app.route('/evaluate_classification', methods=["POST"])
+@app.route('/flask-api/evaluate_classification', methods=["POST"])
 def classification_metrics():
     try:
         json_data = request.get_json()
