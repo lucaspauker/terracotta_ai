@@ -157,17 +157,17 @@ export default async function handler(request, response) {
 
           // Create evaluation with training results
           if (makeEval && model.status !== "succeeded") {
-            await Evaluation.create({
-              name: model.name + " training evaluation",
-              projectId: project._id,
-              modelId: model._id,
-              userId: user._id,
-              metrics: metrics,
-              metricResults: metricResults,
-              trainingEvaluation: true,
-              status: "succeeded",
-              datasetId: model.datasetId._id,
-            })
+            //await Evaluation.create({
+            //  name: model.name + " training evaluation",
+            //  projectId: project._id,
+            //  modelId: model._id,
+            //  userId: user._id,
+            //  metrics: metrics,
+            //  metricResults: metricResults,
+            //  trainingEvaluation: true,
+            //  status: "succeeded",
+            //  datasetId: model.datasetId._id,
+            //})
           }
           model["status"] = "succeeded";
           model.providerData.modelId = finetuneResponse.fine_tuned_model;
