@@ -14,11 +14,11 @@ const mongoose = require('mongoose');
 const csv = require('csvtojson');
 const tmp = require('tmp');
 const fs = require('fs');
+const ObjectId = require('mongodb').ObjectId;
 
 const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 const client = new S3Client({ region: REGION });
-
 
 async function downloadFile(data, filename) {
   return new Promise((resolve, reject) => {
@@ -61,26 +61,8 @@ export default async function handler(request, response) {
   // Don't return a status twice
   let newModelId = null;
   try {
-    const provider = request.body.provider;
-    const modelArchitecture = request.body.modelArchitecture;
-    const datasetName = request.body.dataset;
-    const modelName = request.body.modelName;
-    const description = request.body.description;
-    const projectName = request.body.projectName;
-    let hyperParams = request.body.hyperParams;
-    const templateString = request.body.templateString;
-    const templateData = request.body.templateData;
-    const outputColumn = request.body.outputColumn;
-    const stopSequence = request.body.stopSequence;
-    let errorMessage = null;
-
-    for (const [key, value] of Object.entries(hyperParams)){
-      if (hyperParams[key] === null) {
-        delete hyperParams[key];
-      } else {
-        hyperParams[key] = Number(value);
-      }
-    }
+    console.log("Rerunning training for " + request.body.modelId);
+    const modelId = request.body.modelId;
 
     await mongoose.connect(process.env.MONGOOSE_URI);
 
@@ -89,57 +71,99 @@ export default async function handler(request, response) {
       throw createError(400,'User not found');
     }
     const userId = user._id;
-    console.log(user);
 
     // Configure openai with user API key
-
     const openai = new OpenAI({
       organization: user.organization,
       apiKey: user.openAiKey
     });
 
-    const project = await Project.findOne({userId: userId, name: projectName});
-
-    if (!project) {
-      throw createError(400,'Project not found');
-    } else if (project.type !== "generative" && project.type !== "classification") {
-      throw createError(400,'Only classification and generation are supported');
+    let model = await Model
+      .aggregate([
+        {
+          $match: { _id: new ObjectId(modelId), userId: user._id }
+        },
+        {
+          $lookup: {
+            from: "datasets",
+            localField: "datasetId",
+            foreignField: "_id",
+            as: "dataset"
+          }
+        },
+        {
+          $lookup: {
+            from: "templates",
+            localField: "templateId",
+            foreignField: "_id",
+            as: "template"
+          }
+        },
+        {
+          $lookup: {
+            from: "projects",
+            localField: "projectId",
+            foreignField: "_id",
+            as: "project"
+          }
+        },
+        {
+          $unwind: { path: "$dataset", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $unwind: { path: "$template", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $unwind: { path: "$project", preserveNullAndEmptyArrays: true }
+        },
+        {
+          $project: {
+            _id: "$_id",
+            name: "$name",
+            datasetId: "$datasetId",
+            providerData: "$providerData",
+            templateId: "$templateId",
+            datasetName: "$dataset.name",
+            datasetTrainFileName: "$dataset.trainFileName",
+            datasetValFileName: "$dataset.valFileName",
+            templateString: "$template.templateString",
+            stopSequence: "$template.stopSequence",
+            outputColumn: "$template.outputColumn",
+            classMap: "$template.classMap",
+            classes: "$template.classes",
+            projectType: "$project.type",
+            description: "$description",
+            provider: "$provider",
+            timeCreated: "$timeCreated",
+            status: "$status",
+            modelArchitecture: "$modelArchitecture",
+          }
+        }
+    ]);
+    model = model[0];
+    if (!model) {
+      throw createError(400,'Model not found');
     }
-
-    let dataset = await Dataset.findOne({projectId: project._id, name: datasetName});
-
-    if (!dataset) {
-      throw createError(400,'Dataset not found');
+    if (model.status === "succeeded") {
+      throw createError(400,"Model already trained");
     }
-
-    // Create model in db, then we will fill in provider data later
-
-    const model = await Model.create({
-      name: modelName,
-      description: description,
-      provider: provider,
-      modelArchitecture: modelArchitecture,
-      status: "preparing",
-      datasetId: dataset._id,
-      projectId: project._id,
-      userId: userId,
-      providerData: {},
-    });
     newModelId = model._id;
-    response.status(200).send();
-
-    // Only download from S3 and upload to openai once
-    let valFilePresent = false;
+    await Model.findByIdAndUpdate(
+      model._id,
+      {
+        status: "preparing",
+      }
+    );
 
     const regex = /{{.*}}/g;
-    const matches = templateString.match(regex);
+    const matches = model.templateString.match(regex);
     const matchesStrings = [...new Set(matches.map(m => m.substring(2, m.length - 2)))];
 
     let template = {};
 
-    const trainFileName = dataset.trainFileName;
-    const valFileName = dataset.valFileName;
-    valFilePresent = valFileName && valFileName !== undefined;
+    const trainFileName = model.datasetTrainFileName;
+    const valFileName = model.datasetValFileName;
+    let valFilePresent = (valFileName && valFileName !== undefined);
 
     // Download files from S3
     const params = {
@@ -151,8 +175,8 @@ export default async function handler(request, response) {
     const s3Response = await client.send(command);
     const stream = s3Response.Body;
     const trainJson = await csv({trim:false}).fromStream(stream);
-    let valJson = {};
 
+    let valJson = {};
     if (valFilePresent) {
       const params = {
         Bucket: S3_BUCKET,
@@ -168,14 +192,14 @@ export default async function handler(request, response) {
     let classes = [];
 
     const templateTransform = (row) => {
-      if (project.type === "classification") {
-        classes.push(row[outputColumn]);
+      if (model.projectType === "classification") {
+        classes.push(row[model.outputColumn]);
       }
-      let prompt = templateString;
+      let prompt = model.templateString;
       matches.forEach((match) => {
         prompt = prompt.replace(match, row[match.replace('{{','').replace('}}','')]);
       });
-      return {prompt: prompt, completion: row[outputColumn] + stopSequence};
+      return {prompt: prompt, completion: row[model.outputColumn] + model.stopSequence};
     }
 
     let trainData = trainJson.map((row) => {
@@ -189,44 +213,7 @@ export default async function handler(request, response) {
       });
     }
 
-    // Get unique classes
-    classes = Array.from(new Set(classes));
-
-    // Create map of classes to ids
-    let classMap = {}
-    let reverseClassMap = {}
-    for (let i=0; i<classes.length; i++) {
-      const tok = " " + String(i);
-      classMap[tok] = classes[i];
-      reverseClassMap[classes[i]] = tok;
-    }
-
-    // Go through trainData and replace completions with classMapped strings
-    if (classes.length > 0) {
-      trainData = trainData.map((row) => {
-        return {...row, completion: reverseClassMap[row.completion.substring(0, row.completion.length - stopSequence.length)] + stopSequence};
-      });
-      if (valFilePresent) {
-        valData = valData.map((row) => {
-          return {...row, completion: reverseClassMap[row.completion.slice(0,-1 * stopSequence.length)] + stopSequence};
-        });
-      }
-    }
-
-    template = await Template.create({
-      templateString: templateString,
-      templateData: templateData,
-      outputColumn: outputColumn,
-      datasetId: dataset._id,
-      classes: classes.length > 1? classes : null,
-      classMap: classMap,
-      stopSequence: stopSequence,
-      fields: matchesStrings,
-    });
-
-    console.log(template);
-
-    if (modelArchitecture === "gpt-3.5-turbo-0613") {
+    if (model.modelArchitecture === "gpt-3.5-turbo-0613") {
       trainData = trainData;
       trainData = trainData.map((row) => {
         return {messages: [{role: 'user', content: row.prompt},
@@ -250,24 +237,25 @@ export default async function handler(request, response) {
     }
 
     console.log("Downloaded files");
-
     const trainResponse = await openai.files.create({
       file: fs.createReadStream(trainFileJsonl),
       purpose: "fine-tune",
     });
     deleteTemporaryFile(trainFileJsonl);
 
+    let dataset;
     if (valFilePresent) {
       const valResponse = await openai.files.create({
         file: fs.createReadStream(valFileJsonl),
         purpose: "fine-tune",
       });
       deleteTemporaryFile(valFileJsonl);
-      dataset = await Dataset.findByIdAndUpdate(dataset._id,
+      dataset = await Dataset.findByIdAndUpdate(model.datasetId,
         {openaiData: {trainFile: trainResponse.id, valFile: valResponse.id}}, {new: true});
     } else {
-      dataset = await Dataset.findByIdAndUpdate(dataset._id, {openaiData: {trainFile: trainResponse.id}}, {new: true});
+      dataset = await Dataset.findByIdAndUpdate(model.datasetId, {openaiData: {trainFile: trainResponse.id}}, {new: true});
     }
+    response.status(200).send();
 
     await new Promise(r => setTimeout(r, 10000));
 
@@ -276,7 +264,7 @@ export default async function handler(request, response) {
 
     let finetuneRequest = {
       training_file: dataset.openaiData.trainFile,
-      model: modelArchitecture,
+      model: model.modelArchitecture,
     };
     if (valFilePresent) {
       finetuneRequest.validation_file = dataset.openaiData.valFile;
@@ -299,7 +287,7 @@ export default async function handler(request, response) {
           console.log("File processed");
 
           // Create finetune
-          finetuneRequest = {...finetuneRequest, hyperparameters: hyperParams};
+          finetuneRequest = {...finetuneRequest, hyperparameters: model.providerData.hyperParams};
           console.log(finetuneRequest);
           try {
             const finetuneResponse = await openai.fineTuning.jobs.create(finetuneRequest);
@@ -311,9 +299,8 @@ export default async function handler(request, response) {
                 status: "training",
                 providerData: {
                   finetuneId: finetuneResponse.id,
-                  hyperParams: hyperParams,
+                  hyperParams: model.providerData.hyperParams,
                 },
-                templateId: template._id
               }
             );
           } catch (error) {
@@ -321,10 +308,6 @@ export default async function handler(request, response) {
             await Model.findByIdAndUpdate(newModelId, {
               status: "failed",
               errorMessage: error.error.message,
-              providerData: {
-                hyperParams: hyperParams,
-              },
-              templateId: template._id
             })
           }
         }

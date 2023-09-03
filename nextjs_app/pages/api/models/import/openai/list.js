@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../../auth/[...nextauth]"
 import { MongoClient } from 'mongodb';
 const client = new MongoClient(process.env.MONGODB_URI);
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -40,12 +40,12 @@ export default async function handler(request, response) {
 
     const projectId = project._id;
 
-    const configuration = new Configuration({
-        apiKey: user.openAiKey,
+    
+    const openai = new OpenAI({
+        apiKey: user.openAiKey
       });
-    const openai = new OpenAIApi(configuration);
 
-    let finetunes = await openai.listFineTunes();
+    let finetunes = await openai.fineTunes.list();
     finetunes = finetunes.data.data;
     
     const currentModels = await db

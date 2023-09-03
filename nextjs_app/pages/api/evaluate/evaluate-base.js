@@ -21,7 +21,7 @@ const S3_BUCKET = process.env.PUBLIC_S3_BUCKET;
 const REGION = process.env.PUBLIC_S3_REGION;
 const ObjectId = require('mongodb').ObjectId;
 
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 const cohere = require('cohere-ai');
 
 const client = new S3Client({ region: REGION });
@@ -85,10 +85,10 @@ export default async function handler(request, response) {
     let openai;
 
     if (providerModel.provider === "openai") {
-      const configuration = new Configuration({
-        apiKey: user.openAiKey,
+      
+      openai = new OpenAI({
+        apiKey: user.openAiKey
       });
-      openai = new OpenAIApi(configuration);
     } else {
       cohere.init(user.cohereKey);
     }
@@ -178,18 +178,18 @@ export default async function handler(request, response) {
     let cost;
 
     if (providerModel.provider === "openai") {
-      if (completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4') {
+      if (completionName === 'gpt-3.5-turbo' || completionName === 'gpt-4' || completionName.includes("gpt-3.5-turbo-0613")) {
         results.map((completion, i) => {
-          const completionText = completion.data.choices[0].message.content.trim()
+          const completionText = completion.choices[0].message.content.trim()
           completions.push(completionText);
-          totalTokens += completion.data.usage.total_tokens;
+          totalTokens += completion.usage.total_tokens;
           uploadData[i+1][2] = completionText;
         });
       } else {
         results.map((completion, i) => {
-          const completionText = completion.data.choices[0].text.trim()
+          const completionText = completion.choices[0].text.trim()
           completions.push(completionText);
-          totalTokens += completion.data.usage.total_tokens;
+          totalTokens += completion.usage.total_tokens;
           uploadData[i+1][2] = completionText;
         });
       }

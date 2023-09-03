@@ -60,7 +60,7 @@ export async function getServerSideProps(context) {
 
 export default function Train() {
   const [provider, setProvider] = useState('openai');
-  const [modelArchitecture, setModelArchitecture] = useState('');
+  const [modelArchitecture, setModelArchitecture] = useState('gpt-3.5-turbo-0613');
   const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState('');
   const [datasets, setDatasets] = useState([]);
@@ -80,12 +80,6 @@ export default function Train() {
   const [visibleRows, setVisibleRows] = useState(null);
   const [datasetLoading, setDatasetLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-
-
-  // TODO: Change batch size initialization based on dataset size. OpenAI dynamically configures this
-  // to be 0.2% of dataset size capped at 256. To do this, we need to store info about
-  // dataset size in the datasets collection when it is uploaded.
 
   const router = useRouter();
 
@@ -329,13 +323,11 @@ export default function Train() {
                     onChange={(e) => setModelArchitecture(e.target.value)}
                     required
                 >
-                    <MenuItem value={'ada'}>Ada {createCustomTooltip("Capable of very simple tasks, usually the fastest model in the GPT-3 series, and lowest cost.")}
+                    <MenuItem value={'babbage-002'}>Babbage {createCustomTooltip("Capable of straightforward tasks, very fast, and lower cost.")}
                     </MenuItem>
-                    <MenuItem value={'babbage'}>Babbage {createCustomTooltip("Capable of straightforward tasks, very fast, and lower cost.")}
+                    <MenuItem value={'davinci-002'}>Davinci {createCustomTooltip("Can do any task the other models can do, often with higher quality.")}
                     </MenuItem>
-                    <MenuItem value={'curie'}>Curie {createCustomTooltip("Very capable, but faster and lower cost than Davinci.")}
-                    </MenuItem>
-                    <MenuItem value={'davinci'}>Davinci {createCustomTooltip("Most capable GPT-3 model. Can do any task the other models can do, often with higher quality.")}
+                    <MenuItem value={'gpt-3.5-turbo-0613'}>GPT-3.5 Turbo {createCustomTooltip("Most powerful model. Recommended for most tasks.")}
                     </MenuItem>
                 </Select>
               </FormControl>
@@ -418,51 +410,6 @@ export default function Train() {
               <Typography variant='body2' className='form-label'>
                 The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
               </Typography>
-              <div className='medium-space' />
-              <Button variant="text" onClick={() => setShowAdvanced(!showAdvanced)}>
-                Show advanced parameters
-                {showAdvanced ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-              </Button>
-
-              <Collapse in={showAdvanced}>
-                <div className='medium-space' />
-                <TextField
-                  label="Batch size"
-                  variant="outlined"
-                  className='text-label center'
-                  value={hyperParams.batch_size ? hyperParams.batch_size : ''}
-                  onChange={(e) => setHyperParams({...hyperParams, batch_size: e.target.value})}
-                />
-                <Typography variant='body2' className='form-label'>
-                  The batch size is the number of training examples used to train a single forward and backward pass. By default, this will be set to 0.2% of the size of your training set, up to 256.
-                </Typography>
-                <div className='medium-space' />
-
-                <TextField
-                  label="Learning rate multiplier"
-                  variant="outlined"
-                  className='text-label center'
-                  value={hyperParams.learning_rate_multiplier ? hyperParams.learning_rate_multiplier : ''}
-                  onChange={(e) => setHyperParams({...hyperParams, learning_rate_multiplier: e.target.value})}
-                />
-                <Typography variant='body2' className='form-label'>
-                  By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on batch size. The learning rate used for fine-tuning is the original rate used for pretraining multiplied by this value.
-                </Typography>
-                <div className='medium-space' />
-
-                <TextField
-                  label="Prompt loss weight"
-                  variant="outlined"
-                  className='text-label center'
-                  value={hyperParams.prompt_loss_weight ? hyperParams.prompt_loss_weight : ''}
-                  onChange={(e) => setHyperParams({...hyperParams, prompt_loss_weight: e.target.value})}
-                />
-                <Typography variant='body2' className='form-label'>
-                This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short.
-                If prompts are extremely long (relative to completions), you can reduce this parameter to avoid over-prioritizing learning the prompt.
-                </Typography>
-              </Collapse>
-
             </>
             : null}
 

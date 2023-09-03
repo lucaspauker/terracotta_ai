@@ -36,7 +36,7 @@ export default function Add() {
   const [loading, setLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [type, setType] = useState('classification');
+  const [type, setType] = useState('generative');
   const [progress , setProgress] = useState(0);
   const nameRef = useRef();
   const descriptionRef = useRef();
@@ -103,18 +103,18 @@ export default function Add() {
               exclusive
               onChange={(e, val) => setType(val)}
             >
-              <ToggleButton value="classification">
-                <Typography variant='body1'>
-                  Classification
-                </Typography>
-              </ToggleButton>
               <ToggleButton value="generative">
                 <Typography variant='body1'>
                   Generative
                 </Typography>
               </ToggleButton>
+              <ToggleButton value="classification">
+                <Typography variant='body1'>
+                  Classification
+                </Typography>
+              </ToggleButton>
             </ToggleButtonGroup>
-            {createCustomTooltip("Use a classification project if you want to classify text into certain predefined categories. Use a generative project if you want to generate freeform text.")}
+            {createCustomTooltip("Use a classification project if you want to classify text into certain predefined categories. Use a generative project if you want to generate freeform text. If you are not sure which to choose, choose generative.")}
           </div>
           <div className='medium-space' />
 

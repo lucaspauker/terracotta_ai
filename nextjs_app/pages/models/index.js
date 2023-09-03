@@ -68,15 +68,16 @@ export default function Models() {
 
   // Auto page refresh
   const [refreshCount, setRefreshCount] = useState(0);
-  const maxRefreshes = 5;
+  const maxRefreshes = 10;
   const refreshInterval = 2000;
   useEffect(() => {
     if (refreshCount >= maxRefreshes) return;
     const checkDatabaseChange = () => {
+      console.log("refreshing");
       refreshModels(null, true);
 
       // Schedule the next refresh
-      const nextRefreshInterval = refreshInterval;
+      const nextRefreshInterval = refreshInterval * refreshCount * 2;
       const timeout = setTimeout(() => {
         setRefreshCount(prevCount => prevCount + 1);
       }, nextRefreshInterval);
@@ -121,7 +122,15 @@ export default function Models() {
         );
         setVisibleRows(updatedRows);
       }
-      setLoading(false);
+      !background && setLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  const handleModelRetry = (modelId) => {
+    axios.post("/api/models/finetune/openai-retry", {modelId: modelId}).then((res) => {
+      refreshModels(null, true);
     }).catch((error) => {
       console.log(error);
     });
@@ -250,14 +259,22 @@ export default function Models() {
                       <TableCell>{model.modelArchitecture}</TableCell>
                       <TableCell>
                         <span className='status'>
-                          <BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>
-                          {model.status.toLowerCase()}
-                          {model.status === 'queued for training' && createCustomTooltip("Time in the training queue depends on OpenAI and can take up to a day.")}
+                        <BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : model.status==='training' ? 'model-training' : 'model-pending'} sx={{fontSize:16, width:16}}/>
+                        {model.status.toLowerCase()}
+                        {model.status === 'queued for training' && createCustomTooltip("Time in the training queue depends on OpenAI and can take up to a day.")}
+                        {model.status === 'failed' && ('errorMessage' in model) && createCustomTooltip("Error message: " + model.errorMessage)}
+                        {model.status === 'failed' &&
+                          <Tooltip title="Rerun finetuning">
+                            <IconButton className='horizontal-box copy' onClick={() => handleModelRetry(model._id)}>
+                              <HiOutlineRefresh style={{fontSize:16, marginBottom:'2px', color:'gray'}} />
+                            </IconButton>
+                          </Tooltip>
+                        }
                         </span>
                       </TableCell>
-                      <TableCell>{model.status==='failed' ?  "---"
-                                  : model.providerData && ("modelId" in model.providerData)?
-                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?model=' + model.providerData.modelId}>
+                      <TableCell>{model.status==='failed' ? "---"
+                                  : model.providerData && ("modelId" in model.providerData) ?
+                                  <Link className='link' target="_blank" href={'https://platform.openai.com/playground?mode=complete&model=' + model.providerData.modelId}>
                                       {model.providerData.modelId}
                                   </Link>
                                   :"pending"}

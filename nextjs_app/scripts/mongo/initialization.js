@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+const OpenAI = require('mongodb');
 const mongoClient = new MongoClient("mongodb://127.0.0.1");
 
 async function initializeDatabase() {

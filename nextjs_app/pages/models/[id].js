@@ -234,7 +234,7 @@ export default function ModelPage() {
               <Typography>Finetuning dataset: <Link className='link' href={'/data/' + model.datasetId}>{model.datasetName}</Link></Typography>
               <Typography>Output column: {model.outputColumn}</Typography>
               <Typography>Stop sequence: {model.stopSequence}</Typography>
-              <Typography># of epochs: {model.providerData.hyperParams.n_epochs}</Typography>
+              <Typography># of epochs: {model.providerData ? model.providerData.hyperParams.n_epochs: "not found"}</Typography>
               {model.classes && <Typography sx={{whiteSpace:'pre-wrap'}}>Classes: {joinWordsWithCommas(model.classes)}</Typography>}
               <Typography><span className='status'>Status:&nbsp;&nbsp;<BsFillCircleFill className={model.status==='succeeded' || model.status==='imported' ? 'model-succeeded' : model.status==='failed' ? 'model-failed' : 'model-training'}/>{model.status && model.status.toLowerCase()}</span></Typography>
             </Paper>
