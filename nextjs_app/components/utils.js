@@ -81,7 +81,7 @@ export const metricTooltip = (metric) => {
     return "The BLEU metric is a method for evaluating the quality of machine-translated text by comparing it to one or more reference translations based on n-grams and measuring their overlap.";
   } else if (metric === "rougel") {
     return "The RougeL metric is a method for evaluating the quality of machine-generated summaries by measuring the longest common subsequence between the summary and one or more reference summaries.";
-  } else if (metric === "f1") {
+  } else if (metric === "f1" || metric === "weighted f1") {
     return "The F1 metric is a measure of a model's accuracy that balances precision and recall by calculating the harmonic mean of these two metrics.";
   } else if (metric === "accuracy") {
     return "Accuracy is a metric that quantifies the proportion of correct predictions made by a model out of the total number of predictions.";

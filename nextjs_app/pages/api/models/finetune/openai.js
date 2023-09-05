@@ -92,9 +92,7 @@ export default async function handler(request, response) {
     console.log(user);
 
     // Configure openai with user API key
-
     const openai = new OpenAI({
-      organization: user.organization,
       apiKey: user.openAiKey
     });
 
