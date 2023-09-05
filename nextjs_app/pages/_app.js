@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react"
 import createEmotionCache from '../components/createEmotionCache';
 import ErrorBoundary from '../components/ErrorBoundary'
 import { Layout, SimpleLayout } from '../components/layout'
+import { GoogleAnalytics } from "nextjs-google-analytics";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -19,7 +20,7 @@ export default function App({Component, emotionCache = clientSideEmotionCache, p
     return (
       <CacheProvider value={emotionCache}>
         <SessionProvider session={session}>
-          {getLayout(<Component {...pageProps} />)}
+          {getLayout(<><GoogleAnalytics trackPageViews /><Component {...pageProps} /></>)}
         </SessionProvider>
       </CacheProvider>
     );
@@ -29,6 +30,7 @@ export default function App({Component, emotionCache = clientSideEmotionCache, p
       <SessionProvider session={session}>
         <Layout>
           <ErrorBoundary>
+            <GoogleAnalytics trackPageViews />
             <Component {...pageProps} />
           </ErrorBoundary>
         </Layout>

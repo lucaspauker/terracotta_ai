@@ -29,8 +29,6 @@ import { BiInfoCircle } from 'react-icons/bi';
 import {createCustomTooltip} from '../../components/CustomToolTip.js';
 import {getPriceString} from '../../components/utils.js';
 
-const steps = ['Dataset and model', 'Metrics', 'Review'];
-
 export async function getServerSideProps(context) {
   const session = await getSession(context)
 
@@ -64,9 +62,24 @@ export default function Deploy() {
   }
 
   const pythonApiCode = (modelName, inputPrompt) => {
+    if (modelName.includes("gpt-3.5-turbo")) {
+      return `import os
+import openai
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+openai.ChatCompletion.create(
+    model="${modelName}",
+    messages=[
+      {role: "user", content: "${inputPrompt}"},
+    ]
+    max_tokens=50,
+    temperature=0
+)`;
+    }
     return `import os
 import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 openai.Completion.create(
     model="${modelName}",
     prompt="${inputPrompt}",
@@ -76,12 +89,23 @@ openai.Completion.create(
   }
 
   const nodeApiCode = (modelName, inputPrompt) => {
-    return `const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-const response = await openai.createCompletion({
+    if (modelName.includes("gpt-3.5-turbo")) {
+      return `import OpenAI from "openai";
+const openai = new OpenAI();
+
+const response = await openai.chat.completions.create({
+  model: ${modelName},
+  messages: [
+    {role: "user", content: "${inputPrompt}"}
+  ],
+  max_tokens: 50,
+  temperature: 0,
+});`
+    }
+    return `import OpenAI from "openai";
+const openai = new OpenAI();
+
+const response = await openai.completions.create({
   model: "${modelName}",
   prompt: "${inputPrompt}",
   max_tokens: 50,
@@ -90,6 +114,19 @@ const response = await openai.createCompletion({
   }
 
   const curlApiCode = (modelName, inputPrompt) => {
+    if (modelName.includes("gpt-3.5-turbo")) {
+      return `curl https://api.openai.com/v1/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $OPENAI_API_KEY" \\
+  -d '{
+    "model": "${modelName}",
+    "messages": [
+      {"role": "user", "content": "${inputPrompt}"},
+    ],
+    "max_tokens": 50,
+    "temperature": 0
+  }'`
+    }
     return `curl https://api.openai.com/v1/completions \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer $OPENAI_API_KEY" \\
@@ -231,7 +268,7 @@ const response = await openai.createCompletion({
               InputProps={{
                 readOnly: true,
               }}
-              rows={11}
+              rows={12}
               className="output-text-box output-code-box"
               value={apiCode}
             />
