@@ -212,7 +212,7 @@ export default function Home() {
             <BsDiscord />
           </IconButton>
         </Link>
-        <Link href="mailto:contact@terra-cotta.ai?subject=Hello">
+        <Link href="mailto:lucas@terra-cotta.ai?subject=Hello">
           <IconButton>
             <EmailIcon />
           </IconButton>
